@@ -17,10 +17,11 @@ export interface StepperFormData {
   // Step 1: Who it's for
   customerRole?: "home-buyer" | "home-owner" | "buyers-agent";
   
-  // Step 2: Customer type / Info
+  // Step 2 & 3: Info & Details
+  firstName?: string;
+  lastName?: string;
   email?: string;
   emailVerified?: boolean;
-  fullName?: string;
   phone?: string;
   
   // Step 3: Your info / Property Details

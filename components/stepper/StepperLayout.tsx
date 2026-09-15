@@ -77,7 +77,7 @@ export const StepperLayout: React.FC = () => {
                 variant="outline"
                 onClick={stepper.goToBack}
                 disabled={stepper.isFirstStep}
-                className="px-6 py-2.5 sm:px-8 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-semibold"
+                className="px-6 py-2.5 sm:px-8 sm:py-3 rounded-lg text-xs sm:text-sm font-semibold"
               >
                 Back
               </Button>
@@ -86,7 +86,7 @@ export const StepperLayout: React.FC = () => {
                 type="button"
                 variant="primary"
                 onClick={stepper.goToNext}
-                className="px-8 py-2.5 sm:px-10 sm:py-3.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-semibold text-white shadow-xs hover:scale-[1.02] active:scale-[0.98]"
+                className="px-8 py-2.5 sm:px-10 sm:py-3.5 rounded-lg text-xs sm:text-sm font-semibold text-white shadow-xs hover:scale-[1.02] active:scale-[0.98]"
               >
                 {stepper.isLastStep ? "Complete Order" : "Continue"}
               </Button>

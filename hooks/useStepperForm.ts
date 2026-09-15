@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { MainStep, StepperFormData, FormValidationErrors } from "@/types/stepper";
 
 export const STEP_CONFIG: MainStep[] = [
@@ -46,14 +47,73 @@ export const STEP_CONFIG: MainStep[] = [
 ];
 
 export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {
-  const [currentMainStepIndex, setCurrentMainStepIndex] = useState(0);
-  const [currentSubStepIndex, setCurrentSubStepIndex] = useState(0);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // Helper to parse step & substep from URL search parameters
+  const parseUrlSteps = useCallback(() => {
+    const stepParam = searchParams.get("step");
+    const subStepParam = searchParams.get("substep");
+
+    let mainIndex = 0;
+    let subIndex = 0;
+
+    if (stepParam) {
+      const foundMainIdx = STEP_CONFIG.findIndex(
+        (s) => s.id === stepParam || String(s.number) === stepParam
+      );
+      if (foundMainIdx !== -1) mainIndex = foundMainIdx;
+    }
+
+    if (subStepParam) {
+      const targetMain = STEP_CONFIG[mainIndex];
+      const foundSubIdx = targetMain?.subSteps.findIndex(
+        (sub) => sub.id === subStepParam || String(sub.number) === subStepParam
+      );
+      if (foundSubIdx !== -1 && foundSubIdx !== undefined) {
+        subIndex = foundSubIdx;
+      }
+    }
+
+    return { mainIndex, subIndex };
+  }, [searchParams]);
+
+  const initialSteps = useMemo(() => parseUrlSteps(), []);
+
+  const [currentMainStepIndex, setCurrentMainStepIndex] = useState(initialSteps.mainIndex);
+  const [currentSubStepIndex, setCurrentSubStepIndex] = useState(initialSteps.subIndex);
+
   const [formData, setFormData] = useState<StepperFormData>({
     customerRole: "home-buyer",
     ...initialData,
   });
   const [errors, setErrors] = useState<FormValidationErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Sync state when URL search parameters change (e.g. browser Back/Forward or manual refresh)
+  useEffect(() => {
+    const { mainIndex, subIndex } = parseUrlSteps();
+    setCurrentMainStepIndex(mainIndex);
+    setCurrentSubStepIndex(subIndex);
+  }, [searchParams, parseUrlSteps]);
+
+  // Helper to update URL search parameters without full page reload
+  const pushStepUrl = useCallback(
+    (mainIdx: number, subIdx: number) => {
+      const targetMain = STEP_CONFIG[mainIdx];
+      const targetSub = targetMain?.subSteps[subIdx];
+
+      if (!targetMain || !targetSub) return;
+
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("step", targetMain.id);
+      params.set("substep", targetSub.id);
+
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [router, pathname, searchParams]
+  );
 
   const currentMainStep = useMemo(
     () => STEP_CONFIG[currentMainStepIndex],
@@ -95,6 +155,21 @@ export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {
       } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
         newErrors.email = "Please enter a valid email address.";
       }
+    } else if (currentSubStep?.id === "your-info") {
+      if (!formData.firstName) {
+        newErrors.firstName = "First name is required.";
+      }
+      if (!formData.lastName) {
+        newErrors.lastName = "Last name is required.";
+      }
+      if (!formData.email) {
+        newErrors.email = "Email address is required.";
+      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+        newErrors.email = "Please enter a valid email address.";
+      }
+      if (!formData.phone) {
+        newErrors.phone = "Mobile phone number is required.";
+      }
     }
 
     setErrors(newErrors);
@@ -104,49 +179,68 @@ export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {
   const goToNext = useCallback(() => {
     if (!validateCurrentStep()) return false;
 
-    // Check if there's another substep in current main step
+    let nextMain = currentMainStepIndex;
+    let nextSub = currentSubStepIndex;
+
     if (currentSubStepIndex < currentMainStep.subSteps.length - 1) {
-      setCurrentSubStepIndex((prev) => prev + 1);
+      nextSub = currentSubStepIndex + 1;
+    } else if (currentMainStepIndex < STEP_CONFIG.length - 1) {
+      nextMain = currentMainStepIndex + 1;
+      nextSub = 0;
+    } else {
       return true;
     }
 
-    // Move to next main step if available
-    if (currentMainStepIndex < STEP_CONFIG.length - 1) {
-      setCurrentMainStepIndex((prev) => prev + 1);
-      setCurrentSubStepIndex(0);
-      return true;
-    }
-
+    setCurrentMainStepIndex(nextMain);
+    setCurrentSubStepIndex(nextSub);
+    pushStepUrl(nextMain, nextSub);
     return true;
-  }, [currentMainStep, currentMainStepIndex, currentSubStepIndex, validateCurrentStep]);
+  }, [
+    currentMainStep,
+    currentMainStepIndex,
+    currentSubStepIndex,
+    validateCurrentStep,
+    pushStepUrl,
+  ]);
 
   const goToBack = useCallback(() => {
-    // If we're not at the first substep of current main step
+    let nextMain = currentMainStepIndex;
+    let nextSub = currentSubStepIndex;
+
     if (currentSubStepIndex > 0) {
-      setCurrentSubStepIndex((prev) => prev - 1);
+      nextSub = currentSubStepIndex - 1;
+    } else if (currentMainStepIndex > 0) {
+      nextMain = currentMainStepIndex - 1;
+      nextSub = STEP_CONFIG[nextMain].subSteps.length - 1;
+    } else {
       return;
     }
 
-    // Go to last substep of previous main step
-    if (currentMainStepIndex > 0) {
-      const prevMainIndex = currentMainStepIndex - 1;
-      setCurrentMainStepIndex(prevMainIndex);
-      setCurrentSubStepIndex(STEP_CONFIG[prevMainIndex].subSteps.length - 1);
-    }
-  }, [currentMainStepIndex, currentSubStepIndex]);
+    setCurrentMainStepIndex(nextMain);
+    setCurrentSubStepIndex(nextSub);
+    pushStepUrl(nextMain, nextSub);
+  }, [currentMainStepIndex, currentSubStepIndex, pushStepUrl]);
 
-  const selectMainStep = useCallback((mainStepIndex: number) => {
-    if (mainStepIndex <= currentMainStepIndex) {
-      setCurrentMainStepIndex(mainStepIndex);
-      setCurrentSubStepIndex(0);
-    }
-  }, [currentMainStepIndex]);
+  const selectMainStep = useCallback(
+    (mainStepIndex: number) => {
+      if (mainStepIndex <= currentMainStepIndex) {
+        setCurrentMainStepIndex(mainStepIndex);
+        setCurrentSubStepIndex(0);
+        pushStepUrl(mainStepIndex, 0);
+      }
+    },
+    [currentMainStepIndex, pushStepUrl]
+  );
 
-  const selectSubStep = useCallback((subStepIndex: number) => {
-    if (subStepIndex <= currentSubStepIndex || currentMainStepIndex > 0) {
-      setCurrentSubStepIndex(subStepIndex);
-    }
-  }, [currentSubStepIndex, currentMainStepIndex]);
+  const selectSubStep = useCallback(
+    (subStepIndex: number) => {
+      if (subStepIndex <= currentSubStepIndex || currentMainStepIndex > 0) {
+        setCurrentSubStepIndex(subStepIndex);
+        pushStepUrl(currentMainStepIndex, subStepIndex);
+      }
+    },
+    [currentSubStepIndex, currentMainStepIndex, pushStepUrl]
+  );
 
   const isFirstStep = currentMainStepIndex === 0 && currentSubStepIndex === 0;
   const isLastStep =

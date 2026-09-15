@@ -44,7 +44,8 @@ export const STEP_CONFIG: MainStep[] = [
     title: "Review & confirm",
     iconName: "file-text",
     subSteps: [
-      { id: "summary", number: 1, title: "Order Summary", mainStepId: "review-confirm" },
+      { id: "review", number: 1, title: "Review", mainStepId: "review-confirm" },
+      { id: "confirmation", number: 2, title: "Confirmation", mainStepId: "review-confirm" },
     ],
   },
 ];

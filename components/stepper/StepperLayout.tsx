@@ -13,10 +13,23 @@ import { InspectionTypeStep } from "@/components/stepper/steps/InspectionTypeSte
 import { PropertyAddressStep } from "@/components/stepper/steps/PropertyAddressStep";
 import { PropertyDetailsStep } from "@/components/stepper/steps/PropertyDetailsStep";
 import { DateTimeStep } from "@/components/stepper/steps/DateTimeStep";
+import { ReviewStep } from "@/components/stepper/steps/ReviewStep";
+import { ConfirmationStep } from "@/components/stepper/steps/ConfirmationStep";
 import { GenericStep } from "@/components/stepper/steps/GenericStep";
 
 export const StepperLayout: React.FC = () => {
   const stepper = useStepperForm();
+
+  const handleNavigateToStep = (mainStepId: string, subStepId: string) => {
+    const mainIdx = stepper.steps.findIndex((s) => s.id === mainStepId);
+    if (mainIdx !== -1) {
+      const subIdx = stepper.steps[mainIdx].subSteps.findIndex((sub) => sub.id === subStepId);
+      if (subIdx !== -1) {
+        stepper.selectMainStep(mainIdx);
+        stepper.selectSubStep(subIdx);
+      }
+    }
+  };
 
   const renderActiveStepContent = () => {
     const stepProps = {
@@ -42,6 +55,10 @@ export const StepperLayout: React.FC = () => {
         return <PropertyDetailsStep {...stepProps} />;
       case "date-time":
         return <DateTimeStep {...stepProps} />;
+      case "review":
+        return <ReviewStep {...stepProps} onNavigateToStep={handleNavigateToStep} />;
+      case "confirmation":
+        return <ConfirmationStep {...stepProps} />;
       default:
         return (
           <GenericStep

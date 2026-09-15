@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { StepProps } from "@/types/stepper";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -10,15 +10,26 @@ export const DateTimeStep: React.FC<StepProps> = ({
   errors,
   clearError,
 }) => {
-  // Calendar month/year navigation state - default to July 2027 or parsed from selectedDate
-  const initialDate = formData.selectedDate ? new Date(formData.selectedDate) : new Date(2027, 6, 15);
-  
+  // Real-world current date
+  const today = new Date();
+  const todayFormatted = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+  // Initial date: use formData.selectedDate if present, otherwise default to today
+  const initialDate = formData.selectedDate ? new Date(formData.selectedDate) : today;
+
   const [currentYear, setCurrentYear] = useState<number>(
-    isNaN(initialDate.getFullYear()) ? 2027 : initialDate.getFullYear()
+    isNaN(initialDate.getFullYear()) ? today.getFullYear() : initialDate.getFullYear()
   );
   const [currentMonthIndex, setCurrentMonthIndex] = useState<number>(
-    isNaN(initialDate.getMonth()) ? 6 : initialDate.getMonth()
+    isNaN(initialDate.getMonth()) ? today.getMonth() : initialDate.getMonth()
   );
+
+  // Initialize selectedDate with today's date if empty
+  useEffect(() => {
+    if (!formData.selectedDate) {
+      updateFormData({ selectedDate: todayFormatted });
+    }
+  }, [formData.selectedDate, todayFormatted, updateFormData]);
 
   const months = [
     "January", "February", "March", "April", "May", "June",
@@ -26,23 +37,20 @@ export const DateTimeStep: React.FC<StepProps> = ({
   ];
 
   // Dynamic calendar calculations
-  // Number of days in current month
   const daysInCurrentMonth = new Date(currentYear, currentMonthIndex + 1, 0).getDate();
-  
-  // Starting day of the week for 1st day of month (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
   const firstDayOfWeek = new Date(currentYear, currentMonthIndex, 1).getDay();
 
-  // Previous month days to pad
+  // Previous month padding
   const daysInPrevMonth = new Date(currentYear, currentMonthIndex, 0).getDate();
   const prevMonthDays = Array.from(
     { length: firstDayOfWeek },
     (_, i) => daysInPrevMonth - firstDayOfWeek + 1 + i
   );
 
-  // Current month days array
+  // Current month days
   const currentMonthDays = Array.from({ length: daysInCurrentMonth }, (_, i) => i + 1);
 
-  // Next month trailing days to complete the week row (7 columns)
+  // Next month trailing padding
   const totalCellsSoFar = prevMonthDays.length + currentMonthDays.length;
   const trailingCellCount = (7 - (totalCellsSoFar % 7)) % 7;
   const nextMonthDays = Array.from({ length: trailingCellCount }, (_, i) => i + 1);
@@ -78,12 +86,21 @@ export const DateTimeStep: React.FC<StepProps> = ({
 
   // Helper to check if a day is currently selected
   const isDaySelected = (day: number) => {
-    if (!formData.selectedDate) return false;
-    const [selYear, selMonth, selDay] = formData.selectedDate.split("-").map(Number);
+    const activeDateStr = formData.selectedDate || todayFormatted;
+    const [selYear, selMonth, selDay] = activeDateStr.split("-").map(Number);
     return (
       selYear === currentYear &&
       selMonth === currentMonthIndex + 1 &&
       selDay === day
+    );
+  };
+
+  // Helper to check if a day is actual real-world today
+  const isToday = (day: number) => {
+    return (
+      today.getFullYear() === currentYear &&
+      today.getMonth() === currentMonthIndex &&
+      today.getDate() === day
     );
   };
 
@@ -163,6 +180,7 @@ export const DateTimeStep: React.FC<StepProps> = ({
               {/* Current Month Days */}
               {currentMonthDays.map((day) => {
                 const selected = isDaySelected(day);
+                const actualToday = isToday(day);
 
                 return (
                   <button
@@ -172,6 +190,8 @@ export const DateTimeStep: React.FC<StepProps> = ({
                     className={`py-2 rounded-xl text-center text-xs sm:text-sm font-bold transition-all select-none border cursor-pointer ${
                       selected
                         ? "bg-primary border-primary text-white shadow-xs scale-105"
+                        : actualToday
+                        ? "bg-white border-primary text-primary ring-2 ring-primary/30"
                         : "bg-white border-hairline text-main hover:border-primary hover:text-primary"
                     }`}
                   >

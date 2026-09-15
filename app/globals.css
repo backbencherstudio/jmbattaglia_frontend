@@ -20,9 +20,11 @@
   --border-hairline: #E3E3E1;
   --border-active: #FF6900;
 
-  /* Accent Colors */
+  /* Accent & Feedback Colors */
   --accent-green: #9CB800;
   --accent-green-hover: #8AA300;
+  --feedback-success: #8C9600;
+  --feedback-success-bg: rgba(168, 180, 0, 0.12);
 }
 
 @theme {
@@ -45,9 +47,11 @@
   --color-hairline: var(--border-hairline);
   --color-brand-border: var(--border-active);
 
-  /* Accents */
+  /* Accents & Feedback */
   --color-accent-green: var(--accent-green);
   --color-accent-green-hover: var(--accent-green-hover);
+  --color-feedback-success: var(--feedback-success);
+  --color-feedback-success-bg: var(--feedback-success-bg);
 
   /* Fonts */
   --font-sans: var(--font-trade-gothic), system-ui, -apple-system, sans-serif;

@@ -277,6 +277,20 @@ export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {
     [currentSubStepIndex, currentMainStepIndex, pushStepUrl]
   );
 
+  const navigateToStep = useCallback(
+    (mainIdx: number, subIdx: number) => {
+      const targetMain = STEP_CONFIG[mainIdx];
+      const targetSub = targetMain?.subSteps[subIdx];
+
+      if (targetMain && targetSub) {
+        setCurrentMainStepIndex(mainIdx);
+        setCurrentSubStepIndex(subIdx);
+        pushStepUrl(mainIdx, subIdx);
+      }
+    },
+    [pushStepUrl]
+  );
+
   const isFirstStep = currentMainStepIndex === 0 && currentSubStepIndex === 0;
   const isLastStep =
     currentMainStepIndex === STEP_CONFIG.length - 1 &&
@@ -297,6 +311,7 @@ export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {
     goToBack,
     selectMainStep,
     selectSubStep,
+    navigateToStep,
     isFirstStep,
     isLastStep,
     isSubmitting,

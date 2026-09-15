@@ -25,8 +25,7 @@ export const StepperLayout: React.FC = () => {
     if (mainIdx !== -1) {
       const subIdx = stepper.steps[mainIdx].subSteps.findIndex((sub) => sub.id === subStepId);
       if (subIdx !== -1) {
-        stepper.selectMainStep(mainIdx);
-        stepper.selectSubStep(subIdx);
+        stepper.navigateToStep(mainIdx, subIdx);
       }
     }
   };

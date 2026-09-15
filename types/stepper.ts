@@ -24,9 +24,25 @@ export interface StepperFormData {
   emailVerified?: boolean;
   phone?: string;
   
-  // Step 3: Your info / Property Details
-  propertyAddress?: string;
+  // Step 2: Inspection
+  inspectionKind?: "resale-home" | "new-construction";
+
+  // Step 2: Inspection - Property Details
+  yearBuilt?: string;
   squareFeet?: string;
+  foundationType?: string;
+  clientAttending?: string;
+  homeOccupied?: string;
+  isGatedCommunity?: string;
+  hasAlarmSystem?: string;
+  hasPoolSpa?: string;
+  sewageSystem?: string;
+  waterSystem?: string;
+  utilitiesOn?: string;
+  hearAboutUs?: string;
+  gateCode?: string;
+  dueDiligence?: string;
+  specialInstructions?: string;
   
   // Dynamic step metadata
   [key: string]: any;

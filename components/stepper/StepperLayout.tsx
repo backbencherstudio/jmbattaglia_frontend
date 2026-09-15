@@ -9,6 +9,9 @@ import { useStepperForm } from "@/hooks/useStepperForm";
 import { WhoItsForStep } from "@/components/stepper/steps/WhoItsForStep";
 import { CustomerTypeStep } from "@/components/stepper/steps/CustomerTypeStep";
 import { YourInfoStep } from "@/components/stepper/steps/YourInfoStep";
+import { InspectionTypeStep } from "@/components/stepper/steps/InspectionTypeStep";
+import { PropertyAddressStep } from "@/components/stepper/steps/PropertyAddressStep";
+import { PropertyDetailsStep } from "@/components/stepper/steps/PropertyDetailsStep";
 import { GenericStep } from "@/components/stepper/steps/GenericStep";
 
 export const StepperLayout: React.FC = () => {
@@ -30,6 +33,12 @@ export const StepperLayout: React.FC = () => {
         return <CustomerTypeStep {...stepProps} />;
       case "your-info":
         return <YourInfoStep {...stepProps} />;
+      case "inspection-type":
+        return <InspectionTypeStep {...stepProps} />;
+      case "property-address":
+        return <PropertyAddressStep {...stepProps} />;
+      case "property-details":
+        return <PropertyDetailsStep {...stepProps} />;
       default:
         return (
           <GenericStep

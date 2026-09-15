@@ -22,8 +22,11 @@ export const STEP_CONFIG: MainStep[] = [
     title: "Inspection",
     iconName: "clipboard",
     subSteps: [
-      { id: "services", number: 1, title: "Select Services", mainStepId: "inspection" },
-      { id: "property-details", number: 2, title: "Property Details", mainStepId: "inspection" },
+      { id: "inspection-type", number: 1, title: "Inspection type", mainStepId: "inspection" },
+      { id: "property-address", number: 2, title: "Property address", mainStepId: "inspection" },
+      { id: "property-details", number: 3, title: "Property details", mainStepId: "inspection" },
+      { id: "package-addons", number: 4, title: "Package & add-ons", mainStepId: "inspection" },
+
     ],
   },
   {
@@ -169,6 +172,30 @@ export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {
       }
       if (!formData.phone) {
         newErrors.phone = "Mobile phone number is required.";
+      }
+    } else if (currentSubStep?.id === "inspection-type") {
+      if (!formData.inspectionKind) {
+        newErrors.inspectionKind = "Please select what kind of inspection you need.";
+      }
+    } else if (currentSubStep?.id === "property-address") {
+      if (!formData.addressLine1) {
+        newErrors.addressLine1 = "Address Line 1 is required.";
+      }
+      if (!formData.city) {
+        newErrors.city = "City is required.";
+      }
+      if (!formData.state) {
+        newErrors.state = "State is required.";
+      }
+      if (!formData.zipCode) {
+        newErrors.zipCode = "Zip Code is required.";
+      }
+    } else if (currentSubStep?.id === "property-details") {
+      if (!formData.yearBuilt) {
+        newErrors.yearBuilt = "Year Built is required.";
+      }
+      if (!formData.squareFeet) {
+        newErrors.squareFeet = "Square Feet is required.";
       }
     }
 

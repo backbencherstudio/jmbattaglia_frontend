@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { User, ClipboardList, Calendar, FileText } from "lucide-react";
 import { MainStep } from "@/types/stepper";
@@ -29,10 +31,10 @@ export const TopStepper: React.FC<TopStepperProps> = ({
   onStepClick,
 }) => {
   return (
-    <div className="w-full py-6 px-4 flex items-center justify-center bg-[var(--layout-bg,#FFFFFF)]">
+    <div className="w-full py-4 sm:py-6 px-2 sm:px-4 flex items-center justify-center bg-layout-bg border-b sm:border-b-0 border-hairline">
       <div className="relative flex items-center justify-between w-full max-w-3xl">
         {/* Dotted Connecting Line */}
-        <div className="absolute top-6 left-12 right-12 h-[2px] border-t-2 border-dotted border-[var(--border-hairline,#E3E3E1)] -z-0" />
+        <div className="absolute top-4 sm:top-6 left-6 sm:left-12 right-6 sm:right-12 h-[2px] border-t-2 border-dotted border-hairline -z-0" />
 
         {steps.map((step, idx) => {
           const isActive = idx === activeStepIndex;
@@ -42,40 +44,36 @@ export const TopStepper: React.FC<TopStepperProps> = ({
             <div
               key={step.id}
               onClick={() => idx <= activeStepIndex && onStepClick(idx)}
-              className={`relative z-10 flex flex-col items-center gap-2 group cursor-pointer transition-all ${
+              className={`relative z-10 flex flex-col items-center gap-1.5 sm:gap-2 group cursor-pointer transition-all ${
                 idx > activeStepIndex ? "cursor-not-allowed opacity-75" : ""
               }`}
             >
               {/* Step Icon Box */}
               <div
-                className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-200 border ${
+                className={`w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all duration-200 border ${
                   isActive
-                    ? "border-[var(--brand-primary,#FF6900)] bg-[var(--brand-primary-subtle,#FFE9D6)] shadow-sm scale-105"
+                    ? "border-primary bg-primary text-white shadow-xs scale-105"
                     : isCompleted
-                    ? "border-[var(--brand-primary,#FF6900)] bg-white"
-                    : "border-[var(--border-hairline,#E3E3E1)] bg-[var(--surface-canvas,#F7F7F6)]"
+                    ? "border-primary bg-primary-subtle text-primary"
+                    : "border-hairline bg-canvas text-gray-400"
                 }`}
               >
                 {getStepIcon(
                   step.iconName,
-                  `w-5 h-5 ${
+                  `w-4 h-4 sm:w-5 sm:h-5 ${
                     isActive
-                      ? "text-[var(--brand-primary,#FF6900)]"
+                      ? "text-white"
                       : isCompleted
-                      ? "text-[var(--brand-primary,#FF6900)]"
-                      : "text-gray-500"
+                      ? "text-primary"
+                      : "text-gray-400"
                   }`
                 )}
               </div>
 
               {/* Step Title */}
               <span
-                className={`text-xs md:text-sm tracking-tight transition-colors text-center font-bold ${
-                  isActive
-                    ? "text-[var(--text-primary,#01000B)]"
-                    : isCompleted
-                    ? "text-[var(--text-primary,#01000B)]"
-                    : "text-[var(--text-muted,#8E8E93)]"
+                className={`text-[10px] sm:text-xs md:text-sm tracking-tight transition-colors text-center font-bold ${
+                  isActive || isCompleted ? "text-main" : "text-muted font-normal"
                 }`}
               >
                 {step.title}

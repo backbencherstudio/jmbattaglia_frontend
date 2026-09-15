@@ -5,45 +5,51 @@
   --brand-primary: #FF6900;
   --brand-primary-hover: #E55E00;
   --brand-primary-subtle: #FFE9D6;
-  
+
   /* Text Colors */
   --text-primary: #01000B;
   --text-secondary: #555555;
   --text-muted: #8E8E93;
-  
+
   /* Surface & Background Colors */
   --layout-bg: #FFFFFF;
   --surface-canvas: #F7F7F6;
   --surface-card: #FFFFFF;
-  
+
   /* Border Colors */
   --border-hairline: #E3E3E1;
   --border-active: #FF6900;
-  
+
   /* Accent Colors */
   --accent-green: #9CB800;
   --accent-green-hover: #8AA300;
 }
 
-@theme inline {
-  --color-brand-primary: var(--brand-primary);
-  --color-brand-primary-hover: var(--brand-primary-hover);
-  --color-brand-primary-subtle: var(--brand-primary-subtle);
-  
-  --color-text-primary: var(--text-primary);
-  --color-text-secondary: var(--text-secondary);
-  --color-text-muted: var(--text-muted);
-  
+@theme {
+  /* Brand */
+  --color-primary: var(--brand-primary);
+  --color-primary-hover: var(--brand-primary-hover);
+  --color-primary-subtle: var(--brand-primary-subtle);
+
+  /* Typography */
+  --color-main: var(--text-primary);
+  --color-sub: var(--text-secondary);
+  --color-muted: var(--text-muted);
+
+  /* Surfaces & Layout */
   --color-layout-bg: var(--layout-bg);
-  --color-surface-canvas: var(--surface-canvas);
-  --color-surface-card: var(--surface-card);
-  
-  --color-border-hairline: var(--border-hairline);
-  --color-border-active: var(--border-active);
-  
+  --color-canvas: var(--surface-canvas);
+  --color-card: var(--surface-card);
+
+  /* Borders */
+  --color-hairline: var(--border-hairline);
+  --color-brand-border: var(--border-active);
+
+  /* Accents */
   --color-accent-green: var(--accent-green);
   --color-accent-green-hover: var(--accent-green-hover);
-  
+
+  /* Fonts */
   --font-sans: var(--font-trade-gothic), system-ui, -apple-system, sans-serif;
   --font-trade: var(--font-trade-gothic), system-ui, -apple-system, sans-serif;
 }

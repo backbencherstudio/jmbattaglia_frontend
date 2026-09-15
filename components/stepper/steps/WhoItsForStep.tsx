@@ -34,21 +34,21 @@ export const WhoItsForStep: React.FC<StepProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5 sm:gap-6">
       {/* Header section */}
       <div>
-        <h2 className="text-3xl font-extrabold tracking-tight text-[var(--text-primary,#01000B)]">
+        <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-main">
           Who Is This Inspection For?
         </h2>
-        <p className="text-base text-[var(--text-secondary,#555555)] mt-2">
+        <p className="text-sm sm:text-base text-sub mt-1.5">
           This helps us tailor your experience and show the right options for your situation.
         </p>
       </div>
 
-      <hr className="border-t border-[var(--border-hairline,#E3E3E1)] my-1" />
+      <hr className="border-t border-hairline my-0.5" />
 
-      {/* Option cards grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Option cards stack */}
+      <div className="flex flex-col lg:flex-row gap-3.5">
         {options.map((option) => (
           <CardOption
             key={option.id}
@@ -62,7 +62,7 @@ export const WhoItsForStep: React.FC<StepProps> = ({
       </div>
 
       {errors.customerRole && (
-        <p className="text-sm text-red-500 font-medium">{errors.customerRole}</p>
+        <p className="text-xs sm:text-sm text-red-500 font-medium">{errors.customerRole}</p>
       )}
     </div>
   );

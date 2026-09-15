@@ -14,15 +14,15 @@ export const YourInfoStep: React.FC<StepProps> = ({
   return (
     <div className="flex flex-col gap-6 max-w-xl">
       <div>
-        <h2 className="text-3xl font-extrabold tracking-tight text-[var(--text-primary,#01000B)]">
+        <h2 className="text-3xl font-extrabold tracking-tight text-main">
           Your Contact Information
         </h2>
-        <p className="text-base text-[var(--text-secondary,#555555)] mt-2">
+        <p className="text-base text-sub mt-2">
           Please provide your contact details so we can send inspection updates.
         </p>
       </div>
 
-      <hr className="border-t border-[var(--border-hairline,#E3E3E1)] my-1" />
+      <hr className="border-t border-hairline my-1" />
 
       <div className="flex flex-col gap-4">
         <Input
@@ -35,7 +35,7 @@ export const YourInfoStep: React.FC<StepProps> = ({
             clearError("fullName");
           }}
           error={errors.fullName}
-          leftIcon={<User className="w-5 h-5 text-gray-400" />}
+          leftIcon={<User className="w-5 h-5 text-muted" />}
         />
 
         <Input
@@ -48,7 +48,7 @@ export const YourInfoStep: React.FC<StepProps> = ({
             clearError("phone");
           }}
           error={errors.phone}
-          leftIcon={<Phone className="w-5 h-5 text-gray-400" />}
+          leftIcon={<Phone className="w-5 h-5 text-muted" />}
         />
       </div>
     </div>

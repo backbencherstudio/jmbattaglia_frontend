@@ -31,17 +31,16 @@ export const CustomerTypeStep: React.FC<StepProps> = ({
   return (
     <div className="flex flex-col gap-6 max-w-xl">
       <div>
-        <h2 className="text-3xl font-extrabold tracking-tight text-[var(--text-primary,#01000B)]">
+        <h2 className="text-3xl font-extrabold tracking-tight text-main">
           Customer Verification
         </h2>
-        <p className="text-base text-[var(--text-secondary,#555555)] mt-2">
+        <p className="text-base text-sub mt-2">
           Enter your email address to check if you have an existing account or inspection history.
         </p>
       </div>
 
-      <hr className="border-t border-[var(--border-hairline,#E3E3E1)] my-1" />
+      <hr className="border-t border-hairline my-1" />
 
-      {/* Reusable Input with left icon and inline action button (Image 3 implementation) */}
       <Input
         label="Email Address"
         requiredStar
@@ -50,7 +49,7 @@ export const CustomerTypeStep: React.FC<StepProps> = ({
         value={formData.email || ""}
         onChange={handleEmailChange}
         error={errors.email}
-        leftIcon={<Mail className="w-5 h-5 text-gray-400" />}
+        leftIcon={<Mail className="w-5 h-5 text-muted" />}
         rightAction={
           <Button
             type="button"
@@ -72,7 +71,7 @@ export const CustomerTypeStep: React.FC<StepProps> = ({
       />
 
       {formData.emailVerified && (
-        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm">
+        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-medium">
           ✓ Records found! Your details will be pre-filled in the next step.
         </div>
       )}

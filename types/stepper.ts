@@ -44,6 +44,10 @@ export interface StepperFormData {
   dueDiligence?: string;
   specialInstructions?: string;
   
+  // Step 3: Schedule
+  selectedDate?: string;
+  selectedTimeSlot?: string;
+
   // Dynamic step metadata
   [key: string]: any;
 }

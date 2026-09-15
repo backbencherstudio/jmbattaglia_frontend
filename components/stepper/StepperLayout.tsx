@@ -12,6 +12,7 @@ import { YourInfoStep } from "@/components/stepper/steps/YourInfoStep";
 import { InspectionTypeStep } from "@/components/stepper/steps/InspectionTypeStep";
 import { PropertyAddressStep } from "@/components/stepper/steps/PropertyAddressStep";
 import { PropertyDetailsStep } from "@/components/stepper/steps/PropertyDetailsStep";
+import { DateTimeStep } from "@/components/stepper/steps/DateTimeStep";
 import { GenericStep } from "@/components/stepper/steps/GenericStep";
 
 export const StepperLayout: React.FC = () => {
@@ -39,6 +40,8 @@ export const StepperLayout: React.FC = () => {
         return <PropertyAddressStep {...stepProps} />;
       case "property-details":
         return <PropertyDetailsStep {...stepProps} />;
+      case "date-time":
+        return <DateTimeStep {...stepProps} />;
       default:
         return (
           <GenericStep

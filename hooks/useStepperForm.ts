@@ -35,7 +35,7 @@ export const STEP_CONFIG: MainStep[] = [
     title: "Schedule",
     iconName: "calendar",
     subSteps: [
-      { id: "date-time", number: 1, title: "Select Date & Time", mainStepId: "schedule" },
+      { id: "date-time", number: 1, title: "Date and time", mainStepId: "schedule" },
     ],
   },
   {
@@ -196,6 +196,13 @@ export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {
       }
       if (!formData.squareFeet) {
         newErrors.squareFeet = "Square Feet is required.";
+      }
+    } else if (currentSubStep?.id === "date-time") {
+      if (!formData.selectedDate) {
+        newErrors.selectedDate = "Please select an inspection date.";
+      }
+      if (!formData.selectedTimeSlot) {
+        newErrors.selectedTimeSlot = "Please select a time slot.";
       }
     }
 

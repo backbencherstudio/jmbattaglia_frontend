@@ -25,9 +25,11 @@ export const LeftSubStepper: React.FC<LeftSubStepperProps> = ({
           <div
             key={subStep.id}
             onClick={() => onSubStepClick(idx)}
-            className={`flex-1 flex items-center gap-2.5 sm:gap-3 p-3 sm:p-3.5 rounded-lg  cursor-pointer transition-all duration-200 select-none border ${isActive || isCompleted
-              ? "bg-primary-subtle border-primary shadow-xs"
-              : "bg-canvas border-transparent hover:border-hairline"
+            className={`flex-1 flex items-center gap-2.5 sm:gap-3 p-3 sm:p-3.5 rounded-lg cursor-pointer transition-all duration-200 select-none border ${isActive
+              ? "bg-canvas border-hairline shadow-2xs"
+              : isCompleted
+                ? "bg-primary-subtle border-primary shadow-xs"
+                : "bg-canvas border-transparent hover:border-hairline"
               }`}
           >
             {/* SubStep Badge */}
@@ -38,7 +40,7 @@ export const LeftSubStepper: React.FC<LeftSubStepperProps> = ({
                 </span>
               </div>
             ) : isActive ? (
-              <div className="w-7 h-7 rounded-md bg-primary text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+              <div className="w-7 h-7 rounded-md bg-white text-main font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
                 {subStep.number}
               </div>
             ) : (
@@ -49,7 +51,11 @@ export const LeftSubStepper: React.FC<LeftSubStepperProps> = ({
 
             {/* SubStep Title */}
             <span
-              className={`text-sm sm:text-base lg:text-lg font-bold tracking-tight leading-tight ${isActive || isCompleted ? "text-primary" : "text-sub"
+              className={`tracking-tight ${isActive
+                ? "text-main font-bold text-base sm:text-lg lg:text-2xl leading-[124%]"
+                : isCompleted
+                  ? "text-primary font-bold text-sm sm:text-base lg:text-lg leading-tight"
+                  : "text-sub font-bold text-sm sm:text-base lg:text-lg leading-tight"
                 }`}
             >
               {subStep.title}

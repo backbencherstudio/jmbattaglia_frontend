@@ -24,4 +24,5 @@ export interface AddonOption {
 export interface IncludedItem {
   name: string;
   priceText: string;
+  priceNumeric?: number;
 }

@@ -44,15 +44,21 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
     }
   }, [formData.selectedAddons, updateFormData]);
 
-  // Expandable accordions state
+  // Expandable accordions & summary checkbox state
   const [expandedPackageId, setExpandedPackageId] = useState<string | null>(
     isNewConstruction ? null : "safe-home-package"
   );
   const [expandedAddonId, setExpandedAddonId] = useState<string | null>("pool-inspection");
+  const [uncheckedIncludedItems, setUncheckedIncludedItems] = useState<string[]>([]);
 
   const selectedPackageId =
     formData.selectedPackage || (isNewConstruction ? "pre-drywall" : "safe-home-package");
   const selectedAddons = formData.selectedAddons || ["chemical-balancing"];
+
+  // Reset unchecked items when package changes
+  useEffect(() => {
+    setUncheckedIncludedItems([]);
+  }, [selectedPackageId]);
 
   const handleSelectPackage = (pkgId: string) => {
     updateFormData({ selectedPackage: pkgId });
@@ -77,6 +83,14 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
     setExpandedAddonId((prev) => (prev === addonId ? null : addonId));
   };
 
+  const handleToggleIncludedItem = (itemName: string) => {
+    setUncheckedIncludedItems((prev) =>
+      prev.includes(itemName)
+        ? prev.filter((name) => name !== itemName)
+        : [...prev, itemName]
+    );
+  };
+
   // Selected object references for summary card
   const selectedPkgObj = packagesList.find((p) => p.id === selectedPackageId) || packagesList[0];
   const selectedAddonObjects = ADDONS_CONFIG.filter((a) => selectedAddons.includes(a.id));
@@ -84,10 +98,17 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
     { name: selectedPkgObj?.title || "Home Inspection", priceText: selectedPkgObj?.priceText || "$0" },
   ];
 
-  // Calculate total amount
-  const totalAmount =
+  // Calculate total amount with deductions for unchecked package items
+  const uncheckedDeductions = includedItems
+    .filter((item) => uncheckedIncludedItems.includes(item.name))
+    .reduce((acc, item) => acc + (item.priceNumeric || 0), 0);
+
+  const totalAmount = Math.max(
+    0,
     (selectedPkgObj?.priceNumeric || 0) +
-    selectedAddonObjects.reduce((acc, a) => acc + a.priceNumeric, 0);
+      selectedAddonObjects.reduce((acc, a) => acc + a.priceNumeric, 0) -
+      uncheckedDeductions
+  );
 
   return (
     <div className="w-full flex flex-col lg:flex-row gap-5 sm:gap-6 lg:gap-8 xl:gap-10 items-start">
@@ -176,6 +197,8 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
         selectedPkgObj={selectedPkgObj}
         selectedAddonObjects={selectedAddonObjects}
         includedItems={includedItems}
+        uncheckedIncludedItems={uncheckedIncludedItems}
+        onToggleIncludedItem={handleToggleIncludedItem}
         totalAmount={totalAmount}
       />
     </div>

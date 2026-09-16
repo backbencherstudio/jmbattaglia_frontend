@@ -125,23 +125,23 @@ export const ADDONS_CONFIG: AddonOption[] = [
 
 export const PACKAGE_INCLUDED_ITEMS: Record<string, IncludedItem[]> = {
   "safe-home-package": [
-    { name: "Termite Letter", priceText: "$75" },
-    { name: "Mold Assessment", priceText: "$320" },
-    { name: "Radon Testing", priceText: "$150" },
-    { name: "Asbestos Inspection", priceText: "$200" },
-    { name: "Lead Paint Evaluation", priceText: "$180" },
-    { name: "Water Quality Analysis", priceText: "$130" },
+    { name: "Termite Letter", priceText: "$75", priceNumeric: 75 },
+    { name: "Mold Assessment", priceText: "$320", priceNumeric: 320 },
+    { name: "Radon Testing", priceText: "$150", priceNumeric: 150 },
+    { name: "Asbestos Inspection", priceText: "$200", priceNumeric: 200 },
+    { name: "Lead Paint Evaluation", priceText: "$180", priceNumeric: 180 },
+    { name: "Water Quality Analysis", priceText: "$130", priceNumeric: 130 },
   ],
   "residential-home": [
-    { name: "Residential Home Inspection", priceText: "$538" },
+    { name: "Residential Home Inspection", priceText: "$538", priceNumeric: 538 },
   ],
   "radon-testing": [
-    { name: "Radon Testing Service", priceText: "$525" },
+    { name: "Radon Testing Service", priceText: "$525", priceNumeric: 525 },
   ],
   "pre-drywall": [
-    { name: "Pre-drywall inspection", priceText: "$465" },
+    { name: "Pre-drywall inspection", priceText: "$465", priceNumeric: 465 },
   ],
   "final-inspection": [
-    { name: "Final inspection", priceText: "$500" },
+    { name: "Final inspection", priceText: "$500", priceNumeric: 500 },
   ],
 };

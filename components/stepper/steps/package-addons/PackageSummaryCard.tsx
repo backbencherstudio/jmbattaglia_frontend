@@ -7,6 +7,8 @@ interface PackageSummaryCardProps {
   selectedPkgObj?: PackageOption;
   selectedAddonObjects: AddonOption[];
   includedItems: IncludedItem[];
+  uncheckedIncludedItems?: string[];
+  onToggleIncludedItem?: (itemName: string) => void;
   totalAmount: number;
 }
 
@@ -14,6 +16,8 @@ export const PackageSummaryCard: React.FC<PackageSummaryCardProps> = ({
   selectedPkgObj,
   selectedAddonObjects,
   includedItems,
+  uncheckedIncludedItems = [],
+  onToggleIncludedItem,
   totalAmount,
 }) => {
   return (
@@ -59,19 +63,56 @@ export const PackageSummaryCard: React.FC<PackageSummaryCardProps> = ({
           </h4>
 
           <div className="flex flex-col gap-2.5">
-            {includedItems.map((item, idx) => (
-              <div key={idx} className="flex items-center justify-between gap-2 text-xs sm:text-sm">
-                <div className="flex items-center gap-2 xs:gap-2.5 min-w-0 flex-1">
-                  <div className="w-4 h-4 xs:w-5 xs:h-5 rounded bg-primary-subtle border border-primary flex items-center justify-center text-primary shrink-0">
-                    <svg className="w-2.5 h-2.5 xs:w-3 xs:h-3 stroke-current" fill="none" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                    </svg>
+            {includedItems.map((item, idx) => {
+              const isChecked = !uncheckedIncludedItems.includes(item.name);
+
+              return (
+                <div
+                  key={idx}
+                  onClick={() => onToggleIncludedItem?.(item.name)}
+                  className="flex items-center justify-between gap-2 text-xs sm:text-sm cursor-pointer select-none group"
+                >
+                  <div className="flex items-center gap-2 xs:gap-2.5 min-w-0 flex-1">
+                    <div
+                      className={`w-4 h-4 xs:w-5 xs:h-5 rounded flex items-center justify-center shrink-0 transition-all ${
+                        isChecked
+                          ? "bg-primary-subtle border border-primary text-primary"
+                          : "bg-white border border-gray-300 text-transparent group-hover:border-primary"
+                      }`}
+                    >
+                      <svg
+                        className={`w-2.5 h-2.5 xs:w-3 xs:h-3 stroke-current transition-opacity ${
+                          isChecked ? "opacity-100" : "opacity-0"
+                        }`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="3"
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </div>
+                    <span
+                      className={`font-medium truncate transition-colors ${
+                        isChecked ? "text-sub" : "text-muted line-through opacity-75"
+                      }`}
+                    >
+                      {item.name}
+                    </span>
                   </div>
-                  <span className="text-sub font-medium truncate">{item.name}</span>
+                  <span
+                    className={`font-medium shrink-0 ml-1 transition-colors ${
+                      isChecked ? "text-muted" : "text-gray-300 line-through opacity-75"
+                    }`}
+                  >
+                    {item.priceText}
+                  </span>
                 </div>
-                <span className="text-muted font-medium shrink-0 ml-1">{item.priceText}</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

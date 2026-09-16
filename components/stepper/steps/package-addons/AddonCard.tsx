@@ -23,19 +23,17 @@ export const AddonCard: React.FC<AddonCardProps> = ({
 
   return (
     <div
-      className={`rounded-2xl transition-all duration-200 overflow-hidden border ${
-        isSelected
+      className={`rounded-2xl transition-all duration-200 overflow-hidden border ${isSelected
           ? "border border-primary bg-primary-subtle/30 shadow-xs"
           : "border-hairline bg-canvas hover:border-gray-300"
-      }`}
+        }`}
     >
       {/* Header Row */}
       <div className="p-3.5 xs:p-4 sm:p-4.5 flex items-center justify-between gap-3">
         <div className="flex flex-col min-w-0 flex-1">
           <span
-            className={`font-extrabold text-sm xs:text-base sm:text-lg leading-snug ${
-              isSelected ? "text-primary" : "text-main"
-            }`}
+            className={`font-extrabold text-sm xs:text-base sm:text-lg leading-snug ${isSelected ? "text-primary" : "text-main"
+              }`}
           >
             {addon.title}
           </span>
@@ -49,11 +47,10 @@ export const AddonCard: React.FC<AddonCardProps> = ({
           <button
             type="button"
             onClick={() => onToggleSelect(addon.id)}
-            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
-              isSelected
+            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all cursor-pointer ${isSelected
                 ? "bg-primary text-white hover:bg-primary-hover"
                 : "border border-primary text-primary bg-white hover:bg-primary-subtle/30"
-            }`}
+              }`}
             aria-label={isSelected ? "Remove addon" : "Add addon"}
           >
             {isSelected ? (
@@ -85,9 +82,8 @@ export const AddonCard: React.FC<AddonCardProps> = ({
             aria-label="Toggle details"
           >
             <svg
-              className={`w-4 h-4 transition-transform duration-200 ${
-                isExpanded ? "rotate-180" : ""
-              }`}
+              className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""
+                }`}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

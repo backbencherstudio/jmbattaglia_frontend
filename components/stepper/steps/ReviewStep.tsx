@@ -221,37 +221,78 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
       </div>
 
       {/* Bottom Section: Package Amounts Box */}
-      <div className="bg-canvas border border-hairline rounded-2xl p-4 sm:p-5 flex flex-col gap-3 shadow-2xs">
-        <div className="flex items-center justify-between pb-1 border-b border-hairline/60">
-          <h3 className="text-base sm:text-lg font-bold text-main">Package Amounts</h3>
-          <button
-            type="button"
-            onClick={() => handleEdit("inspection", "package-addons")}
-            className="text-xs sm:text-sm font-bold text-primary hover:underline cursor-pointer transition-all"
-          >
-            Edit
-          </button>
-        </div>
+      {(() => {
+        const ALL_PACKAGES: Record<string, { name: string; price: number }> = {
+          "safe-home-package": { name: "Safe Home Package", price: 1236 },
+          "residential-home": { name: "Residential Home Inspection", price: 538 },
+          "radon-testing": { name: "Radon Testing Service", price: 525 },
+          "pre-drywall": { name: "Pre-drywall inspection", price: 465 },
+          "final-inspection": { name: "Final inspection", price: 500 },
+        };
 
-        <div className="flex flex-col gap-2 text-xs sm:text-sm">
-          <div className="flex justify-between items-center">
-            <span className="text-sub font-medium">Safe Home Package :</span>
-            <span className="text-main font-bold text-right">+$1,236</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sub font-medium">Chemical Balancing:</span>
-            <span className="text-main font-bold text-right">+$79</span>
-          </div>
-        </div>
-      </div>
+        const ALL_ADDONS: Record<string, { name: string; price: number }> = {
+          "chemical-balancing": { name: "Chemical Balancing", price: 79 },
+          "spa-maintenance": { name: "Spa Maintenance", price: 149 },
+          "filter-replacement": { name: "Filter Replacement", price: 89 },
+          "pool-inspection": { name: "Pool Inspection", price: 199 },
+        };
 
-      {/* Bottom Section: Total Amounts */}
-      <div className="flex flex-col gap-1 pt-1">
-        <h3 className="text-lg sm:text-xl font-extrabold text-main tracking-tight">Total Amounts</h3>
-        <p className="text-xs sm:text-sm text-sub font-medium">
-          Your inspector will confirm the appointment and final scope before the visit.
-        </p>
-      </div>
+        const selectedPkgKey =
+          formData.selectedPackage ||
+          (formData.inspectionKind === "new-construction" ? "pre-drywall" : "safe-home-package");
+        const pkgInfo = ALL_PACKAGES[selectedPkgKey] || ALL_PACKAGES["safe-home-package"];
+
+        const selectedAddonKeys: string[] = formData.selectedAddons || ["chemical-balancing"];
+        const addonItems = selectedAddonKeys
+          .map((key) => ALL_ADDONS[key])
+          .filter(Boolean);
+
+        const totalPrice =
+          pkgInfo.price + addonItems.reduce((acc, item) => acc + item.price, 0);
+
+        return (
+          <>
+            <div className="bg-canvas border border-hairline rounded-2xl p-4 sm:p-5 flex flex-col gap-3 shadow-2xs">
+              <div className="flex items-center justify-between pb-1 border-b border-hairline/60">
+                <h3 className="text-base sm:text-lg font-bold text-main">Package Amounts</h3>
+                <button
+                  type="button"
+                  onClick={() => handleEdit("inspection", "package-addons")}
+                  className="text-xs sm:text-sm font-bold text-primary hover:underline cursor-pointer transition-all"
+                >
+                  Edit
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-2 text-xs sm:text-sm">
+                <div className="flex justify-between items-center">
+                  <span className="text-sub font-medium">{pkgInfo.name} :</span>
+                  <span className="text-main font-bold text-right">+${pkgInfo.price.toLocaleString()}</span>
+                </div>
+                {addonItems.map((addon, idx) => (
+                  <div key={idx} className="flex justify-between items-center">
+                    <span className="text-sub font-medium">{addon.name}:</span>
+                    <span className="text-main font-bold text-right">+${addon.price.toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Bottom Section: Total Amounts */}
+            <div className="flex flex-col gap-1 pt-1">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg sm:text-xl font-extrabold text-main tracking-tight">Total Amounts</h3>
+                <span className="text-xl sm:text-2xl font-extrabold text-[#FF6900]">
+                  ${totalPrice.toLocaleString()}
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-sub font-medium">
+                Your inspector will confirm the appointment and final scope before the visit.
+              </p>
+            </div>
+          </>
+        );
+      })()}
     </div>
   );
 };

@@ -26,6 +26,8 @@ export interface StepperFormData {
   
   // Step 2: Inspection
   inspectionKind?: "resale-home" | "new-construction";
+  selectedPackage?: string;
+  selectedAddons?: string[];
 
   // Step 2: Inspection - Property Details
   yearBuilt?: string;

@@ -12,6 +12,7 @@ import { YourInfoStep } from "@/components/stepper/steps/YourInfoStep";
 import { InspectionTypeStep } from "@/components/stepper/steps/InspectionTypeStep";
 import { PropertyAddressStep } from "@/components/stepper/steps/PropertyAddressStep";
 import { PropertyDetailsStep } from "@/components/stepper/steps/PropertyDetailsStep";
+import { PackageAddonsStep } from "@/components/stepper/steps/PackageAddonsStep";
 import { DateTimeStep } from "@/components/stepper/steps/DateTimeStep";
 import { ReviewStep } from "@/components/stepper/steps/ReviewStep";
 import { ConfirmationStep } from "@/components/stepper/steps/ConfirmationStep";
@@ -52,6 +53,8 @@ export const StepperLayout: React.FC = () => {
         return <PropertyAddressStep {...stepProps} />;
       case "property-details":
         return <PropertyDetailsStep {...stepProps} />;
+      case "package-addons":
+        return <PackageAddonsStep {...stepProps} />;
       case "date-time":
         return <DateTimeStep {...stepProps} />;
       case "review":

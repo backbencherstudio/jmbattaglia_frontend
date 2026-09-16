@@ -17,7 +17,7 @@ export const Header: React.FC = () => {
           />
         </div>
 
-        <div className="w-full flex items-center gap-2 text-xs sm:text-sm justify-end">
+        <div className="w-full flex items-center gap-2 text-base sm:text-sm justify-end">
           <span className="hidden sm:inline text-sub font-medium">
             Need help?
           </span>

@@ -198,6 +198,10 @@ export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {
       if (!formData.squareFeet) {
         newErrors.squareFeet = "Square Feet is required.";
       }
+    } else if (currentSubStep?.id === "package-addons") {
+      if (!formData.selectedPackage) {
+        newErrors.selectedPackage = "Please select an inspection package.";
+      }
     } else if (currentSubStep?.id === "date-time") {
       if (!formData.selectedDate) {
         newErrors.selectedDate = "Please select an inspection date.";

@@ -163,7 +163,7 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
     <div className="w-full flex flex-col gap-6">
       {/* Header section */}
       <div>
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-main">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-main">
           Choose Your Inspection Package
         </h2>
         <p className="text-xs sm:text-sm md:text-base text-sub mt-1.5 leading-normal">
@@ -173,7 +173,7 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
 
       {/* Pricing callout banner */}
       <div className="bg-[#FFF8F3] border border-orange-200/60 rounded-xl p-3 sm:p-3.5 flex items-center gap-2.5">
-        <div className="w-5 h-5 rounded-full border-1.5 border-[#FF6900] flex items-center justify-center flex-shrink-0 text-[#FF6900]">
+        <div className="w-5 h-5 rounded-full border-1.5 border-primary flex items-center justify-center flex-shrink-0 text-[#FF6900]">
           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="10" strokeWidth="2" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01" />
@@ -199,22 +199,20 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
               <div
                 key={pkg.id}
                 onClick={() => handleSelectPackage(pkg.id)}
-                className={`rounded-2xl transition-all duration-200 cursor-pointer overflow-hidden border ${
-                  isSelected
+                className={`rounded-2xl transition-all duration-200 cursor-pointer overflow-hidden border ${isSelected
                     ? "border-2 border-[#FF6900] bg-[#FFF9F5] shadow-xs"
                     : "border-hairline bg-[#F9F9F8] hover:border-gray-300"
-                }`}
+                  }`}
               >
                 {/* Header Row */}
-                <div className="p-4 sm:p-5 flex items-center justify-between gap-3">
+                <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3.5 min-w-0 flex-1">
                     {/* Radio circle */}
                     <div
-                      className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
-                        isSelected
+                      className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${isSelected
                           ? "border-2 border-[#FF6900] bg-white"
                           : "border-2 border-gray-300 bg-white"
-                      }`}
+                        }`}
                     >
                       {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#FF6900]" />}
                     </div>
@@ -238,15 +236,14 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
                   </div>
 
                   {/* Price + Accordion toggle */}
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    <div className="text-right">
+                  <div className="flex items-center justify-between sm:justify-end gap-3 flex-shrink-0">
+                    <div className="text-left sm:text-right">
                       <span className="text-[11px] sm:text-xs text-sub font-medium mr-1">
                         {pkg.priceSubLabel}
                       </span>
                       <span
-                        className={`text-base sm:text-lg font-extrabold ${
-                          pkg.isRecommended || isSelected ? "text-[#FF6900]" : "text-main"
-                        }`}
+                        className={`text-base sm:text-lg font-extrabold ${pkg.isRecommended || isSelected ? "text-[#FF6900]" : "text-main"
+                          }`}
                       >
                         {pkg.priceText}
                       </span>
@@ -259,9 +256,8 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
                       aria-label="Toggle details"
                     >
                       <svg
-                        className={`w-4 h-4 transition-transform duration-200 ${
-                          isExpanded ? "rotate-180" : ""
-                        }`}
+                        className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""
+                          }`}
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -359,19 +355,17 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
             return (
               <div
                 key={addon.id}
-                className={`rounded-2xl transition-all duration-200 overflow-hidden border ${
-                  isAddonSelected
+                className={`rounded-2xl transition-all duration-200 overflow-hidden border ${isAddonSelected
                     ? "border-2 border-[#FF6900] bg-[#FFF8F3] shadow-xs"
                     : "border-hairline bg-[#F9F9F8] hover:border-gray-300"
-                }`}
+                  }`}
               >
                 {/* Header Row */}
                 <div className="p-4 sm:p-4.5 flex items-center justify-between gap-3">
                   <div className="flex flex-col min-w-0">
                     <span
-                      className={`font-extrabold text-base sm:text-lg leading-snug ${
-                        isAddonSelected ? "text-[#FF6900]" : "text-main"
-                      }`}
+                      className={`font-extrabold text-base sm:text-lg leading-snug ${isAddonSelected ? "text-[#FF6900]" : "text-main"
+                        }`}
                     >
                       {addon.title}
                     </span>
@@ -385,11 +379,10 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
                     <button
                       type="button"
                       onClick={() => toggleAddonSelect(addon.id)}
-                      className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
-                        isAddonSelected
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all cursor-pointer ${isAddonSelected
                           ? "bg-[#C45100] text-white hover:bg-[#A84500]"
                           : "border border-[#FF6900] text-[#FF6900] bg-white hover:bg-orange-50"
-                      }`}
+                        }`}
                       aria-label={isAddonSelected ? "Remove addon" : "Add addon"}
                     >
                       {isAddonSelected ? (
@@ -421,9 +414,8 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
                       aria-label="Toggle details"
                     >
                       <svg
-                        className={`w-4 h-4 transition-transform duration-200 ${
-                          isAddonExpanded ? "rotate-180" : ""
-                        }`}
+                        className={`w-4 h-4 transition-transform duration-200 ${isAddonExpanded ? "rotate-180" : ""
+                          }`}
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -442,9 +434,9 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
                 {/* Expanded Details Section */}
                 {isAddonExpanded && hasDetails && (
                   <div className="px-4 pb-5 sm:px-5 sm:pb-5 pt-2 border-t border-hairline/60">
-                    <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-hairline flex flex-col md:flex-row gap-4 items-center">
+                    <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-hairline flex flex-col sm:flex-row gap-4 items-center">
                       {addon.image && (
-                        <div className="relative w-full md:w-56 h-36 rounded-lg overflow-hidden flex-shrink-0">
+                        <div className="relative w-full sm:w-56 h-36 rounded-lg overflow-hidden flex-shrink-0">
                           <Image
                             src={addon.image}
                             alt={addon.title}

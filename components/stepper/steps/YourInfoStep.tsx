@@ -26,7 +26,7 @@ export const YourInfoStep: React.FC<StepProps> = ({
       <hr className="border-t border-hairline my-0.5" />
 
       {/* 2-column Form Fields Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
         {/* First Name */}
         <Input
           label="First Name"

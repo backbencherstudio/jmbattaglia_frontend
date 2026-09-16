@@ -85,8 +85,8 @@ export const StepperLayout: React.FC = () => {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 bg-canvas py-4 sm:py-8 px-3 sm:px-6 md:px-12 flex justify-center">
-        <div className="w-full max-w-376 flex flex-col md:flex-row gap-4 sm:gap-6 items-start">
+      <main className="flex-1 bg-canvas py-4 sm:py-6 lg:py-8 px-3 sm:px-6 lg:px-12 flex justify-center">
+        <div className="w-full max-w-376 flex flex-col lg:flex-row gap-4 sm:gap-6 items-start">
           {/* Left Sub-Stepper Navigation */}
           {stepper.currentMainStep.subSteps.length > 0 && (
             <LeftSubStepper
@@ -97,7 +97,7 @@ export const StepperLayout: React.FC = () => {
           )}
 
           {/* Right Main Step Form Card */}
-          <div className="flex-1 w-full bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-10 border border-hairline shadow-xs flex flex-col justify-between min-h-[420px] sm:min-h-[460px]">
+          <div className="flex-1 w-full bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-10 border border-hairline shadow-xs flex flex-col justify-between min-h-[420px] sm:min-h-[460px]">
             {/* Step Form Renderer */}
             <div className="flex-1">{renderActiveStepContent()}</div>
 

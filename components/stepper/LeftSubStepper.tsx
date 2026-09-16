@@ -16,7 +16,7 @@ export const LeftSubStepper: React.FC<LeftSubStepperProps> = ({
   onSubStepClick,
 }) => {
   return (
-    <div className="w-full md:w-84 flex flex-col gap-2.5 p-3.5 sm:p-4 bg-white rounded-xl border border-hairline shadow-xs self-start">
+    <div className="w-full lg:w-80 shrink-0 flex flex-col sm:flex-row lg:flex-col gap-2.5 p-3.5 sm:p-4 bg-white rounded-xl  border border-hairline shadow-xs self-start">
       {subSteps.map((subStep, idx) => {
         const isActive = idx === activeSubStepIndex;
         const isCompleted = idx < activeSubStepIndex;
@@ -25,12 +25,12 @@ export const LeftSubStepper: React.FC<LeftSubStepperProps> = ({
           <div
             key={subStep.id}
             onClick={() => onSubStepClick(idx)}
-            className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-lg cursor-pointer transition-all duration-200 select-none border ${isActive || isCompleted
+            className={`flex-1 flex items-center gap-2.5 sm:gap-3 p-3 sm:p-3.5 rounded-lg  cursor-pointer transition-all duration-200 select-none border ${isActive || isCompleted
               ? "bg-primary-subtle border-primary shadow-xs"
               : "bg-canvas border-transparent hover:border-hairline"
               }`}
           >
-            {/* SubStep Badge (Number or Completed Checkmark Badge) */}
+            {/* SubStep Badge */}
             {isCompleted ? (
               <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center shrink-0 shadow-2xs">
                 <span className="w-4 h-4 rounded-full bg-white flex items-center justify-center">
@@ -49,7 +49,7 @@ export const LeftSubStepper: React.FC<LeftSubStepperProps> = ({
 
             {/* SubStep Title */}
             <span
-              className={`text-[1rem] md:text-[1.5rem] font-bold tracking-tight ${isActive || isCompleted ? "text-primary" : "text-sub"
+              className={`text-sm sm:text-base lg:text-lg font-bold tracking-tight leading-tight ${isActive || isCompleted ? "text-primary" : "text-sub"
                 }`}
             >
               {subStep.title}

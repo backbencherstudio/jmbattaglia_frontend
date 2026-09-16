@@ -22,11 +22,10 @@ export const CardOption: React.FC<CardOptionProps> = ({
   return (
     <div
       onClick={() => onSelect(id)}
-      className={`relative cursor-pointer rounded-2xl p-5 sm:p-6 transition-all duration-200 border text-left flex flex-col justify-between h-full select-none ${
-        isSelected
+      className={`relative cursor-pointer rounded-xl p-5 sm:p-6 transition-all duration-200 border text-left flex flex-col justify-between h-full select-none ${isSelected
           ? "border-primary bg-primary-subtle shadow-2xs"
           : "border-transparent bg-canvas hover:bg-gray-200/60"
-      }`}
+        }`}
     >
       <div className="flex flex-col gap-2">
         {/* Title row with Radio indicator */}

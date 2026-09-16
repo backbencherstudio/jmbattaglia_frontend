@@ -48,7 +48,7 @@ export const WhoItsForStep: React.FC<StepProps> = ({
       <hr className="border-t border-hairline my-0.5" />
 
       {/* Option cards stack */}
-      <div className="flex flex-col lg:flex-row gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
         {options.map((option) => (
           <CardOption
             key={option.id}

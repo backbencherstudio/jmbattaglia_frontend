@@ -33,10 +33,10 @@ export const PropertyDetailsStep: React.FC<StepProps> = ({
     <div className="w-full flex flex-col gap-5 sm:gap-6">
       {/* Header section */}
       <div>
-        <h2 className="md:text-4xl text-2xl font-extrabold tracking-tight text-main">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-main">
           A Few Property Details
         </h2>
-        <p className="text-sm sm:text-base text-sub mt-1.5">
+        <p className="text-xs sm:text-sm md:text-base text-sub mt-1.5">
           This helps our inspector prepare and quote accurately for larger or unusual homes.
         </p>
       </div>
@@ -44,7 +44,7 @@ export const PropertyDetailsStep: React.FC<StepProps> = ({
       <hr className="border-t border-hairline my-0.5" />
 
       {/* Form Fields Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
         {/* Year Built */}
         <Input
           label="Year Built"

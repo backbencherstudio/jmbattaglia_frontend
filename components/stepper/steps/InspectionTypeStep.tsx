@@ -32,10 +32,10 @@ export const InspectionTypeStep: React.FC<StepProps> = ({
     <div className="w-full flex flex-col gap-5 sm:gap-6">
       {/* Header section */}
       <div>
-        <h2 className="md:text-4xl text-2xl font-extrabold tracking-tight text-main">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-main">
           What Kind Of Inspection?
         </h2>
-        <p className="text-sm sm:text-base text-sub mt-1.5">
+        <p className="text-xs sm:text-sm md:text-base text-sub mt-1.5">
           We&apos;ll use this to send your report and keep you posted on scheduling no pricing commitment yet.
         </p>
       </div>
@@ -43,7 +43,7 @@ export const InspectionTypeStep: React.FC<StepProps> = ({
       <hr className="border-t border-hairline my-0.5" />
 
       {/* 2-column Option Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
         {options.map((option) => (
           <CardOption
             key={option.id}

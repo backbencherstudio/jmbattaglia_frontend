@@ -16,6 +16,7 @@ import {
 import { PackageCard } from "./package-addons/PackageCard";
 import { AddonCard } from "./package-addons/AddonCard";
 import { PackageSummaryCard } from "./package-addons/PackageSummaryCard";
+import { WarnIcon } from "@/components/icons/StepperStepIcons";
 
 export type { PackageOption, AddonOption, IncludedItem };
 
@@ -103,12 +104,9 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
         </div>
 
         {/* Pricing callout banner */}
-        <div className="bg-primary-subtle/40 border border-primary/30 rounded-xl p-2.5 xs:p-3 sm:p-3.5 flex items-center gap-2.5">
+        <div className="bg-canvas border-l-6 border-l-primary border border-hairline rounded-xl p-2.5 xs:p-3 sm:p-3.5 flex items-center gap-2.5">
           <div className="w-5 h-5 rounded-full border-1.5 border-primary flex items-center justify-center flex-shrink-0 text-primary">
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10" strokeWidth="2" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01" />
-            </svg>
+            <WarnIcon />
           </div>
           <p className="text-xs xs:text-sm md:text-base font-semibold text-primary-hover">
             Pricing is calculated based on your property details and synced with ISN.
@@ -160,12 +158,9 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
         </div>
 
         {/* Bottom Info Callout Banner */}
-        <div className="bg-primary-subtle/40 border border-primary/30 rounded-xl p-3 xs:p-3.5 sm:p-4 flex items-start gap-2.5 sm:gap-3 mt-2">
+        <div className="bg-canvas border-l-6 border-l-primary border border-hairline rounded-xl p-3 xs:p-3.5 sm:p-4 flex items-start gap-2.5 sm:gap-3 mt-2">
           <div className="w-5 h-5 rounded-full border-1.5 border-primary flex items-center justify-center flex-shrink-0 text-primary mt-0.5">
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10" strokeWidth="2" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01" />
-            </svg>
+            <WarnIcon />
           </div>
           <p className="text-xs sm:text-sm text-sub leading-normal">
             <span className="font-extrabold text-main">Fees are estimates.</span> Final pricing confirmed before your appointment. For standalone services (without a home inspection), call us directly at{" "}

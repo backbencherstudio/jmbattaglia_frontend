@@ -1,8 +1,13 @@
 "use client";
 
 import React from "react";
-import { User, ClipboardList, Calendar, FileText } from "lucide-react";
 import { MainStep } from "@/types/stepper";
+import {
+  AboutYouIcon,
+  InspectionStepIcon,
+  ScheduleStepIcon,
+  ReviewStepIcon,
+} from "@/components/icons/StepperStepIcons";
 
 interface TopStepperProps {
   steps: MainStep[];
@@ -13,15 +18,15 @@ interface TopStepperProps {
 const getStepIcon = (iconName: string, className: string) => {
   switch (iconName) {
     case "user":
-      return <User className={className} />;
+      return <AboutYouIcon className={className} />;
     case "clipboard":
-      return <ClipboardList className={className} />;
+      return <InspectionStepIcon className={className} />;
     case "calendar":
-      return <Calendar className={className} />;
+      return <ScheduleStepIcon className={className} />;
     case "file-text":
-      return <FileText className={className} />;
+      return <ReviewStepIcon className={className} />;
     default:
-      return <User className={className} />;
+      return <AboutYouIcon className={className} />;
   }
 };
 

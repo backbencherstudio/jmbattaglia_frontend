@@ -43,9 +43,8 @@ export const TopStepper: React.FC<TopStepperProps> = ({
           {steps.slice(0, steps.length - 1).map((_, i) => (
             <div
               key={i}
-              className={`flex-1 h-[2px] border-t-2 border-dotted transition-colors duration-300 ${
-                i < activeStepIndex ? "border-primary" : "border-hairline"
-              }`}
+              className={`flex-1 h-[2px] border-t-2 border-dotted transition-colors duration-300 ${i < activeStepIndex ? "border-primary" : "border-hairline"
+                }`}
             />
           ))}
         </div>
@@ -58,26 +57,23 @@ export const TopStepper: React.FC<TopStepperProps> = ({
             <div
               key={step.id}
               onClick={() => idx <= activeStepIndex && onStepClick(idx)}
-              className={`relative z-10 flex flex-col items-center gap-1.5 sm:gap-2 group cursor-pointer transition-all ${
-                idx > activeStepIndex ? "cursor-not-allowed opacity-75" : ""
-              }`}
+              className={`relative z-10 flex flex-col items-center gap-1.5 sm:gap-2 group cursor-pointer transition-all ${idx > activeStepIndex ? "cursor-not-allowed opacity-75" : ""
+                }`}
             >
               {/* Step Icon Box */}
               <div
-                className={`w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all duration-200 border ${
-                  isCompleted
+                className={`w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all duration-200 border ${isCompleted
                     ? "border-primary bg-primary text-white shadow-xs"
                     : isActive
-                    ? "border-primary bg-primary-subtle text-primary shadow-xs scale-105"
-                    : "border-hairline bg-canvas text-gray-400"
-                }`}
+                      ? "border-primary bg-primary-subtle text-primary shadow-xs scale-105"
+                      : "border-hairline bg-canvas text-gray-400"
+                  }`}
               >
                 {getStepIcon(
                   step.iconName,
-                  `w-4 h-4 sm:w-5 sm:h-5 ${
-                    isCompleted
-                      ? "text-white"
-                      : isActive
+                  `w-4 h-4 sm:w-5 sm:h-5 ${isCompleted
+                    ? "text-white"
+                    : isActive
                       ? "text-primary"
                       : "text-gray-400"
                   }`
@@ -86,9 +82,8 @@ export const TopStepper: React.FC<TopStepperProps> = ({
 
               {/* Step Title */}
               <span
-                className={`text-[10px] sm:text-xs md:text-sm tracking-tight transition-colors text-center font-bold ${
-                  isActive || isCompleted ? "text-main font-bold" : "text-muted font-normal"
-                }`}
+                className={`text-[10px] sm:text-xs md:text-base tracking-tight transition-colors text-center font-bold ${isActive || isCompleted ? "text-main font-bold" : "text-muted font-normal"
+                  }`}
               >
                 {step.title}
               </span>

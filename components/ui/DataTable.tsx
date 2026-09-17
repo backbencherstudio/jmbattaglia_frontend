@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
+
 import { DataTableProps } from "@/types/table";
+import { useDraggableScroll } from "@/hooks/useDraggableScroll";
 
 export function DataTable<T>({
   columns,
@@ -11,13 +12,20 @@ export function DataTable<T>({
   className = "",
   bordered = true,
 }: DataTableProps<T>) {
+  const { ref, isDragging, events } = useDraggableScroll();
+
   return (
     <div
       className={`bg-white rounded-2xl border border-hairline overflow-hidden shadow-xs ${className}`}
     >
-      <div className="overflow-x-auto scrollbar-thin">
+      <div
+        ref={ref}
+        {...events}
+        className={`overflow-x-auto scrollbar-thin cursor-grab active:cursor-grabbing ${isDragging ? "select-none" : ""
+          }`}
+      >
         <table className="w-full text-left text-xs sm:text-sm text-main whitespace-nowrap border-collapse">
-          <thead className="bg-canvas border-b border-hairline text-base font-bold text-muted  uppercase">
+          <thead className="bg-canvas border-b border-hairline text-base font-bold text-muted uppercase">
             <tr>
               {columns.map((col, index) => {
                 const isLast = index === columns.length - 1;

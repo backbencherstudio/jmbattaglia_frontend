@@ -36,18 +36,18 @@ export function RecentPackagesTable() {
     {
       key: "category",
       header: "Category",
-      render: (item) => <span className="text-sub">{item.category}</span>,
+      render: (item) => <span className="text-main">{item.category}</span>,
     },
     {
       key: "type",
       header: "Type",
-      render: (item) => <span className="text-sub">{item.type}</span>,
+      render: (item) => <span className="text-main">{item.type}</span>,
     },
     {
       key: "price",
       header: "Price",
       render: (item) => (
-        <span className="font-semibold text-main">{item.price}</span>
+        <span className="font-normal text-main">{item.price}</span>
       ),
     },
     {
@@ -55,7 +55,7 @@ export function RecentPackagesTable() {
       header: "Status",
       render: (item) => (
         <span
-          className={`inline-flex items-center px-2 py-3 rounded-md capitalize text-base font-semibold ${item.status === "Published"
+          className={`inline-flex items-center px-3 py-2 rounded-md capitalize text-base font-semibold ${item.status === "Published"
             ? "bg-[#24B33C1F] text-[#24B33C]"
             : "bg-[#FFFAE7] text-[#BB960B]"
             }`}
@@ -68,7 +68,7 @@ export function RecentPackagesTable() {
       key: "updated",
       header: "Updated",
       render: (item) => (
-        <span className="text-muted">{item.updated}</span>
+        <span className="text-main">{item.updated}</span>
       ),
     },
   ];

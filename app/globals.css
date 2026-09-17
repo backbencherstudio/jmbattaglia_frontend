@@ -8,7 +8,7 @@
 
   /* Text Colors */
   --text-primary: #01000B;
-  --text-secondary: #555555;
+  --text-secondary: #55575A;
   --text-muted: #8E8E93;
 
   /* Surface & Background Colors */
@@ -16,8 +16,13 @@
   --surface-canvas: #F7F7F6;
   --surface-card: #FFFFFF;
 
+  /* Sidebar Tokens (Figma Match) */
+  --sidebar-bg: #F0F0EE;
+  --sidebar-border: #ECEFF3;
+  --sidebar-text-muted: #55575A;
+
   /* Border Colors */
-  --border-hairline: #E3E3E1;
+  --border-hairline: #ECEFF3;
   --border-active: #FF6900;
 
   /* Accent & Feedback Colors */
@@ -44,6 +49,11 @@
   --color-layout-bg: var(--layout-bg);
   --color-canvas: var(--surface-canvas);
   --color-card: var(--surface-card);
+
+  /* Sidebar */
+  --color-sidebar-bg: var(--sidebar-bg);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-muted: var(--sidebar-text-muted);
 
   /* Borders */
   --color-hairline: var(--border-hairline);

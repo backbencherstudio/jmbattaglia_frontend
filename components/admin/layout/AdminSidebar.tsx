@@ -1,52 +1,21 @@
 "use client";
 
-import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  LayoutGrid,
-  Package,
-  Settings,
-  LogOut,
-  Layers,
-  X,
-} from "lucide-react";
-
-const navItems = [
-  {
-    name: "Dashboard",
-    href: "/admin/dashboard",
-    icon: LayoutGrid,
-  },
-  {
-    name: "Package Management",
-    href: "/admin/packages",
-    icon: Package,
-  },
-  {
-    name: "Add-on Services",
-    href: "/admin/add-ons",
-    icon: Layers,
-  },
-  {
-    name: "Settings",
-    href: "/admin/settings",
-    icon: Settings,
-  },
-];
-
-interface AdminSidebarProps {
-  isOpen?: boolean;
-  onClose?: () => void;
-}
+import { X } from "lucide-react";
+import { AdminSidebarProps } from "@/types/adminSidebar";
+import { adminNavItems } from "@/data/adminSidebarData";
+import { AdminSidebarItem } from "@/components/admin/layout/AdminSidebarItem";
+import { LogOutIcon } from "@/components/icons/AdminSidebarIcons";
 
 export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
   const handleLogout = () => {
-    document.cookie = "admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    document.cookie =
+      "admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     router.push("/admin/login");
   };
 
@@ -62,72 +31,64 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
 
       {/* Sidebar Drawer */}
       <aside
-        className={`fixed lg:static top-0 bottom-0 left-0 z-50 w-64 bg-canvas border-r border-hairline min-h-screen flex flex-col justify-between p-5 shrink-0 transition-transform duration-300 ease-in-out ${
-          isOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full lg:translate-x-0"
+        className={`fixed lg:static top-0 bottom-0 left-0 z-50 w-64 md:w-64 lg:w-68 xl:w-72 bg-sidebar-bg border-r border-sidebar-border min-h-screen flex flex-col justify-between p-5 lg:p-6 shrink-0 gap-[0.625rem] transition-all duration-300 ease-in-out ${
+          isOpen
+            ? "translate-x-0 shadow-2xl"
+            : "-translate-x-full lg:translate-x-0"
         }`}
       >
-        <div className="space-y-8">
-          {/* Logo & Mobile Close Button */}
-          <div className="flex items-center justify-between px-2 pt-2">
+        <div className="space-y-6">
+          {/* Logo Container (Centered) */}
+          <div className="relative flex items-center justify-center w-full pt-1">
             <Link
               href="/admin/dashboard"
               onClick={onClose}
-              className="block relative w-44 h-12"
+              className="block relative w-[8.79931rem] h-20 lg:h-24 mx-auto"
             >
               <Image
                 src="/assets/images/logo.png"
                 alt="At Ease Inspections Logo"
                 fill
-                className="object-contain object-left"
+                className="object-contain object-center"
                 priority
               />
             </Link>
-            {/* Close Button on Mobile */}
+
+            {/* Mobile Close Button */}
             <button
               onClick={onClose}
-              className="lg:hidden p-2 rounded-lg text-sub hover:text-main hover:bg-white transition-colors"
+              className="lg:hidden absolute right-0 top-1 p-1.5 rounded-lg text-sidebar-muted hover:text-main hover:bg-white transition-colors cursor-pointer"
+              aria-label="Close navigation menu"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Navigation */}
+          {/* Navigation Items */}
           <nav className="space-y-1.5">
-            {navItems.map((item) => {
+            {adminNavItems.map((item) => {
               const isActive =
                 pathname === item.href || pathname.startsWith(`${item.href}/`);
-              const Icon = item.icon;
 
               return (
-                <Link
-                  key={item.name}
-                  href={item.href}
+                <AdminSidebarItem
+                  key={item.id}
+                  item={item}
+                  isActive={isActive}
                   onClick={onClose}
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all ${
-                    isActive
-                      ? "bg-primary text-white shadow-xs"
-                      : "text-sub hover:bg-white hover:text-main"
-                  }`}
-                >
-                  <Icon
-                    className={`w-5 h-5 ${
-                      isActive ? "text-white" : "text-sub"
-                    }`}
-                  />
-                  <span>{item.name}</span>
-                </Link>
+                />
               );
             })}
           </nav>
         </div>
 
-        {/* Logout Action at Bottom */}
-        <div className="pt-4 border-t border-hairline">
+        {/* Logout Action Button at Bottom */}
+        <div className="pt-4 border-t border-sidebar-border">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium text-danger bg-danger-bg hover:opacity-90 transition-all cursor-pointer"
+            className="w-full flex items-center space-x-3 px-3.5 py-3 rounded-lg font-trade font-bold text-base lg:text-[1.125rem] xl:text-[1.25rem] leading-[140%] tracking-[0.0125rem] text-danger bg-danger-bg hover:opacity-90 transition-all cursor-pointer whitespace-nowrap"
           >
-            <LogOut className="w-5 h-5 text-danger" />
+            <LogOutIcon className="w-6 h-6 lg:w-7 lg:h-7 shrink-0 text-danger" />
             <span>Log out</span>
           </button>
         </div>

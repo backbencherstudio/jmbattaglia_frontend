@@ -21,22 +21,22 @@ export function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
           <Menu className="w-6 h-6" />
         </button>
 
-        <h1 className="text-lg sm:text-2xl font-bold text-main tracking-tight">
+        <h1 className="text-md md:text-2xl font-bold text-main tracking-tight">
           Welcome back, <span className="text-primary">Dana</span>
         </h1>
       </div>
 
       {/* Right: Profile Badge */}
-      <div className="flex items-center space-x-3">
-        <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden border border-hairline bg-canvas shrink-0">
+      <div className="flex items-center space-x-2.5 bg-white border border-hairline rounded-xl p-1.5 pr-4 shadow-2xs">
+        <div className="relative w-9 h-9 rounded-lg overflow-hidden bg-canvas shrink-0">
           <Image
             src="/assets/images/logo.png"
-            alt="User Avatar"
+            alt="Madun Laduni"
             fill
             className="object-cover"
           />
         </div>
-        <span className="text-xs sm:text-sm font-medium text-main hidden sm:inline-block">
+        <span className="text-sm font-medium text-main">
           Madun Laduni
         </span>
       </div>

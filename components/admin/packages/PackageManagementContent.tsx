@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { Plus, Eye } from "lucide-react";
 import { PackageItem, AddonItem } from "@/types/packages";
 import { initialPackages, initialAddons } from "@/data/packagesData";
@@ -92,13 +92,13 @@ export function PackageManagementContent() {
                 ? "Search packages..."
                 : "Search add-ons..."
             }
-            className="w-full sm:w-64"
+            className="w-full sm:w-64 h-11"
           />
 
           <Button
             variant="primary"
             onClick={() => updateQueryParams({ view: "create" })}
-            className="flex items-center justify-center space-x-1.5 whitespace-nowrap"
+            className="h-11 flex items-center justify-center space-x-1.5 whitespace-nowrap px-4 py-0"
           >
             <Plus className="w-4 h-4" />
             <span>
@@ -109,7 +109,7 @@ export function PackageManagementContent() {
           <Button
             variant="outline"
             onClick={() => alert("Reviewing draft packages.")}
-            className="flex items-center justify-center space-x-1.5 whitespace-nowrap bg-canvas border-hairline text-sub hover:text-main"
+            className="h-11 flex items-center justify-center space-x-1.5 whitespace-nowrap bg-canvas border-hairline text-sub hover:text-main px-4 py-0"
           >
             <Eye className="w-4 h-4" />
             <span>Review 1 draft</span>

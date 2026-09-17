@@ -31,7 +31,7 @@ export function SettingsContent() {
       </nav>
 
       {/* Main Form Container */}
-      <div className="bg-canvas border border-hairline rounded-2xl p-6 sm:p-8 space-y-8">
+      <div className="bg-canvas border border-hairline rounded-lg py-4 px-4 space-y-8">
         <ProfilePictureUploader
           avatarUrl={profileData.avatarUrl}
           onAvatarChange={(newUrl) =>

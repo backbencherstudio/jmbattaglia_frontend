@@ -23,9 +23,9 @@ export function SearchInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full pl-4 pr-10 py-2.5 bg-canvas border border-hairline rounded-xl text-sm font-medium text-main placeholder:text-sub focus:outline-none focus:border-brand-border focus:ring-1 focus:ring-brand-border transition-all"
+        className="w-full h-11 pl-4 pr-10 bg-canvas border border-hairline rounded-xl text-sm font-medium text-main placeholder:text-sub focus:outline-none transition-all"
       />
-      <div className="absolute right-3 text-primary pointer-events-none">
+      <div className="absolute right-3 text-primary pointer-events-none flex items-center justify-center">
         <Search className="w-4 h-4" />
       </div>
     </div>

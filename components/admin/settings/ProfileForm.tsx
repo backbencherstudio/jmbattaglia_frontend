@@ -22,7 +22,7 @@ export function ProfileForm({ initialData, onSave }: ProfileFormProps) {
       {/* Row 1: Profile Name & Profile Email */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-main uppercase">
+          <label className="block text-base font-bold text-main uppercase">
             Profile Name
           </label>
           <input
@@ -37,7 +37,7 @@ export function ProfileForm({ initialData, onSave }: ProfileFormProps) {
         </div>
 
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-main uppercase">
+          <label className="block text-base font-bold text-main uppercase">
             Profile Email
           </label>
           <input
@@ -55,7 +55,7 @@ export function ProfileForm({ initialData, onSave }: ProfileFormProps) {
       {/* Row 2: Passwords Grid (New Password, Current Password, Confirm Password) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-main uppercase">
+          <label className="block text-base font-bold text-main uppercase">
             New Password
           </label>
           <input
@@ -70,7 +70,7 @@ export function ProfileForm({ initialData, onSave }: ProfileFormProps) {
         </div>
 
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-main uppercase">
+          <label className="block text-base font-bold text-main uppercase">
             Current Password
           </label>
           <input
@@ -85,7 +85,7 @@ export function ProfileForm({ initialData, onSave }: ProfileFormProps) {
         </div>
 
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-main uppercase">
+          <label className="block text-base font-bold text-main uppercase">
             Confirm Password
           </label>
           <input

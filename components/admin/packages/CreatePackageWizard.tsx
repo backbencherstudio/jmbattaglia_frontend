@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { ChevronRight, CheckCircle } from "lucide-react";
+import { ChevronRight, CheckCircle, Check } from "lucide-react";
 import { useTabQuery } from "@/hooks/useTabQuery";
 import { PackageFormData, WizardStep } from "@/types/wizard";
 import { WizardStepBasicInfo } from "@/components/admin/packages/wizard/WizardStepBasicInfo";
@@ -88,6 +88,15 @@ export function CreatePackageWizard({
     });
   };
 
+  const steps: { id: WizardStep; label: string }[] = [
+    { id: "basic", label: "Basic Info" },
+    { id: "media", label: "Educational Content & Media" },
+    { id: "review", label: "Review" },
+  ];
+
+  const stepOrder: WizardStep[] = ["basic", "media", "review"];
+  const currentIndex = stepOrder.indexOf(currentStep);
+
   return (
     <div className="space-y-6">
       {/* Breadcrumb */}
@@ -105,45 +114,49 @@ export function CreatePackageWizard({
       {/* Main Grid: Left Stepper Navigation + Right Form */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Wizard Stepper */}
-        <div className="lg:col-span-4 bg-canvas border border-hairline rounded-2xl p-4 space-y-3">
-          <button
-            type="button"
-            onClick={() => handleStepChange("basic")}
-            className={`w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl font-trade font-bold text-base transition-all cursor-pointer ${
-              currentStep === "basic"
-                ? "bg-primary text-white shadow-xs"
-                : "bg-white border border-hairline text-sub hover:text-main"
-            }`}
-          >
-            <CheckCircle className="w-5 h-5 shrink-0" />
-            <span>Basic Info</span>
-          </button>
+        <div className="lg:col-span-4 bg-canvas border border-hairline rounded-xl p-4 space-y-3">
+          {steps.map((step, idx) => {
+            const isCompleted = idx < currentIndex;
+            const isActive = step.id === currentStep;
 
-          <button
-            type="button"
-            onClick={() => handleStepChange("media")}
-            className={`w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl font-trade font-bold text-base transition-all cursor-pointer ${
-              currentStep === "media"
-                ? "bg-primary text-white shadow-xs"
-                : "bg-white border border-hairline text-sub hover:text-main"
-            }`}
-          >
-            <CheckCircle className="w-5 h-5 shrink-0" />
-            <span>Educational Content & Media</span>
-          </button>
+            return (
+              <button
+                key={step.id}
+                type="button"
+                onClick={() => handleStepChange(step.id)}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg font-trade font-bold text-base transition-all cursor-pointer ${isCompleted
+                  ? "bg-[#B44000] text-white shadow-xs"
+                  : isActive
+                    ? "bg-[#FF6900] text-white shadow-xs"
+                    : "bg-white border border-hairline text-sub hover:text-main"
+                  }`}
+              >
+                {/* Icon / Badge Container */}
+                <div
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${isCompleted || isActive
+                    ? "bg-[#FFE9D6]"
+                    : "bg-canvas border border-hairline text-muted"
+                    }`}
+                >
+                  {isCompleted ? (
+                    <div className="w-5 h-5 rounded-full bg-[#FF6900] flex items-center justify-center text-white">
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    </div>
+                  ) : isActive ? (
+                    <div className="w-5 h-5 rounded-full bg-[#FF6900] flex items-center justify-center text-white font-sans text-xs font-bold">
+                      {idx + 1}
+                    </div>
+                  ) : (
+                    <span className="font-sans text-xs font-semibold text-muted">
+                      {idx + 1}
+                    </span>
+                  )}
+                </div>
 
-          <button
-            type="button"
-            onClick={() => handleStepChange("review")}
-            className={`w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl font-trade font-bold text-base transition-all cursor-pointer ${
-              currentStep === "review"
-                ? "bg-primary text-white shadow-xs"
-                : "bg-white border border-hairline text-sub hover:text-main"
-            }`}
-          >
-            <CheckCircle className="w-5 h-5 shrink-0" />
-            <span>Review</span>
-          </button>
+                <span>{step.label}</span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Right Form Step Rendering */}

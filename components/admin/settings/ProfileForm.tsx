@@ -22,7 +22,7 @@ export function ProfileForm({ initialData, onSave }: ProfileFormProps) {
       {/* Row 1: Profile Name & Profile Email */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-1.5">
-          <label className="block text-base font-bold text-main uppercase">
+          <label className="block text-base font-bold  text-sub uppercase">
             Profile Name
           </label>
           <input
@@ -37,7 +37,7 @@ export function ProfileForm({ initialData, onSave }: ProfileFormProps) {
         </div>
 
         <div className="space-y-1.5">
-          <label className="block text-base font-bold text-main uppercase">
+          <label className="block text-base font-bold text-sub uppercase">
             Profile Email
           </label>
           <input
@@ -55,7 +55,7 @@ export function ProfileForm({ initialData, onSave }: ProfileFormProps) {
       {/* Row 2: Passwords Grid (New Password, Current Password, Confirm Password) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="space-y-1.5">
-          <label className="block text-base font-bold text-main uppercase">
+          <label className="block text-base font-bold text-sub uppercase">
             New Password
           </label>
           <input
@@ -65,12 +65,12 @@ export function ProfileForm({ initialData, onSave }: ProfileFormProps) {
               setFormData({ ...formData, newPassword: e.target.value })
             }
             placeholder="••••••••••••"
-            className="w-full px-4 py-3 bg-white border border-hairline rounded-xl text-sm font-medium text-main focus:outline-none focus:border-brand-border"
+            className="w-full px-4 py-3 bg-white border border-hairline rounded-xl text-sm font-medium text-sub focus:outline-none focus:border-brand-border"
           />
         </div>
 
         <div className="space-y-1.5">
-          <label className="block text-base font-bold text-main uppercase">
+          <label className="block text-base font-bold text-sub uppercase">
             Current Password
           </label>
           <input
@@ -80,12 +80,12 @@ export function ProfileForm({ initialData, onSave }: ProfileFormProps) {
               setFormData({ ...formData, currentPassword: e.target.value })
             }
             placeholder="••••••••••••"
-            className="w-full px-4 py-3 bg-white border border-hairline rounded-xl text-sm font-medium text-main focus:outline-none focus:border-brand-border"
+            className="w-full px-4 py-3 bg-white border border-hairline rounded-xl text-sm font-medium text-sub focus:outline-none focus:border-brand-border"
           />
         </div>
 
         <div className="space-y-1.5">
-          <label className="block text-base font-bold text-main uppercase">
+          <label className="block text-base font-bold text-sub uppercase">
             Confirm Password
           </label>
           <input

@@ -27,7 +27,7 @@ export function ProfilePictureUploader({
 
   return (
     <div className="space-y-2">
-      <label className="block text-xs font-bold text-main uppercase">
+      <label className="block text-base font-bold text-sub uppercase">
         Profile Picture
       </label>
 

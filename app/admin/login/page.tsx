@@ -41,10 +41,10 @@ export default function AdminLoginPage() {
           src="/assets/images/safe_home_package.jpg"
           alt="At Ease Inspections Banner"
           fill
-          className="object-cover opacity-40 mix-blend-overlay scale-105 transition-transform duration-1000 ease-out"
+          className="object-cover opacity-85 transition-transform duration-1000 ease-out"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/10" />
 
         {/* Top Tag */}
         <div className="relative z-10 flex items-center space-x-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/15 w-fit">

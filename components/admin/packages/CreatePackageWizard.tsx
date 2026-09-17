@@ -1,16 +1,19 @@
 "use client";
 
 import React, { useState } from "react";
-import { ChevronRight, CheckCircle, Box, Layers as LayersIcon } from "lucide-react";
-import { PackageCategory, PackageType } from "@/types/packages";
-import { Button } from "@/components/ui/Button";
+import { ChevronRight, CheckCircle } from "lucide-react";
+import { useTabQuery } from "@/hooks/useTabQuery";
+import { PackageFormData, WizardStep } from "@/types/wizard";
+import { WizardStepBasicInfo } from "@/components/admin/packages/wizard/WizardStepBasicInfo";
+import { WizardStepMedia } from "@/components/admin/packages/wizard/WizardStepMedia";
+import { WizardStepReview } from "@/components/admin/packages/wizard/WizardStepReview";
 
 interface CreatePackageWizardProps {
   onBack: () => void;
   onSave: (data: {
     name: string;
-    category: PackageCategory;
-    type: PackageType;
+    category: "Resale Home" | "New Construction" | "Commercial" | "Add-on";
+    type: "Single" | "Bundle";
     price: string;
     shortDescription: string;
     status: "Published" | "Draft";
@@ -21,30 +24,67 @@ export function CreatePackageWizard({
   onBack,
   onSave,
 }: CreatePackageWizardProps) {
-  const [currentStep, setCurrentStep] = useState<
-    "basic" | "media" | "review"
-  >("basic");
+  const { getParam, updateQueryParams } = useTabQuery();
+
+  // Active step from URL search param (default: 'basic')
+  const stepParam = getParam("step", "basic") as WizardStep;
+  const currentStep = ["basic", "media", "review"].includes(stepParam)
+    ? stepParam
+    : "basic";
 
   // Form State
-  const [packageType, setPackageType] = useState<PackageType>("Single");
-  const [category, setCategory] = useState<PackageCategory>("Resale Home");
-  const [name, setName] = useState("");
-  const [shortDescription, setShortDescription] = useState("");
-  const [price, setPrice] = useState("");
+  const [formData, setFormData] = useState<PackageFormData>({
+    type: "Single",
+    category: "Resale Home",
+    name: "",
+    shortDescription: "",
+    price: "",
+    whyItMatters:
+      "A persuasive sentence shown in the expandable block on the portal — e.g. 'Buyers make a six-figure decision on a single walkthrough.'",
+    featuresIncluded: [
+      "Structural components & foundation",
+      "Roofing system & attic space",
+      "Electrical panels, wiring & outlets",
+      "Heating & cooling systems (HVAC)",
+    ],
+    image: "/assets/images/safe_home_package.jpg",
+    isRecommended: true,
+    status: "Published",
+  });
 
-  const handleSubmit = (isDraft = false) => {
-    if (!name || !price) {
-      alert("Please enter package name and starting price.");
-      return;
-    }
+  const updateFormData = (fields: Partial<PackageFormData>) => {
+    setFormData((prev) => ({ ...prev, ...fields }));
+  };
 
+  const handleStepChange = (nextStep: WizardStep) => {
+    updateQueryParams({ step: nextStep });
+  };
+
+  const handlePublish = () => {
     onSave({
-      name,
-      category,
-      type: packageType,
-      price: price.startsWith("$") ? price : `$${price}`,
-      shortDescription: shortDescription || "Inspection package.",
-      status: isDraft ? "Draft" : "Published",
+      name: formData.name || "Pre-Drywall Phase Inspection",
+      category: formData.category,
+      type: formData.type,
+      price: formData.price.startsWith("$")
+        ? formData.price
+        : `$${formData.price || "538"}`,
+      shortDescription:
+        formData.shortDescription || "Inspection package for your home.",
+      status: "Published",
+    });
+  };
+
+  const handleSaveDraft = () => {
+    onSave({
+      name: formData.name || "Draft Inspection Package",
+      category: formData.category,
+      type: formData.type,
+      price: formData.price.startsWith("$")
+        ? formData.price
+        : `$${formData.price || "500"}`,
+      shortDescription:
+        formData.shortDescription || "Draft package for review.",
+      status: "Draft",
     });
   };
 
@@ -67,8 +107,9 @@ export function CreatePackageWizard({
         {/* Left Wizard Stepper */}
         <div className="lg:col-span-4 bg-canvas border border-hairline rounded-2xl p-4 space-y-3">
           <button
-            onClick={() => setCurrentStep("basic")}
-            className={`w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl font-trade font-bold text-base transition-all ${
+            type="button"
+            onClick={() => handleStepChange("basic")}
+            className={`w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl font-trade font-bold text-base transition-all cursor-pointer ${
               currentStep === "basic"
                 ? "bg-primary text-white shadow-xs"
                 : "bg-white border border-hairline text-sub hover:text-main"
@@ -79,8 +120,9 @@ export function CreatePackageWizard({
           </button>
 
           <button
-            onClick={() => setCurrentStep("media")}
-            className={`w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl font-trade font-bold text-base transition-all ${
+            type="button"
+            onClick={() => handleStepChange("media")}
+            className={`w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl font-trade font-bold text-base transition-all cursor-pointer ${
               currentStep === "media"
                 ? "bg-primary text-white shadow-xs"
                 : "bg-white border border-hairline text-sub hover:text-main"
@@ -91,8 +133,9 @@ export function CreatePackageWizard({
           </button>
 
           <button
-            onClick={() => setCurrentStep("review")}
-            className={`w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl font-trade font-bold text-base transition-all ${
+            type="button"
+            onClick={() => handleStepChange("review")}
+            className={`w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl font-trade font-bold text-base transition-all cursor-pointer ${
               currentStep === "review"
                 ? "bg-primary text-white shadow-xs"
                 : "bg-white border border-hairline text-sub hover:text-main"
@@ -103,135 +146,34 @@ export function CreatePackageWizard({
           </button>
         </div>
 
-        {/* Right Form Container */}
-        <div className="lg:col-span-8 bg-canvas border border-hairline rounded-2xl p-6 sm:p-8 space-y-6">
-          <h3 className="font-trade font-bold text-xl text-main border-b border-hairline pb-4">
-            Basic Info
-          </h3>
+        {/* Right Form Step Rendering */}
+        <div className="lg:col-span-8">
+          {currentStep === "basic" && (
+            <WizardStepBasicInfo
+              formData={formData}
+              updateFormData={updateFormData}
+              onNext={() => handleStepChange("media")}
+              onSaveDraft={handleSaveDraft}
+            />
+          )}
 
-          <div className="space-y-6">
-            {/* Package Type Selector */}
-            <div className="space-y-2">
-              <label className="block text-xs font-bold text-main uppercase">
-                Package type
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <button
-                  type="button"
-                  onClick={() => setPackageType("Single")}
-                  className={`flex items-center space-x-3 p-4 rounded-xl border text-left font-trade font-bold transition-all cursor-pointer ${
-                    packageType === "Single"
-                      ? "border-primary bg-primary-subtle text-primary"
-                      : "border-hairline bg-white text-main hover:bg-canvas"
-                  }`}
-                >
-                  <Box className="w-6 h-6 shrink-0" />
-                  <span>Single Package</span>
-                </button>
+          {currentStep === "media" && (
+            <WizardStepMedia
+              formData={formData}
+              updateFormData={updateFormData}
+              onNext={() => handleStepChange("review")}
+              onSaveDraft={handleSaveDraft}
+            />
+          )}
 
-                <button
-                  type="button"
-                  onClick={() => setPackageType("Bundle")}
-                  className={`flex items-center space-x-3 p-4 rounded-xl border text-left font-trade font-bold transition-all cursor-pointer ${
-                    packageType === "Bundle"
-                      ? "border-primary bg-primary-subtle text-primary"
-                      : "border-hairline bg-white text-main hover:bg-canvas"
-                  }`}
-                >
-                  <LayersIcon className="w-6 h-6 shrink-0" />
-                  <span>Bundle Package</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Category Selector */}
-            <div className="space-y-2">
-              <label className="block text-xs font-bold text-main uppercase">
-                Category
-              </label>
-              <div className="flex items-center bg-white border border-hairline p-1 rounded-xl w-fit">
-                <button
-                  type="button"
-                  onClick={() => setCategory("Resale Home")}
-                  className={`px-6 py-2.5 rounded-lg font-trade font-bold text-sm transition-all cursor-pointer ${
-                    category === "Resale Home"
-                      ? "bg-main text-white shadow-xs"
-                      : "text-sub hover:text-main"
-                  }`}
-                >
-                  Resale Home
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCategory("New Construction")}
-                  className={`px-6 py-2.5 rounded-lg font-trade font-bold text-sm transition-all cursor-pointer ${
-                    category === "New Construction"
-                      ? "bg-main text-white shadow-xs"
-                      : "text-sub hover:text-main"
-                  }`}
-                >
-                  New Construction
-                </button>
-              </div>
-            </div>
-
-            {/* Package Name Input */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-main uppercase">
-                Package name <span className="text-primary">*</span>
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Pre-Drywall Phase Inspection"
-                className="w-full px-4 py-3 bg-white border border-hairline rounded-xl text-sm font-medium text-main placeholder:text-muted focus:outline-none focus:border-brand-border"
-              />
-            </div>
-
-            {/* Short Description Input */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-main uppercase">
-                Short description <span className="text-primary">*</span>
-              </label>
-              <input
-                type="text"
-                value={shortDescription}
-                onChange={(e) => setShortDescription(e.target.value)}
-                placeholder="One sentence shown on the booking portal card"
-                className="w-full px-4 py-3 bg-white border border-hairline rounded-xl text-sm font-medium text-main placeholder:text-muted focus:outline-none focus:border-brand-border"
-              />
-            </div>
-
-            {/* Starting Price Input */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-main uppercase">
-                Starting price (USD) <span className="text-primary">*</span>
-              </label>
-              <input
-                type="text"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                placeholder="$538"
-                className="w-full px-4 py-3 bg-white border border-hairline rounded-xl text-sm font-medium text-main placeholder:text-muted focus:outline-none focus:border-brand-border"
-              />
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex items-center justify-between pt-6 border-t border-hairline">
-            <Button
-              variant="outline"
-              onClick={() => handleSubmit(true)}
-              className="bg-white"
-            >
-              Save as draft
-            </Button>
-
-            <Button variant="primary" onClick={() => handleSubmit(false)}>
-              Continue
-            </Button>
-          </div>
+          {currentStep === "review" && (
+            <WizardStepReview
+              formData={formData}
+              updateFormData={updateFormData}
+              onPublish={handlePublish}
+              onSaveDraft={handleSaveDraft}
+            />
+          )}
         </div>
       </div>
     </div>

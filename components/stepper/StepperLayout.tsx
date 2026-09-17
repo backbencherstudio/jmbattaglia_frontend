@@ -97,7 +97,7 @@ export const StepperLayout: React.FC = () => {
           )}
 
           {/* Right Main Step Form Card */}
-          <div className="flex-1 w-full bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-10 border border-hairline shadow-xs flex flex-col justify-between min-h-[420px] sm:min-h-[460px]">
+          <div className="flex-1 w-full bg-white rounded-xl p-4 sm:p-6 lg:p-10 border border-hairline shadow-xs flex flex-col justify-between min-h-[420px] sm:min-h-[460px]">
             {/* Step Form Renderer */}
             <div className="flex-1">{renderActiveStepContent()}</div>
 

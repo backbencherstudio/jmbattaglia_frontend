@@ -40,11 +40,11 @@ export const LeftSubStepper: React.FC<LeftSubStepperProps> = ({
                 </span>
               </div>
             ) : isActive ? (
-              <div className="w-7 h-7 rounded-md bg-white text-main font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+              <div className="w-7 h-7 rounded-md bg-white text-main border border-[#E3E3E1] font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
                 {subStep.number}
               </div>
             ) : (
-              <div className="w-7 h-7 rounded-md bg-white border border-hairline text-sub font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+              <div className="w-7 h-7 rounded-md bg-white border border-[#E3E3E1] text-sub font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
                 {subStep.number}
               </div>
             )}
@@ -52,7 +52,7 @@ export const LeftSubStepper: React.FC<LeftSubStepperProps> = ({
             {/* SubStep Title */}
             <span
               className={`tracking-tight ${isActive
-                ? "text-main font-bold text-base sm:text-lg lg:text-2xl leading-[124%]"
+                ? "text-main font-bold text-base sm:text-lg lg:text-lg leading-[124%]"
                 : isCompleted
                   ? "text-primary font-bold text-sm sm:text-base lg:text-lg leading-tight"
                   : "text-sub font-bold text-sm sm:text-base lg:text-lg leading-tight"

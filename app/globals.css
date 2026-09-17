@@ -25,6 +25,8 @@
   --accent-green-hover: #8AA300;
   --feedback-success: #8C9600;
   --feedback-success-bg: rgba(168, 180, 0, 0.12);
+  --feedback-danger: #D32F2F;
+  --feedback-danger-bg: #FFEAEA;
 }
 
 @theme {
@@ -52,6 +54,8 @@
   --color-accent-green-hover: var(--accent-green-hover);
   --color-feedback-success: var(--feedback-success);
   --color-feedback-success-bg: var(--feedback-success-bg);
+  --color-danger: var(--feedback-danger);
+  --color-danger-bg: var(--feedback-danger-bg);
 
   /* Fonts */
   --font-sans: var(--font-trade-gothic), system-ui, -apple-system, sans-serif;

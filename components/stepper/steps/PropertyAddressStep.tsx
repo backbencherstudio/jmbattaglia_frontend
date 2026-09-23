@@ -3,7 +3,35 @@
 import React from "react";
 import { StepProps } from "@/types/stepper";
 import { Input } from "@/components/ui/Input";
-import { Building2, Building, Globe, MapPin, ChevronDown, HelpCircle } from "lucide-react";
+import { Select } from "@/components/ui/Select";
+import { Building2, Building, Globe, MapPin, HelpCircle } from "lucide-react";
+
+const US_STATES = [
+  "Georgia (GA)",
+  "North Carolina (NC)",
+  "South Carolina (SC)",
+  "Florida (FL)",
+  "Tennessee (TN)",
+  "Alabama (AL)",
+  "California (CA)",
+  "Colorado (CO)",
+  "Connecticut (CT)",
+  "Delaware (DE)",
+  "Illinois (IL)",
+  "Indiana (IN)",
+  "Kentucky (KY)",
+  "Maryland (MD)",
+  "Massachusetts (MA)",
+  "Michigan (MI)",
+  "Missouri (MO)",
+  "New Jersey (NJ)",
+  "New York (NY)",
+  "Ohio (OH)",
+  "Pennsylvania (PA)",
+  "Texas (TX)",
+  "Virginia (VA)",
+  "Washington (WA)",
+];
 
 export const PropertyAddressStep: React.FC<StepProps> = ({
   formData,
@@ -71,18 +99,18 @@ export const PropertyAddressStep: React.FC<StepProps> = ({
         {/* State & Zip Code Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
           {/* State */}
-          <Input
+          <Select
             label="State"
             requiredStar
-            placeholder="Georgia (GA)"
+            placeholder="Select state"
             value={formData.state || ""}
             onChange={(e) => {
               updateFormData({ state: e.target.value });
               clearError("state");
             }}
+            options={US_STATES}
             error={errors.state}
             leftIcon={<Globe className="w-5 h-5 text-muted" />}
-            rightAction={<ChevronDown className="w-5 h-5 text-muted pointer-events-none" />}
           />
 
           {/* Zip Code */}

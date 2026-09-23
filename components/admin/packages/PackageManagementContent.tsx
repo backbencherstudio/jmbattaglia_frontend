@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Plus, Eye } from "lucide-react";
 import { PackageItem, AddonItem } from "@/types/packages";
 import { initialPackages, initialAddons } from "@/data/packagesData";
@@ -15,6 +16,7 @@ import { PackageDetailsView } from "@/components/admin/packages/PackageDetailsVi
 import { CreatePackageWizard } from "@/components/admin/packages/CreatePackageWizard";
 
 export function PackageManagementContent() {
+  const router = useRouter();
   const { getParam, updateQueryParams } = useTabQuery();
 
   // URL State Management using useTabQuery hook
@@ -60,7 +62,7 @@ export function PackageManagementContent() {
   if (currentView === "create") {
     return (
       <CreatePackageWizard
-        onBack={() => updateQueryParams({ view: "list" })}
+        onBack={() => updateQueryParams({ view: null, tab: "packages" })}
         onSave={(data) => {
           const newPkg: PackageItem = {
             id: String(Date.now()),
@@ -69,7 +71,7 @@ export function PackageManagementContent() {
             image: "/assets/images/safe_home_package.jpg",
           };
           setPackages((prev) => [newPkg, ...prev]);
-          updateQueryParams({ view: "list" });
+          updateQueryParams({ view: null, tab: "packages" });
         }}
       />
     );
@@ -97,7 +99,13 @@ export function PackageManagementContent() {
 
           <Button
             variant="primary"
-            onClick={() => updateQueryParams({ view: "create" })}
+            onClick={() => {
+              if (currentTab === "packages") {
+                router.push("/admin/packages?tab=packages");
+              } else {
+                router.push("/admin/packages?tab=addons");
+              }
+            }}
             className="h-11 flex items-center justify-center space-x-1.5 whitespace-nowrap px-4 py-0"
           >
             <Plus className="w-4 h-4" />

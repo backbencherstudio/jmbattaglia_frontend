@@ -1,10 +1,13 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Plus, Eye } from "lucide-react";
 import { metricsData } from "@/data/metricsData";
 import { MetricCard } from "@/components/admin/dashboard/MetricCard";
 
 export function KeyMetricsCards() {
+  const router = useRouter();
+
   return (
     <div className="space-y-4">
       {/* Key Metrics Header & Action Buttons */}
@@ -14,7 +17,10 @@ export function KeyMetricsCards() {
         </h2>
 
         <div className="flex items-center space-x-2.5 sm:space-x-3">
-          <button className="flex-1 sm:flex-none flex items-center justify-center space-x-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-primary hover:bg-primary-hover active:scale-[0.98] text-white text-xs sm:text-sm font-semibold rounded-md shadow-xs transition-all cursor-pointer">
+          <button
+            onClick={() => router.push("/admin/packages?tab=packages&view=create")}
+            className="flex-1 sm:flex-none flex items-center justify-center space-x-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-primary hover:bg-primary-hover active:scale-[0.98] text-white text-xs sm:text-sm font-semibold rounded-md shadow-xs transition-all cursor-pointer"
+          >
             <Plus className="w-4 h-4" />
             <span>New package</span>
           </button>

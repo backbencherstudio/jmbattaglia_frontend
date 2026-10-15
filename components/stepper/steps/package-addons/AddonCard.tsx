@@ -109,6 +109,7 @@ export const AddonCard: React.FC<AddonCardProps> = ({
                   src={addon.image}
                   alt={addon.title}
                   fill
+                  sizes="(min-width: 640px) 224px, 100vw"
                   className="object-cover"
                 />
               </div>

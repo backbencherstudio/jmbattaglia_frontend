@@ -49,6 +49,7 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
                 src="/assets/images/logo.png"
                 alt="At Ease Inspections Logo"
                 fill
+                sizes="141px"
                 className="object-contain object-center"
                 priority
               />

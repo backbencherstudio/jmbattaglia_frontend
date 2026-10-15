@@ -41,6 +41,7 @@ export default function AdminLoginPage() {
           src="/assets/images/safe_home_package.jpg"
           alt="At Ease Inspections Banner"
           fill
+          sizes="(min-width: 1024px) 60vw, 100vw"
           className="object-cover opacity-85 transition-transform duration-1000 ease-out"
           priority
         />
@@ -76,6 +77,7 @@ export default function AdminLoginPage() {
                 src="/assets/images/logo.png"
                 alt="At Ease Inspections Logo"
                 fill
+                sizes="192px"
                 className="object-contain object-left"
                 priority
               />

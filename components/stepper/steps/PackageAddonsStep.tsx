@@ -16,6 +16,7 @@ import {
 import { PackageCard } from "./package-addons/PackageCard";
 import { AddonCard } from "./package-addons/AddonCard";
 import { PackageSummaryCard } from "./package-addons/PackageSummaryCard";
+import { PackageVideoModal } from "./package-addons/PackageVideoModal";
 import { WarnIcon } from "@/components/icons/StepperStepIcons";
 
 export type { PackageOption, AddonOption, IncludedItem };
@@ -50,6 +51,7 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
   );
   const [expandedAddonId, setExpandedAddonId] = useState<string | null>("pool-inspection");
   const [uncheckedIncludedItems, setUncheckedIncludedItems] = useState<string[]>([]);
+  const [videoModalPackage, setVideoModalPackage] = useState<PackageOption | null>(null);
 
   const selectedPackageId =
     formData.selectedPackage || (isNewConstruction ? "pre-drywall" : "safe-home-package");
@@ -149,6 +151,7 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
                 isExpanded={expandedPackageId === pkg.id}
                 onSelect={handleSelectPackage}
                 onToggleExpand={togglePackageExpand}
+                onOpenVideo={(pkgToOpen) => setVideoModalPackage(pkgToOpen)}
               />
             ))}
           </div>
@@ -201,6 +204,19 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
         onToggleIncludedItem={handleToggleIncludedItem}
         totalAmount={totalAmount}
       />
+
+      {/* Package Video Modal */}
+      {videoModalPackage && (
+        <PackageVideoModal
+          pkg={videoModalPackage}
+          isSelected={selectedPackageId === videoModalPackage.id}
+          onSelectPackage={(id) => {
+            handleSelectPackage(id);
+            setVideoModalPackage(null);
+          }}
+          onClose={() => setVideoModalPackage(null)}
+        />
+      )}
     </div>
   );
 };

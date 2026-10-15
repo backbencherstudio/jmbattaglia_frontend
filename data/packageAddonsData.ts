@@ -10,6 +10,7 @@ export const RESALE_PACKAGES: PackageOption[] = [
     priceSubLabel: "Bundle Price",
     description: "Safe Home Package ensures protection.",
     image: "/assets/images/safe_home_package.jpg",
+    videoUrl: "https://www.youtube.com/watch?v=x5B2XZ7PIGQ",
     whyItMatters:
       "Bundling five essential inspections into one package saves you $125 and eliminates the hassle of scheduling multiple vendors. One report, one visit, one call.",
     features: [
@@ -27,6 +28,7 @@ export const RESALE_PACKAGES: PackageOption[] = [
     priceSubLabel: "Starting",
     description: "A comprehensive inspection of all accessible areas of the home.",
     image: "/assets/images/residential_home_inspection.jpg",
+    videoUrl: "https://www.youtube.com/watch?v=x5B2XZ7PIGQ",
     whyItMatters:
       "A thorough top-to-bottom visual evaluation of the home's structure, roof, plumbing, electrical, and HVAC systems. Ensures peace of mind before closing.",
     features: [
@@ -44,6 +46,7 @@ export const RESALE_PACKAGES: PackageOption[] = [
     priceSubLabel: "Starting",
     description: "Measurement of radon gas levels to ensure safe indoor air quality.",
     image: "/assets/images/radon_testing.jpg",
+    videoUrl: "https://www.youtube.com/watch?v=x5B2XZ7PIGQ",
     whyItMatters:
       "Radon is an odorless, radioactive gas that poses serious health risks. Continuous testing provides 48-hour monitoring and certified EPA results.",
     features: [
@@ -64,6 +67,7 @@ export const NEW_CONSTRUCTION_PACKAGES: PackageOption[] = [
     priceSubLabel: "Starting",
     description: "Catch issues before the walls go up.",
     image: "/assets/images/pre_drywall_inspection.jpg",
+    videoUrl: "https://www.youtube.com/watch?v=x5B2XZ7PIGQ",
     whyItMatters:
       "Inspecting framing, wiring, plumbing rough-ins, and ductwork while walls are open catches costly structural and mechanical defects before drywall covers them up.",
     features: [
@@ -81,6 +85,7 @@ export const NEW_CONSTRUCTION_PACKAGES: PackageOption[] = [
     priceSubLabel: "Starting",
     description: "Final walkthrough before you close.",
     image: "/assets/images/final_inspection.jpg",
+    videoUrl: "https://www.youtube.com/watch?v=x5B2XZ7PIGQ",
     whyItMatters:
       "A comprehensive final walkthrough to verify that all systems are operational, finishes are completed to standard, and builder punch-list items are properly addressed.",
     features: [

@@ -33,6 +33,7 @@ export function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
             src="/assets/images/logo.png"
             alt="Madun Laduni"
             fill
+            sizes="36px"
             className="object-cover"
           />
         </div>

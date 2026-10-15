@@ -113,6 +113,7 @@ export function WizardStepReview({
                       }
                       alt={formData.name || "Package Media"}
                       fill
+                      sizes="(min-width: 768px) 50vw, 100vw"
                       className="object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-4 justify-between">

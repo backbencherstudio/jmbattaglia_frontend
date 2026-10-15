@@ -139,6 +139,7 @@ export function PackageDetailsView({
               src={packageItem.image}
               alt={packageItem.name}
               fill
+              sizes="(min-width: 768px) 448px, 100vw"
               className="object-cover"
             />
             <div className="absolute inset-0 flex items-center justify-center">

@@ -110,6 +110,7 @@ export const PackageCard: React.FC<PackageCardProps> = ({
                 src={pkg.image}
                 alt={pkg.title}
                 fill
+                sizes="(min-width: 1024px) 50vw, 100vw"
                 className="object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex items-end justify-between p-3.5 sm:p-5">

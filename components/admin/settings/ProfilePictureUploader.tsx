@@ -38,6 +38,7 @@ export function ProfilePictureUploader({
             src={avatarUrl || "/assets/images/safe_home_package.jpg"}
             alt="Profile Avatar"
             fill
+            sizes="64px"
             className="object-cover"
           />
         </div>

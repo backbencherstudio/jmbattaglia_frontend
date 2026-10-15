@@ -10,6 +10,7 @@ interface PackageCardProps {
   isExpanded: boolean;
   onSelect: (pkgId: string) => void;
   onToggleExpand: (pkgId: string, e: React.MouseEvent) => void;
+  onOpenVideo?: (pkg: PackageOption) => void;
 }
 
 export const PackageCard: React.FC<PackageCardProps> = ({
@@ -18,6 +19,7 @@ export const PackageCard: React.FC<PackageCardProps> = ({
   isExpanded,
   onSelect,
   onToggleExpand,
+  onOpenVideo,
 }) => {
   return (
     <div
@@ -60,8 +62,8 @@ export const PackageCard: React.FC<PackageCardProps> = ({
           </div>
         </div>
 
-        {/* Price + Accordion toggle */}
-        <div className="flex items-center justify-between sm:justify-end gap-3 flex-shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-hairline/50 sm:border-transparent">
+        {/* Price + Action Buttons */}
+        <div className="flex items-center justify-between sm:justify-end gap-2.5 sm:gap-3 flex-shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-hairline/50 sm:border-transparent">
           <div className="text-left sm:text-right">
             <span className="text-[11px] sm:text-xs text-sub font-medium mr-1.5">
               {pkg.priceSubLabel}
@@ -75,28 +77,48 @@ export const PackageCard: React.FC<PackageCardProps> = ({
             </span>
           </div>
 
-          <button
-            type="button"
-            onClick={(e) => onToggleExpand(pkg.id, e)}
-            className="w-8 h-8 rounded-lg border border-hairline bg-white flex items-center justify-center text-sub hover:text-main hover:bg-gray-50 transition-all cursor-pointer shrink-0"
-            aria-label="Toggle details"
-          >
-            <svg
-              className={`w-4 h-4 transition-transform duration-200 ${
-                isExpanded ? "rotate-180" : ""
-              }`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Video Button */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenVideo?.(pkg);
+              }}
+              className="h-8 px-2 xs:px-2.5 rounded-lg bg-primary-subtle/80 hover:bg-primary text-primary hover:text-white border border-primary/25 flex items-center gap-1.5 transition-all cursor-pointer shrink-0 text-xs font-bold shadow-2xs active:scale-95"
+              title="Watch package video"
+              aria-label="Watch package video"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2.5"
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </button>
+              <svg className="w-3.5 h-3.5 fill-current ml-0.5" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+              <span>Video</span>
+            </button>
+
+            {/* Accordion Toggle */}
+            <button
+              type="button"
+              onClick={(e) => onToggleExpand(pkg.id, e)}
+              className="w-8 h-8 rounded-lg border border-hairline bg-white flex items-center justify-center text-sub hover:text-main hover:bg-gray-50 transition-all cursor-pointer shrink-0"
+              aria-label="Toggle details"
+            >
+              <svg
+                className={`w-4 h-4 transition-transform duration-200 ${
+                  isExpanded ? "rotate-180" : ""
+                }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2.5"
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -105,26 +127,42 @@ export const PackageCard: React.FC<PackageCardProps> = ({
         <div className="px-3.5 pb-4 xs:px-4 xs:pb-5 sm:px-5 sm:pb-6 pt-1 border-t border-hairline/60 flex flex-col gap-3.5 sm:gap-4">
           {/* Image Banner if available */}
           {pkg.image && (
-            <div className="relative w-full h-36 xs:h-44 sm:h-52 md:h-56 lg:h-48 xl:h-56 rounded-xl overflow-hidden mt-1 group">
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenVideo?.(pkg);
+              }}
+              className="relative w-full h-40 xs:h-48 sm:h-52 md:h-56 lg:h-48 xl:h-56 rounded-xl overflow-hidden mt-1 group cursor-pointer"
+            >
               <Image
                 src={pkg.image}
                 alt={pkg.title}
                 fill
                 sizes="(min-width: 1024px) 50vw, 100vw"
-                className="object-cover"
+                className="object-cover group-hover:scale-105 transition-transform duration-500"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex items-end justify-between p-3.5 sm:p-5">
-                <span className="text-white font-extrabold text-sm xs:text-base sm:text-lg tracking-wide drop-shadow-md">
-                  {pkg.title}
-                </span>
-                <button
-                  type="button"
-                  className="w-7 h-7 xs:w-8 xs:h-8 rounded-lg bg-primary hover:bg-primary-hover text-white flex items-center justify-center shadow-md hover:scale-105 transition-transform"
-                >
-                  <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4 fill-current ml-0.5" viewBox="0 0 24 24">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/10 group-hover:via-black/35 transition-colors" />
+
+              {/* Center Play Button */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-primary text-white flex items-center justify-center shadow-xl group-hover:scale-110 active:scale-95 transition-all">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 fill-current ml-0.5" viewBox="0 0 24 24">
                     <path d="M8 5v14l11-7z" />
                   </svg>
-                </button>
+                </div>
+              </div>
+
+              {/* Bottom Row inside banner */}
+              <div className="absolute inset-x-0 bottom-0 flex items-center justify-between p-3 sm:p-4 gap-2">
+                <span className="text-white font-extrabold text-xs xs:text-sm sm:text-base tracking-wide drop-shadow-md truncate">
+                  {pkg.title}
+                </span>
+                <span className="text-[11px] xs:text-xs font-bold text-white bg-black/50 backdrop-blur-xs px-2.5 py-1 rounded-lg border border-white/20 shrink-0 flex items-center gap-1.5">
+                  <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                  <span>Watch Video</span>
+                </span>
               </div>
             </div>
           )}

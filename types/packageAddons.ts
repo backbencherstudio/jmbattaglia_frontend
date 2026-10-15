@@ -7,6 +7,7 @@ export interface PackageOption {
   priceSubLabel?: string;
   description: string;
   image?: string;
+  videoUrl?: string;
   whyItMatters?: string;
   features?: string[];
 }

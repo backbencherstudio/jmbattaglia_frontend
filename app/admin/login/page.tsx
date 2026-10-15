@@ -4,17 +4,19 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff, ShieldCheck, ArrowRight } from "lucide-react";
+import { useLoginMutation } from "@/redux/api/baseApi";
+import { getErrorMessage } from "@/lib/getErrorMessage";
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("admin@ateaseinspections.com");
-  const [password, setPassword] = useState("password123");
+  const [login, { isLoading: loading }] = useLoginMutation();
+  const [email, setEmail] = useState("admin@example.com");
+  const [password, setPassword] = useState("shohid_Software_boss@betopia2025");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -23,14 +25,21 @@ export default function AdminLoginPage() {
       return;
     }
 
-    setLoading(true);
+    try {
+      const response = await login({
+        email,
+        password,
+        rememberMe,
+      }).unwrap();
 
-    setTimeout(() => {
-      // Set authentication cookie for demo
-      document.cookie = `admin_session=authenticated; path=/; max-age=${rememberMe ? 86400 * 7 : 3600}`;
-      setLoading(false);
-      router.push("/admin/dashboard");
-    }, 600);
+      if (response.success) {
+        router.push("/admin/dashboard");
+      }
+    } catch (err) {
+      setError(
+        getErrorMessage(err, "Login failed. Please check your credentials."),
+      );
+    }
   };
 
   return (

@@ -11,6 +11,7 @@ export const authRoutes = {
   home: "/",
   login: "/admin/login",
   forget: "/admin/forget",
+  otp: "/admin/otp",
   reset: "/admin/reset",
   adminDashboard: "/admin/dashboard",
 } as const;
@@ -18,6 +19,8 @@ export const authRoutes = {
 export const guestAdminAuthRoutes = [
   "/admin/login",
   "/admin/forget",
+  "/admin/otp",
+  "/admin/verify-otp",
   "/admin/reset",
   "/admin/forgot",
   "/admin/forgot-password",

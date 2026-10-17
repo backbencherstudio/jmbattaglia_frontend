@@ -78,3 +78,38 @@ export interface IPaginatedResponse<T> {
   data: T[];
   meta?: IPaginationMeta;
 }
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface VerifyResetOtpRequest {
+  email: string;
+  otp: string;
+}
+
+export interface VerifyResetOtpData {
+  resetToken: string;
+  expiresIn: number;
+}
+
+export interface VerifyResetOtpResponse {
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: VerifyResetOtpData;
+}
+
+export interface ResetPasswordRequest {
+  resetToken: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export interface ResetPasswordResponse {
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data?: unknown;
+}
+

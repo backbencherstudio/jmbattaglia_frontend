@@ -23,14 +23,27 @@ import type {
   RefreshTokenResponse,
 } from "@/types/auth";
 
+const publicAuthEndpoints = new Set([
+  "login",
+  "refreshToken",
+  "forgotPassword",
+  "verifyResetOtp",
+  "resetPassword",
+]);
+
 const baseQuery = fetchBaseQuery({
   baseUrl: env.apiBaseUrl,
-  prepareHeaders: (headers, { getState }) => {
+  prepareHeaders: (headers, { getState, endpoint }) => {
+    headers.set("accept", "application/json");
+
+    // Do NOT attach Authorization token for public auth endpoints (login, forgot-password, reset-password)
+    if (endpoint && publicAuthEndpoints.has(endpoint)) {
+      return headers;
+    }
+
     const token =
       (getState() as RootState).auth?.token ||
       Cookies.get(authCookieNames.token);
-
-    headers.set("accept", "application/json");
 
     if (token) {
       headers.set("Authorization", `Bearer ${token}`);
@@ -52,10 +65,14 @@ const baseQueryWithReauth: BaseQueryFn<
   let result = await baseQuery(args, api, extraOptions);
 
   const requestUrl = typeof args === "object" && "url" in args ? args.url : args;
-  const isRefreshRequest = requestUrl === "/auth/refresh/token";
-  const isLoginRequest = requestUrl === "/auth/login";
+  const isAuthPublicRequest =
+    requestUrl === "/auth/refresh/token" ||
+    requestUrl === "/auth/login" ||
+    requestUrl.startsWith("/auth/forgot-password") ||
+    requestUrl.startsWith("/auth/verify-reset-otp") ||
+    requestUrl.startsWith("/auth/reset-password");
 
-  if (result.error?.status === 401 && !isRefreshRequest && !isLoginRequest) {
+  if (result.error?.status === 401 && !isAuthPublicRequest) {
     const state = api.getState() as RootState;
     const { refreshToken, role, user } = state.auth;
 

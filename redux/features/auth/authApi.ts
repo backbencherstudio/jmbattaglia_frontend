@@ -23,7 +23,7 @@ export const authApi = baseApi.injectEndpoints({
     }),
 
     forgotPassword: builder.mutation<
-      { success?: boolean; message?: string },
+      { success: boolean; statusCode?: number; message: string; data?: unknown },
       { email: string }
     >({
       query: (data) => ({
@@ -33,9 +33,25 @@ export const authApi = baseApi.injectEndpoints({
       }),
     }),
 
+    verifyResetOtp: builder.mutation<
+      {
+        success: boolean;
+        statusCode: number;
+        message: string;
+        data: { resetToken: string; expiresIn: number };
+      },
+      { email: string; otp: string }
+    >({
+      query: (data) => ({
+        url: "/auth/verify-reset-otp",
+        method: "POST",
+        body: data,
+      }),
+    }),
+
     resetPassword: builder.mutation<
-      { success?: boolean; message?: string },
-      { token: string; password: string }
+      { success: boolean; statusCode?: number; message: string; data?: unknown },
+      { resetToken: string; newPassword: string; confirmPassword: string }
     >({
       query: (data) => ({
         url: "/auth/reset-password",
@@ -63,8 +79,10 @@ export const {
   useGetMeQuery,
   useLogoutUserMutation,
   useForgotPasswordMutation,
+  useVerifyResetOtpMutation,
   useResetPasswordMutation,
   useChangePasswordMutation,
 } = authApi;
 
 export default authApi;
+

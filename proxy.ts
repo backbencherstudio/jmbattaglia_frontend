@@ -36,6 +36,11 @@ export async function proxy(request: NextRequest) {
     ) {
       return NextResponse.redirect(new URL("/admin/forget", request.url));
     }
+    if (pathname === "/admin/verify-otp") {
+      const otpUrl = new URL("/admin/otp", request.url);
+      otpUrl.search = request.nextUrl.search;
+      return NextResponse.redirect(otpUrl);
+    }
     if (pathname === "/admin/reset-password") {
       const resetUrl = new URL("/admin/reset", request.url);
       resetUrl.search = request.nextUrl.search;

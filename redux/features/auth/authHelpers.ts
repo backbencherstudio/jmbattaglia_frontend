@@ -1,7 +1,6 @@
 import type {
   LoginResponse,
   RefreshTokenResponse,
-  IUser,
 } from "@/types/auth";
 import { normalizeAuthRole } from "@/lib/auth/config";
 import type { AppDispatch } from "@/redux/store";

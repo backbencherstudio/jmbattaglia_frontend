@@ -19,34 +19,37 @@ export default function ProtectedAdminLayout({
   const dispatch = useAppDispatch();
   const stateToken = useAppSelector(selectCurrentToken);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
   useEffect(() => {
     let isMounted = true;
 
     const checkAuth = async () => {
-      const token = stateToken || Cookies.get(authCookieNames.token);
+      try {
+        const token = stateToken || Cookies.get(authCookieNames.token);
 
-      if (!token) {
-        if (isMounted) {
-          setIsAuthorized(false);
+        if (!token) {
+          if (isMounted) {
+            dispatch(logOut());
+            router.replace("/admin/login");
+          }
+          return;
+        }
+
+        // Verify token signature, expiration and role
+        const verification = await verifyAdminToken(token);
+
+        if (!isMounted) return;
+
+        if (!verification.isValid) {
           dispatch(logOut());
           router.replace("/admin/login");
         }
-        return;
-      }
-
-      // Verify token signature, expiration and role
-      const verification = await verifyAdminToken(token);
-
-      if (!isMounted) return;
-
-      if (!verification.isValid) {
-        setIsAuthorized(false);
-        dispatch(logOut());
-        router.replace("/admin/login");
-      } else {
-        setIsAuthorized(true);
+      } catch (err) {
+        console.error("Authorization check error:", err);
+        if (isMounted) {
+          dispatch(logOut());
+          router.replace("/admin/login");
+        }
       }
     };
 
@@ -56,21 +59,6 @@ export default function ProtectedAdminLayout({
       isMounted = false;
     };
   }, [stateToken, router, dispatch]);
-
-  if (isAuthorized === null) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-canvas">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="w-9 h-9 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm font-medium text-muted">Verifying authorization...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthorized) {
-    return null;
-  }
 
   return (
     <div className="flex min-h-screen bg-canvas">

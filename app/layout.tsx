@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import ReduxProvider from "@/redux/ReduxProvider";
+import TopLoader from "@/components/common/TopLoader";
 
 const tradeGothic = localFont({
   src: "../public/fonts/Trade-Gothic-Medium.otf",
@@ -25,6 +26,7 @@ export default function RootLayout({
       className={`${tradeGothic.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <TopLoader />
         <ReduxProvider>{children}</ReduxProvider>
       </body>
     </html>

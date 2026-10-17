@@ -53,6 +53,7 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
                 sizes="141px"
                 className="object-contain object-center"
                 priority
+                loading="eager"
               />
             </Link>
 

@@ -35,6 +35,8 @@ export function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
             fill
             sizes="36px"
             className="object-cover"
+            priority
+            loading="eager"
           />
         </div>
         <span className="text-sm font-medium text-main">

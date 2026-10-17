@@ -10,8 +10,28 @@ export const authCookieNames = {
 export const authRoutes = {
   home: "/",
   login: "/admin/login",
+  forget: "/admin/forget",
+  reset: "/admin/reset",
   adminDashboard: "/admin/dashboard",
 } as const;
+
+export const guestAdminAuthRoutes = [
+  "/admin/login",
+  "/admin/forget",
+  "/admin/reset",
+  "/admin/forgot",
+  "/admin/forgot-password",
+  "/admin/forget-password",
+  "/admin/reset-password",
+] as const;
+
+export const isGuestAdminRoute = (pathname?: string | null): boolean => {
+  if (!pathname) return false;
+  const cleanPath = pathname.replace(/\/+$/, "") || "/";
+  return guestAdminAuthRoutes.some(
+    (route) => cleanPath === route || cleanPath.startsWith(`${route}/`),
+  );
+};
 
 export const normalizeAuthRole = (role?: string | null): AuthRole => {
   if (!role) return null;

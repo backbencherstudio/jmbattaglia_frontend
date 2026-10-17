@@ -2,10 +2,12 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff, ShieldCheck, ArrowRight } from "lucide-react";
 import { useLoginMutation } from "@/redux/api/baseApi";
 import { getErrorMessage } from "@/lib/getErrorMessage";
+import { GuestAuthGuard } from "@/components/admin/auth/GuestAuthGuard";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -43,7 +45,8 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-white text-main font-sans">
+    <GuestAuthGuard>
+      <div className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-white text-main font-sans">
       {/* Left Banner Section */}
       <div className="hidden lg:flex lg:col-span-6 xl:col-span-7 relative bg-neutral-900 overflow-hidden flex-col justify-between p-12 text-white">
         <Image
@@ -135,16 +138,12 @@ export default function AdminLoginPage() {
                 <label className="block text-sm font-medium text-main">
                   Password
                 </label>
-                <a
-                  href="#forgot"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    alert("Contact system administrator to reset password.");
-                  }}
+                <Link
+                  href="/admin/forget"
                   className="text-xs font-semibold text-primary hover:text-primary-hover transition-colors"
                 >
                   Forgot password?
-                </a>
+                </Link>
               </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted">
@@ -205,5 +204,6 @@ export default function AdminLoginPage() {
         </div>
       </div>
     </div>
+    </GuestAuthGuard>
   );
 }

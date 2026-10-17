@@ -8,14 +8,15 @@ import { AdminSidebarProps } from "@/types/adminSidebar";
 import { adminNavItems } from "@/data/adminSidebarData";
 import { AdminSidebarItem } from "@/components/admin/layout/AdminSidebarItem";
 import { LogOutIcon } from "@/components/icons/AdminSidebarIcons";
+import { useAuth } from "@/redux/features/auth/hooks";
 
 export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { logOut } = useAuth();
 
-  const handleLogout = () => {
-    document.cookie =
-      "admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+  const handleLogout = async () => {
+    await logOut();
     router.push("/admin/login");
   };
 
@@ -52,6 +53,7 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
                 sizes="141px"
                 className="object-contain object-center"
                 priority
+                loading="eager"
               />
             </Link>
 

@@ -10,6 +10,7 @@ interface PackageCardProps {
   onSelect: (item: PackageItem) => void;
   onEdit?: (item: PackageItem) => void;
   onDelete?: (item: PackageItem) => void;
+  onOpenVideo?: (item: PackageItem) => void;
 }
 
 export function PackageCard({
@@ -17,6 +18,7 @@ export function PackageCard({
   onSelect,
   onEdit,
   onDelete,
+  onOpenVideo,
 }: PackageCardProps) {
   return (
     <div
@@ -25,13 +27,21 @@ export function PackageCard({
     >
       <div className="p-3">
         {/* Thumbnail Image with Action Icons & Play Button */}
-        <div className="relative w-full h-48 sm:h-52 rounded-xl overflow-hidden bg-neutral-900">
+        <div
+          onClick={(e) => {
+            if (onOpenVideo) {
+              e.stopPropagation();
+              onOpenVideo(item);
+            }
+          }}
+          className="relative w-full h-48 sm:h-52 rounded-xl overflow-hidden bg-neutral-900 group/thumb cursor-pointer"
+        >
           <Image
             src={item.image}
             alt={item.name}
             fill
             sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            className="object-cover group-hover/thumb:scale-105 transition-transform duration-500"
           />
 
           {/* Action Icons Top Right */}
@@ -41,7 +51,7 @@ export function PackageCard({
                 e.stopPropagation();
                 if (onEdit) onEdit(item);
               }}
-              className="p-2 bg-white/90 backdrop-blur-md rounded-lg text-main hover:text-primary transition-colors shadow-xs"
+              className="p-2 bg-white/90 hover:bg-white backdrop-blur-md rounded-lg text-main hover:text-primary transition-colors shadow-xs cursor-pointer"
               title="Edit Package"
             >
               <Edit className="w-4 h-4" />
@@ -52,7 +62,7 @@ export function PackageCard({
                 e.stopPropagation();
                 if (onDelete) onDelete(item);
               }}
-              className="p-2 bg-white/90 backdrop-blur-md rounded-lg text-danger hover:bg-danger-bg transition-colors shadow-xs"
+              className="p-2 bg-white/90 hover:bg-white backdrop-blur-md rounded-lg text-danger hover:bg-danger-bg transition-colors shadow-xs cursor-pointer"
               title="Delete Package"
             >
               <Trash2 className="w-4 h-4" />
@@ -60,10 +70,27 @@ export function PackageCard({
           </div>
 
           {/* Video Play Overlay Center */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-10 h-10 rounded-xl bg-black/40 backdrop-blur-xs border border-white/20 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-              <Play className="w-5 h-5 fill-primary" />
-            </div>
+          <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover/thumb:bg-black/35 transition-colors">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenVideo?.(item);
+              }}
+              className="w-11 h-11 rounded-xl bg-black/50 group-hover/thumb:bg-primary group-hover/thumb:text-white backdrop-blur-xs border border-white/25 flex items-center justify-center text-primary group-hover/thumb:scale-110 active:scale-95 transition-all shadow-md cursor-pointer"
+              title="Watch package video"
+              aria-label="Watch package video"
+            >
+              <Play className="w-5 h-5 fill-current ml-0.5" />
+            </button>
+          </div>
+
+          {/* Watch Video Chip Bottom Left */}
+          <div className="absolute bottom-2.5 left-2.5 z-10 pointer-events-none">
+            <span className="text-[11px] font-bold text-white bg-black/60 backdrop-blur-xs px-2.5 py-1 rounded-md border border-white/20 flex items-center gap-1.5 shadow-xs">
+              <Play className="w-2.5 h-2.5 fill-current" />
+              <span>Watch Video</span>
+            </span>
           </div>
         </div>
 

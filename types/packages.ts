@@ -12,6 +12,7 @@ export interface PackageItem {
   updated: string;
   shortDescription: string;
   image: string;
+  videoUrl?: string;
   isRecommended?: boolean;
   whyItMatters?: string;
   featuresIncluded?: string[];

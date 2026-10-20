@@ -11,6 +11,7 @@ export const initialPackages: PackageItem[] = [
     updated: "2 hours ago",
     shortDescription: "Safe Home Package ensures protection.",
     image: "/assets/images/safe_home_package.jpg",
+    videoUrl: "https://www.youtube.com/watch?v=x5B2XZ7PIGQ",
     isRecommended: true,
     whyItMatters:
       "Buyers make a six-figure decision on a single walkthrough. A Signature inspection surfaces the repairs that change the negotiation.",
@@ -31,6 +32,7 @@ export const initialPackages: PackageItem[] = [
     updated: "30 minutes ago",
     shortDescription: "A comprehensive inspection of all accessible areas of the home.",
     image: "/assets/images/residential_home_inspection.jpg",
+    videoUrl: "https://www.youtube.com/watch?v=x5B2XZ7PIGQ",
     isRecommended: false,
     whyItMatters:
       "A comprehensive walkthrough surfaces major safety issues and necessary repair costs before closing.",
@@ -51,6 +53,7 @@ export const initialPackages: PackageItem[] = [
     updated: "1 day ago",
     shortDescription: "Measurement of radon gas levels to ensure safe indoor air quality.",
     image: "/assets/images/radon_testing.jpg",
+    videoUrl: "https://www.youtube.com/watch?v=x5B2XZ7PIGQ",
     isRecommended: false,
     whyItMatters:
       "Radon gas is an invisible health hazard. Testing protects your household from long-term exposure.",
@@ -66,6 +69,7 @@ export const initialPackages: PackageItem[] = [
     updated: "3 days ago",
     shortDescription: "Catch issues before the walls go up.",
     image: "/assets/images/pre_drywall_inspection.jpg",
+    videoUrl: "https://www.youtube.com/watch?v=x5B2XZ7PIGQ",
     isRecommended: false,
     whyItMatters:
       "Inspecting framing and rough-in plumbing/wiring before insulation ensures builder compliance.",
@@ -81,6 +85,7 @@ export const initialPackages: PackageItem[] = [
     updated: "45 minutes ago",
     shortDescription: "Final walkthrough before you close.",
     image: "/assets/images/final_inspection.jpg",
+    videoUrl: "https://www.youtube.com/watch?v=x5B2XZ7PIGQ",
     isRecommended: false,
     whyItMatters:
       "Verifies that all new construction punch-list items and builder standards are 100% complete.",

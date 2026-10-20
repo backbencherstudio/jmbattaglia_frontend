@@ -11,6 +11,7 @@ export interface PackageFormData {
   whyItMatters: string;
   featuresIncluded: string[];
   image: string;
+  videoUrl?: string;
   isRecommended: boolean;
   status: "Published" | "Draft";
 }

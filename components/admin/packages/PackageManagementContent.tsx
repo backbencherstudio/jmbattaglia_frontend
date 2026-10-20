@@ -14,6 +14,8 @@ import { PackageCard } from "@/components/admin/packages/PackageCard";
 import { AddonCard } from "@/components/admin/packages/AddonCard";
 import { PackageDetailsView } from "@/components/admin/packages/PackageDetailsView";
 import { CreatePackageWizard } from "@/components/admin/packages/CreatePackageWizard";
+import { PackageVideoModal } from "@/components/stepper/steps/package-addons/PackageVideoModal";
+import { PackageOption } from "@/types/packageAddons";
 
 export function PackageManagementContent() {
   const router = useRouter();
@@ -30,6 +32,22 @@ export function PackageManagementContent() {
   const [packages, setPackages] = useState<PackageItem[]>(initialPackages);
   const [addons, setAddons] = useState<AddonItem[]>(initialAddons);
   const [searchQuery, setSearchQuery] = useState("");
+  const [videoModalPackage, setVideoModalPackage] = useState<PackageItem | null>(null);
+
+  // Helper to map PackageItem to PackageOption for PackageVideoModal
+  const toPackageOption = (item: PackageItem): PackageOption => ({
+    id: item.id,
+    title: item.name,
+    priceText: item.price,
+    priceNumeric: parseInt(item.price.replace(/[^0-9]/g, ""), 10) || 0,
+    priceSubLabel: `${item.type} Package`,
+    description: item.shortDescription,
+    image: item.image,
+    videoUrl: item.videoUrl || "https://www.youtube.com/watch?v=x5B2XZ7PIGQ",
+    whyItMatters: item.whyItMatters,
+    features: item.featuresIncluded,
+    isRecommended: item.isRecommended,
+  });
 
   // Selected package for details view
   const selectedPackage = packages.find((p) => p.id === selectedId) || packages[0];
@@ -50,11 +68,20 @@ export function PackageManagementContent() {
   // If viewing details page
   if (currentView === "details" && selectedPackage) {
     return (
-      <PackageDetailsView
-        packageItem={selectedPackage}
-        onBack={() => updateQueryParams({ view: "list", id: null })}
-        onEdit={() => updateQueryParams({ view: "create" })}
-      />
+      <>
+        <PackageDetailsView
+          packageItem={selectedPackage}
+          onBack={() => updateQueryParams({ view: "list", id: null })}
+          onEdit={() => updateQueryParams({ view: "create" })}
+          onOpenVideo={(item) => setVideoModalPackage(item)}
+        />
+        {videoModalPackage && (
+          <PackageVideoModal
+            pkg={toPackageOption(videoModalPackage)}
+            onClose={() => setVideoModalPackage(null)}
+          />
+        )}
+      </>
     );
   }
 
@@ -68,7 +95,8 @@ export function PackageManagementContent() {
             id: String(Date.now()),
             ...data,
             updated: "Just now",
-            image: "/assets/images/safe_home_package.jpg",
+            image: data.image || "/assets/images/safe_home_package.jpg",
+            videoUrl: data.videoUrl || "https://www.youtube.com/watch?v=x5B2XZ7PIGQ",
           };
           setPackages((prev) => [newPkg, ...prev]);
           updateQueryParams({ view: null, tab: "packages" });
@@ -170,6 +198,7 @@ export function PackageManagementContent() {
                       setPackages((prev) => prev.filter((p) => p.id !== item.id));
                     }
                   }}
+                  onOpenVideo={(item) => setVideoModalPackage(item)}
                 />
               ))}
             </div>
@@ -192,6 +221,14 @@ export function PackageManagementContent() {
             </div>
           )}
         </div>
+      )}
+
+      {/* Video Modal */}
+      {videoModalPackage && (
+        <PackageVideoModal
+          pkg={toPackageOption(videoModalPackage)}
+          onClose={() => setVideoModalPackage(null)}
+        />
       )}
     </div>
   );

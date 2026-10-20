@@ -17,6 +17,10 @@ interface CreatePackageWizardProps {
     price: string;
     shortDescription: string;
     status: "Published" | "Draft";
+    image?: string;
+    videoUrl?: string;
+    whyItMatters?: string;
+    featuresIncluded?: string[];
   }) => void;
 }
 
@@ -48,6 +52,7 @@ export function CreatePackageWizard({
       "Heating & cooling systems (HVAC)",
     ],
     image: "/assets/images/safe_home_package.jpg",
+    videoUrl: "https://www.youtube.com/watch?v=x5B2XZ7PIGQ",
     isRecommended: true,
     status: "Published",
   });
@@ -71,6 +76,10 @@ export function CreatePackageWizard({
       shortDescription:
         formData.shortDescription || "Inspection package for your home.",
       status: "Published",
+      image: formData.image,
+      videoUrl: formData.videoUrl,
+      whyItMatters: formData.whyItMatters,
+      featuresIncluded: formData.featuresIncluded,
     });
   };
 
@@ -85,6 +94,10 @@ export function CreatePackageWizard({
       shortDescription:
         formData.shortDescription || "Draft package for review.",
       status: "Draft",
+      image: formData.image,
+      videoUrl: formData.videoUrl,
+      whyItMatters: formData.whyItMatters,
+      featuresIncluded: formData.featuresIncluded,
     });
   };
 

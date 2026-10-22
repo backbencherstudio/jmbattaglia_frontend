@@ -2,23 +2,55 @@
 
 import React from "react";
 import Image from "next/image";
-import { Edit, CheckCircle2, Play, ChevronRight } from "lucide-react";
-import { PackageItem } from "@/types/packages";
+import { Edit, CheckCircle2, Play, ChevronRight, Loader2 } from "lucide-react";
+import { PackageItem, mapApiPackageToPackageItem } from "@/types/packages";
 import { Button } from "@/components/ui/Button";
+import { useGetAdminPackageByIdQuery } from "@/redux/features/packages/packageApi";
 
 interface PackageDetailsViewProps {
-  packageItem: PackageItem;
+  packageId?: string;
+  packageItem?: PackageItem;
   onBack: () => void;
   onEdit: (item: PackageItem) => void;
   onOpenVideo?: (item: PackageItem) => void;
 }
 
 export function PackageDetailsView({
-  packageItem,
+  packageId,
+  packageItem: initialItem,
   onBack,
   onEdit,
   onOpenVideo,
 }: PackageDetailsViewProps) {
+  const { data: detailResponse, isLoading } = useGetAdminPackageByIdQuery(
+    packageId as string,
+    { skip: !packageId }
+  );
+
+  const packageItem: PackageItem | undefined = detailResponse?.data
+    ? mapApiPackageToPackageItem(detailResponse.data)
+    : initialItem;
+
+  if (isLoading && !packageItem) {
+    return (
+      <div className="bg-canvas border border-hairline rounded-2xl p-16 flex flex-col items-center justify-center space-y-3">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <p className="font-trade font-bold text-main">Loading package details...</p>
+      </div>
+    );
+  }
+
+  if (!packageItem) {
+    return (
+      <div className="bg-canvas border border-hairline rounded-2xl p-12 text-center space-y-4">
+        <p className="text-sub">Package not found.</p>
+        <Button variant="primary" onClick={onBack}>
+          Back to packages
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Breadcrumb & Header */}
@@ -153,9 +185,10 @@ export function PackageDetailsView({
             className="relative w-full max-w-md h-56 rounded-2xl overflow-hidden bg-neutral-900 border border-hairline group cursor-pointer shadow-xs hover:shadow-md transition-all"
           >
             <Image
-              src={packageItem.image}
-              alt={packageItem.name}
+              src={packageItem.image || "/assets/images/safe_home_package.jpg"}
+              alt={packageItem.name || "Package"}
               fill
+              unoptimized
               sizes="(min-width: 768px) 448px, 100vw"
               className="object-cover group-hover:scale-105 transition-transform duration-500"
             />

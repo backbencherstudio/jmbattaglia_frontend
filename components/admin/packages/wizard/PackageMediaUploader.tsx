@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import {
   Upload,
@@ -14,34 +14,23 @@ import {
 interface PackageMediaUploaderProps {
   image?: string;
   videoUrl?: string;
+  file?: File | null;
   onUpdateImage: (image: string) => void;
+  onUpdateFile?: (file: File | null) => void;
   onUpdateVideoUrl?: (videoUrl: string) => void;
 }
 
 export function PackageMediaUploader({
   image,
   videoUrl,
+  file,
   onUpdateImage,
+  onUpdateFile,
   onUpdateVideoUrl,
 }: PackageMediaUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-
-  const [fileMeta, setFileMeta] = useState<{
-    name: string;
-    size: string;
-    type: "image" | "video";
-  } | null>(() => {
-    if (image && image !== "/assets/images/safe_home_package.jpg") {
-      return {
-        name: "Uploaded Package Media",
-        size: "Saved",
-        type: "image",
-      };
-    }
-    return null;
-  });
 
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return bytes + " B";
@@ -49,18 +38,56 @@ export function PackageMediaUploader({
     return (bytes / (1024 * 1024)).toFixed(1) + " MB";
   };
 
-  const handleProcessFile = (file: File) => {
+  const [fileMeta, setFileMeta] = useState<{
+    name: string;
+    size: string;
+    type: "image" | "video";
+  } | null>(() => {
+    if (file) {
+      return {
+        name: file.name,
+        size: formatFileSize(file.size),
+        type: file.type.startsWith("video/") ? "video" : "image",
+      };
+    }
+    if (image && image !== "/assets/images/safe_home_package.jpg") {
+      return {
+        name: "Uploaded Package Media",
+        size: "Saved",
+        type: videoUrl && videoUrl.includes(".mp4") ? "video" : "image",
+      };
+    }
+    return null;
+  });
+
+  useEffect(() => {
+    if (file) {
+      setFileMeta({
+        name: file.name,
+        size: formatFileSize(file.size),
+        type: file.type.startsWith("video/") ? "video" : "image",
+      });
+    } else if (image && image !== "/assets/images/safe_home_package.jpg") {
+      setFileMeta((prev) => prev || {
+        name: "Package Media Asset",
+        size: "Attached",
+        type: videoUrl && videoUrl.includes(".mp4") ? "video" : "image",
+      });
+    }
+  }, [file, image, videoUrl]);
+
+  const handleProcessFile = (selectedFile: File) => {
     setUploadError(null);
 
     // 50 MB Max Limit
     const MAX_SIZE = 50 * 1024 * 1024;
-    if (file.size > MAX_SIZE) {
+    if (selectedFile.size > MAX_SIZE) {
       setUploadError("File size exceeds 50 MB limit. Please select a smaller file.");
       return;
     }
 
-    const isImage = file.type.startsWith("image/");
-    const isVideo = file.type.startsWith("video/");
+    const isImage = selectedFile.type.startsWith("image/");
+    const isVideo = selectedFile.type.startsWith("video/");
 
     if (!isImage && !isVideo) {
       setUploadError(
@@ -69,28 +96,23 @@ export function PackageMediaUploader({
       return;
     }
 
-    const formattedSize = formatFileSize(file.size);
+    const formattedSize = formatFileSize(selectedFile.size);
 
     if (isImage) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const dataUrl = e.target?.result as string;
-        onUpdateImage(dataUrl);
-        setFileMeta({
-          name: file.name,
-          size: formattedSize,
-          type: "image",
-        });
-      };
-      reader.onerror = () => {
-        setUploadError("Failed to read image file. Please try again.");
-      };
-      reader.readAsDataURL(file);
-    } else if (isVideo) {
-      const createdVideoUrl = URL.createObjectURL(file);
-      onUpdateVideoUrl?.(createdVideoUrl);
+      const previewUrl = URL.createObjectURL(selectedFile);
+      onUpdateImage(previewUrl);
+      onUpdateFile?.(selectedFile);
       setFileMeta({
-        name: file.name,
+        name: selectedFile.name,
+        size: formattedSize,
+        type: "image",
+      });
+    } else if (isVideo) {
+      const createdVideoUrl = URL.createObjectURL(selectedFile);
+      onUpdateVideoUrl?.(createdVideoUrl);
+      onUpdateFile?.(selectedFile);
+      setFileMeta({
+        name: selectedFile.name,
         size: formattedSize,
         type: "video",
       });
@@ -121,16 +143,16 @@ export function PackageMediaUploader({
     e.stopPropagation();
     setIsDragging(false);
 
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      handleProcessFile(file);
+    const droppedFile = e.dataTransfer.files?.[0];
+    if (droppedFile) {
+      handleProcessFile(droppedFile);
     }
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleProcessFile(file);
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      handleProcessFile(selectedFile);
     }
     if (e.target) e.target.value = "";
   };
@@ -139,6 +161,8 @@ export function PackageMediaUploader({
     setFileMeta(null);
     setUploadError(null);
     onUpdateImage("/assets/images/safe_home_package.jpg");
+    onUpdateFile?.(null);
+    onUpdateVideoUrl?.("");
   };
 
   return (

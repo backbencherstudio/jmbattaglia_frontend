@@ -11,6 +11,7 @@ interface WizardStepMediaProps {
   updateFormData: (fields: Partial<PackageFormData>) => void;
   onNext: () => void;
   onSaveDraft: () => void;
+  isSubmitting?: boolean;
 }
 
 export function WizardStepMedia({
@@ -18,6 +19,7 @@ export function WizardStepMedia({
   updateFormData,
   onNext,
   onSaveDraft,
+  isSubmitting,
 }: WizardStepMediaProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +60,9 @@ export function WizardStepMedia({
         <PackageMediaUploader
           image={formData.image}
           videoUrl={formData.videoUrl}
+          file={formData.file}
           onUpdateImage={(image) => updateFormData({ image })}
+          onUpdateFile={(file) => updateFormData({ file })}
           onUpdateVideoUrl={(videoUrl) => updateFormData({ videoUrl })}
         />
       </div>
@@ -69,12 +73,13 @@ export function WizardStepMedia({
           type="button"
           variant="outline"
           onClick={onSaveDraft}
+          disabled={isSubmitting}
           className="bg-white"
         >
-          Save as draft
+          {isSubmitting ? "Saving..." : "Save as draft"}
         </Button>
 
-        <Button type="submit" variant="primary">
+        <Button type="submit" variant="primary" disabled={isSubmitting}>
           Continue
         </Button>
       </div>

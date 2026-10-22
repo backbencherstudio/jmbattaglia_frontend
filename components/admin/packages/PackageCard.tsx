@@ -1,9 +1,12 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import { Edit, Trash2, Play } from "lucide-react";
 import { PackageItem } from "@/types/packages";
+import { getErrorMessage } from "@/lib/getErrorMessage";
+import { useDeleteAdminPackageMutation } from "@/redux/features/packages/packageApi";
+import { DeletePackageModal } from "./DeletePackageModal";
 
 interface PackageCardProps {
   item: PackageItem;
@@ -20,58 +23,83 @@ export function PackageCard({
   onDelete,
   onOpenVideo,
 }: PackageCardProps) {
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteAdminPackage, { isLoading: isDeleting }] =
+    useDeleteAdminPackageMutation();
+
+  const handleOpenDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDeleteError(null);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      setDeleteError(null);
+      await deleteAdminPackage(item.id).unwrap();
+      setShowDeleteModal(false);
+      if (onDelete) {
+        onDelete(item);
+      }
+    } catch (err) {
+      setDeleteError(getErrorMessage(err, "Failed to delete package."));
+    }
+  };
+
   return (
-    <div
-      onClick={() => onSelect(item)}
-      className="bg-canvas border border-hairline rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
-    >
-      <div className="p-3">
-        {/* Thumbnail Image with Action Icons & Play Button */}
-        <div
-          onClick={(e) => {
-            if (onOpenVideo) {
-              e.stopPropagation();
-              onOpenVideo(item);
-            }
-          }}
-          className="relative w-full h-48 sm:h-52 rounded-xl overflow-hidden bg-neutral-900 group/thumb cursor-pointer"
-        >
-          <Image
-            src={item.image}
-            alt={item.name}
-            fill
-            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-            className="object-cover group-hover/thumb:scale-105 transition-transform duration-500"
-          />
-
-          {/* Action Icons Top Right */}
-          <div className="absolute top-3 right-3 flex flex-col space-y-2 z-10">
-            <button
-              onClick={(e) => {
+    <>
+      <div
+        onClick={() => onSelect(item)}
+        className="bg-canvas border border-hairline rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+      >
+        <div className="p-3">
+          {/* Thumbnail Image with Action Icons & Play Button */}
+          <div
+            onClick={(e) => {
+              if (onOpenVideo) {
                 e.stopPropagation();
-                if (onEdit) onEdit(item);
-              }}
-              className="p-2 bg-white/90 hover:bg-white backdrop-blur-md rounded-lg text-main hover:text-primary transition-colors shadow-xs cursor-pointer"
-              title="Edit Package"
-            >
-              <Edit className="w-4 h-4" />
-            </button>
+                onOpenVideo(item);
+              }
+            }}
+            className="relative w-full h-48 sm:h-52 rounded-xl overflow-hidden bg-neutral-900 group/thumb cursor-pointer"
+          >
+            <Image
+              src={item?.image || "/assets/images/safe_home_package.jpg"}
+              alt={item?.name || "Package"}
+              fill
+              unoptimized
+              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+              className="object-cover group-hover/thumb:scale-105 transition-transform duration-500"
+            />
 
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onDelete) onDelete(item);
-              }}
-              className="p-2 bg-white/90 hover:bg-white backdrop-blur-md rounded-lg text-danger hover:bg-danger-bg transition-colors shadow-xs cursor-pointer"
-              title="Delete Package"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          </div>
+            {/* Action Icons Top Right */}
+            <div className="absolute top-3 right-3 flex flex-col space-y-2 z-10">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onEdit) onEdit(item);
+                }}
+                className="p-2 bg-white/90 hover:bg-white backdrop-blur-md rounded-lg text-main hover:text-primary transition-colors shadow-xs cursor-pointer"
+                title="Edit Package"
+              >
+                <Edit className="w-4 h-4" />
+              </button>
 
-          {/* Video Play Overlay Center */}
-          <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover/thumb:bg-black/35 transition-colors">
-            <button
+              <button
+                type="button"
+                onClick={handleOpenDelete}
+                className="p-2 bg-white/90 hover:bg-white backdrop-blur-md rounded-lg text-danger hover:bg-danger-bg transition-colors shadow-xs cursor-pointer"
+                title="Delete Package"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Video Play Overlay Center */}
+            <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover/thumb:bg-black/35 transition-colors">
+              <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
@@ -134,5 +162,21 @@ export function PackageCard({
         </p>
       </div>
     </div>
+
+    {/* Delete Confirmation Modal */}
+    <DeletePackageModal
+      isOpen={showDeleteModal}
+      packageItem={item}
+      isDeleting={isDeleting}
+      errorMessage={deleteError}
+      onClose={() => {
+        if (!isDeleting) {
+          setShowDeleteModal(false);
+          setDeleteError(null);
+        }
+      }}
+      onConfirm={handleConfirmDelete}
+    />
+  </>
   );
 }

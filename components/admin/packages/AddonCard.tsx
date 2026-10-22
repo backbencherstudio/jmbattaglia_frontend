@@ -14,9 +14,10 @@ export function AddonCard({ item }: AddonCardProps) {
       {/* Image Container */}
       <div className="relative w-full h-44 sm:h-48 rounded-xl overflow-hidden bg-neutral-900">
         <Image
-          src={item.image}
+          src={item.image || "/assets/images/pool_inspection.jpg"}
           alt={item.name}
           fill
+          unoptimized
           sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
           className="object-cover group-hover:scale-105 transition-transform duration-500"
         />

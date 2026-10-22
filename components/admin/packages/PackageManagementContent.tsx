@@ -1,9 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Eye } from "lucide-react";
-import { PackageItem, AddonItem } from "@/types/packages";
+import { Plus, Eye, Check, AlertCircle, X, Loader2, RefreshCw } from "lucide-react";
+import {
+  PackageItem,
+  AddonItem,
+  ApiPackage,
+  mapApiPackageToPackageItem,
+} from "@/types/packages";
 import { initialPackages, initialAddons } from "@/data/packagesData";
 import { useTabQuery } from "@/hooks/useTabQuery";
 import { SearchInput } from "@/components/ui/SearchInput";
@@ -16,30 +21,107 @@ import { PackageDetailsView } from "@/components/admin/packages/PackageDetailsVi
 import { CreatePackageWizard } from "@/components/admin/packages/CreatePackageWizard";
 import { PackageVideoModal } from "@/components/stepper/steps/package-addons/PackageVideoModal";
 import { PackageOption } from "@/types/packageAddons";
+import {
+  useGetAdminPackagesQuery,
+} from "@/redux/features/packages/packageApi";
+import { useAppDispatch } from "@/redux/store";
+import { initNewDraft } from "@/redux/features/packages/packageDraftSlice";
+import { getErrorMessage } from "@/lib/getErrorMessage";
+import { useDebounce } from "@/hooks/useDebounce";
+import { Pagination } from "@/components/ui/Pagination";
 
 export function PackageManagementContent() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const { getParam, updateQueryParams } = useTabQuery();
+
+  // Search State with Debounce
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebounce(searchQuery, 400);
+
+  // Pagination State (Synced with URL)
+  const pageParam = parseInt(getParam("page", "1"), 10) || 1;
+  const [page, setPage] = useState(pageParam);
+  const pageSize = 9;
 
   // URL State Management using useTabQuery hook
   const currentTab = getParam("tab") === "addons" ? "addons" : "packages";
-  const categoryKey = getParam("category") === "new-construction" ? "new-construction" : "resale";
-  const currentCategory = categoryKey === "new-construction" ? "New Construction" : "Resale Home";
+  const categoryKey =
+    getParam("category") === "new-construction" ? "new-construction" : "resale";
+  const currentCategory =
+    categoryKey === "new-construction" ? "New Construction" : "Resale Home";
   const currentView = getParam("view", "list"); // 'list' | 'details' | 'create'
   const selectedId = getParam("id");
 
-  // Local Data State
-  const [packages, setPackages] = useState<PackageItem[]>(initialPackages);
-  const [addons, setAddons] = useState<AddonItem[]>(initialAddons);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [videoModalPackage, setVideoModalPackage] = useState<PackageItem | null>(null);
+  // Keep page in sync with URL
+  useEffect(() => {
+    const p = parseInt(getParam("page", "1"), 10) || 1;
+    setPage(p);
+  }, [getParam("page")]);
+
+  // Reset page to 1 when search or category changes
+  useEffect(() => {
+    if (page !== 1) {
+      setPage(1);
+      updateQueryParams({ page: null });
+    }
+  }, [debouncedSearch, categoryKey]);
+
+  // API Queries & Mutations with debounced search & pagination
+  const {
+    data: packagesResponse,
+    isLoading: isLoadingPackages,
+    isFetching: isFetchingPackages,
+    error: packagesError,
+    refetch,
+  } = useGetAdminPackagesQuery(
+    {
+      page,
+      limit: pageSize,
+      search: debouncedSearch.trim() || undefined,
+    },
+    {
+      refetchOnFocus: true,
+      refetchOnReconnect: true,
+    }
+  );
+
+
+  // Local UI State
+  const [videoModalPackage, setVideoModalPackage] =
+    useState<PackageItem | null>(null);
+  const [showOnlyDrafts, setShowOnlyDrafts] = useState(false);
+  const [notification, setNotification] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
+  // Compute live packages from API or fallback
+  const apiPackagesList: ApiPackage[] = Array.isArray(packagesResponse?.data)
+    ? packagesResponse.data
+    : (packagesResponse?.data as any)?.items || [];
+
+  const totalPackagesCount: number =
+    typeof (packagesResponse?.data as any)?.total === "number"
+      ? (packagesResponse?.data as any).total
+      : apiPackagesList.length;
+
+  const packages: PackageItem[] =
+    packagesResponse && Array.isArray(apiPackagesList)
+      ? apiPackagesList.map(mapApiPackageToPackageItem)
+      : initialPackages;
+
+  const [addons] = useState<AddonItem[]>(initialAddons);
 
   // Helper to map PackageItem to PackageOption for PackageVideoModal
   const toPackageOption = (item: PackageItem): PackageOption => ({
     id: item.id,
     title: item.name,
     priceText: item.price,
-    priceNumeric: parseInt(item.price.replace(/[^0-9]/g, ""), 10) || 0,
+    priceNumeric:
+      item.priceCents
+        ? Math.round(item.priceCents / 100)
+        : parseInt(item.price.replace(/[^0-9]/g, ""), 10) || 0,
     priceSubLabel: `${item.type} Package`,
     description: item.shortDescription,
     image: item.image,
@@ -50,29 +132,45 @@ export function PackageManagementContent() {
   });
 
   // Selected package for details view
-  const selectedPackage = packages.find((p) => p.id === selectedId) || packages[0];
+  const selectedPackage =
+    packages.find((p) => p.id === selectedId) || packages[0];
 
-  // Filtered lists based on search and category
+  // Count draft packages
+  const draftCount = packages.filter((p) => p.status === "Draft").length;
+
+  // Filtered lists based on search, category and draft filter
   const filteredPackages = packages.filter((pkg) => {
     const matchesCategory = pkg.category === currentCategory;
     const matchesSearch =
       pkg.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       pkg.shortDescription.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
+    const matchesDraft = showOnlyDrafts ? pkg.status === "Draft" : true;
+    return matchesCategory && matchesSearch && matchesDraft;
   });
 
   const filteredAddons = addons.filter((addon) =>
     addon.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleDeletePackage = (item: PackageItem) => {
+    setNotification({
+      type: "success",
+      message: `Package "${item.name}" was successfully deleted.`,
+    });
+    refetch();
+  };
+
   // If viewing details page
-  if (currentView === "details" && selectedPackage) {
+  if (currentView === "details" && selectedId) {
     return (
       <>
         <PackageDetailsView
+          packageId={selectedId}
           packageItem={selectedPackage}
           onBack={() => updateQueryParams({ view: "list", id: null })}
-          onEdit={() => updateQueryParams({ view: "create" })}
+          onEdit={() =>
+            updateQueryParams({ view: "create", id: selectedId, step: "basic" })
+          }
           onOpenVideo={(item) => setVideoModalPackage(item)}
         />
         {videoModalPackage && (
@@ -89,17 +187,23 @@ export function PackageManagementContent() {
   if (currentView === "create") {
     return (
       <CreatePackageWizard
-        onBack={() => updateQueryParams({ view: null, tab: "packages" })}
-        onSave={(data) => {
-          const newPkg: PackageItem = {
-            id: String(Date.now()),
-            ...data,
-            updated: "Just now",
-            image: data.image || "/assets/images/safe_home_package.jpg",
-            videoUrl: data.videoUrl || "https://www.youtube.com/watch?v=x5B2XZ7PIGQ",
-          };
-          setPackages((prev) => [newPkg, ...prev]);
-          updateQueryParams({ view: null, tab: "packages" });
+        onBack={() =>
+          updateQueryParams({ view: null, id: null, step: null, tab: "packages" })
+        }
+        onSuccess={() => {
+          setNotification({
+            type: "success",
+            message: selectedId
+              ? "Package updated successfully!"
+              : "Package created successfully!",
+          });
+          updateQueryParams({
+            view: null,
+            id: null,
+            step: null,
+            tab: "packages",
+          });
+          refetch();
         }}
       />
     );
@@ -107,11 +211,42 @@ export function PackageManagementContent() {
 
   return (
     <div className="space-y-6">
+      {/* Toast Notification Banner */}
+      {notification && (
+        <div
+          className={`flex items-center justify-between p-4 rounded-xl shadow-xs transition-all animate-in fade-in ${
+            notification.type === "success"
+              ? "bg-[#24B33C1F] border border-[#24B33C40] text-[#1E9432]"
+              : "bg-danger-bg border border-danger/20 text-danger"
+          }`}
+        >
+          <div className="flex items-center space-x-2 text-sm font-semibold">
+            {notification.type === "success" ? (
+              <Check className="w-5 h-5 shrink-0" />
+            ) : (
+              <AlertCircle className="w-5 h-5 shrink-0" />
+            )}
+            <span>{notification.message}</span>
+          </div>
+          <button
+            onClick={() => setNotification(null)}
+            className="p-1 hover:opacity-70 cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Top Header Controls */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <h2 className="font-trade font-bold text-2xl sm:text-3xl text-main tracking-tight">
-          Package Management
-        </h2>
+        <div className="flex items-center space-x-3">
+          <h2 className="font-trade font-bold text-2xl sm:text-3xl text-main tracking-tight">
+            Package Management
+          </h2>
+          {isFetchingPackages && (
+            <RefreshCw className="w-4 h-4 text-primary animate-spin" />
+          )}
+        </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2.5 sm:space-y-0 sm:space-x-3">
           <SearchInput
@@ -129,7 +264,13 @@ export function PackageManagementContent() {
             variant="primary"
             onClick={() => {
               if (currentTab === "packages") {
-                router.push("/admin/packages?tab=packages");
+                dispatch(initNewDraft());
+                updateQueryParams({
+                  view: "create",
+                  id: null,
+                  step: "basic",
+                  tab: "packages",
+                });
               } else {
                 router.push("/admin/packages?tab=addons");
               }
@@ -144,11 +285,19 @@ export function PackageManagementContent() {
 
           <Button
             variant="outline"
-            onClick={() => alert("Reviewing draft packages.")}
-            className="h-11 flex items-center justify-center space-x-1.5 whitespace-nowrap bg-canvas border-hairline text-sub hover:text-main px-4 py-0"
+            onClick={() => setShowOnlyDrafts(!showOnlyDrafts)}
+            className={`h-11 flex items-center justify-center space-x-1.5 whitespace-nowrap px-4 py-0 transition-colors ${
+              showOnlyDrafts
+                ? "bg-primary text-white border-primary"
+                : "bg-canvas border-hairline text-sub hover:text-main"
+            }`}
           >
             <Eye className="w-4 h-4" />
-            <span>Review 1 draft</span>
+            <span>
+              {showOnlyDrafts
+                ? "Show all packages"
+                : `Review ${draftCount} draft${draftCount === 1 ? "" : "s"}`}
+            </span>
           </Button>
         </div>
       </div>
@@ -156,7 +305,7 @@ export function PackageManagementContent() {
       {/* Main Underline Tabs Header */}
       <UnderlineTabs
         tabs={[
-          { id: "packages", label: "Packages", count: packages.length },
+          { id: "packages", label: "Packages", count: totalPackagesCount },
           { id: "addons", label: "Add-ons", count: addons.length },
         ]}
         activeTab={currentTab}
@@ -176,32 +325,79 @@ export function PackageManagementContent() {
             onChange={(catId) => updateQueryParams({ category: catId })}
           />
 
-          {/* Package Cards Grid */}
-          {filteredPackages.length === 0 ? (
-            <div className="bg-canvas border border-hairline rounded-2xl p-12 text-center text-sub">
-              No packages found matching your criteria.
+          {/* Loading Indicator */}
+          {isLoadingPackages && packages.length === 0 ? (
+            <div className="bg-canvas border border-hairline rounded-2xl p-16 flex flex-col items-center justify-center space-y-3">
+              <Loader2 className="w-8 h-8 text-primary animate-spin" />
+              <p className="font-trade font-bold text-main">
+                Loading packages from server...
+              </p>
+            </div>
+          ) : filteredPackages.length === 0 ? (
+            <div className="bg-canvas border border-hairline rounded-2xl p-12 text-center text-sub space-y-3">
+              <p>No packages found matching your criteria.</p>
+              {showOnlyDrafts && (
+                <Button
+                  variant="outline"
+                  onClick={() => setShowOnlyDrafts(false)}
+                  className="bg-white"
+                >
+                  Clear draft filter
+                </Button>
+              )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredPackages.map((pkg) => (
-                <PackageCard
-                  key={pkg.id}
-                  item={pkg}
-                  onSelect={(item) =>
-                    updateQueryParams({ view: "details", id: item.id })
-                  }
-                  onEdit={(item) =>
-                    updateQueryParams({ view: "create", id: item.id })
-                  }
-                  onDelete={(item) => {
-                    if (confirm(`Are you sure you want to delete ${item.name}?`)) {
-                      setPackages((prev) => prev.filter((p) => p.id !== item.id));
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredPackages.map((pkg) => (
+                  <PackageCard
+                    key={pkg.id}
+                    item={pkg}
+                    onSelect={(item) =>
+                      updateQueryParams({ view: "details", id: item.id })
+                    }
+                    onEdit={(item) =>
+                      updateQueryParams({
+                        view: "create",
+                        id: item.id,
+                        step: "basic",
+                      })
+                    }
+                    onDelete={handleDeletePackage}
+                    onOpenVideo={(item) => setVideoModalPackage(item)}
+                  />
+                ))}
+              </div>
+
+              {/* Pagination Controls */}
+              <div className="rounded-2xl overflow-hidden border border-hairline shadow-xs mt-6">
+                <Pagination
+                  total={totalPackagesCount}
+                  page={page}
+                  limit={pageSize}
+                  hasNextPage={page < Math.ceil(totalPackagesCount / pageSize)}
+                  hasPrevPage={page > 1}
+                  onPageChange={(newPage) => {
+                    setPage(newPage);
+                    updateQueryParams({ page: String(newPage) });
+                  }}
+                  onNextPage={() => {
+                    if (page < Math.ceil(totalPackagesCount / pageSize)) {
+                      const nextP = page + 1;
+                      setPage(nextP);
+                      updateQueryParams({ page: String(nextP) });
                     }
                   }}
-                  onOpenVideo={(item) => setVideoModalPackage(item)}
+                  onPrevPage={() => {
+                    if (page > 1) {
+                      const prevP = page - 1;
+                      setPage(prevP);
+                      updateQueryParams({ page: String(prevP) });
+                    }
+                  }}
                 />
-              ))}
-            </div>
+              </div>
+            </>
           )}
         </div>
       )}

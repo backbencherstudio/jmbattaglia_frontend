@@ -11,6 +11,7 @@ interface WizardStepBasicInfoProps {
   updateFormData: (fields: Partial<PackageFormData>) => void;
   onNext: () => void;
   onSaveDraft: () => void;
+  isSubmitting?: boolean;
 }
 
 export function WizardStepBasicInfo({
@@ -18,6 +19,7 @@ export function WizardStepBasicInfo({
   updateFormData,
   onNext,
   onSaveDraft,
+  isSubmitting,
 }: WizardStepBasicInfoProps) {
   const handleContinue = (e: React.FormEvent) => {
     e.preventDefault();
@@ -156,12 +158,13 @@ export function WizardStepBasicInfo({
           type="button"
           variant="outline"
           onClick={onSaveDraft}
+          disabled={isSubmitting}
           className="bg-white"
         >
-          Save as draft
+          {isSubmitting ? "Saving..." : "Save as draft"}
         </Button>
 
-        <Button type="submit" variant="primary">
+        <Button type="submit" variant="primary" disabled={isSubmitting}>
           Continue
         </Button>
       </div>

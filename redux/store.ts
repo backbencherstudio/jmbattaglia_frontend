@@ -1,15 +1,26 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import authReducer from "@/redux/features/auth/authSlice";
+import packageDraftReducer from "@/redux/features/packages/packageDraftSlice";
 import { baseApi } from "@/redux/api/baseApi";
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
+    packageDraft: packageDraftReducer,
     [baseApi.reducerPath]: baseApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(baseApi.middleware),
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: [
+          "packageDraft/updateDraftFields",
+          "packageDraft/setDraftFile",
+          "packageDraft/initDraft",
+        ],
+        ignoredPaths: ["packageDraft.formData.file"],
+      },
+    }).concat(baseApi.middleware),
   devTools: process.env.NODE_ENV !== "production",
 });
 

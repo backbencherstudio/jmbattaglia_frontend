@@ -13,6 +13,7 @@ interface WizardStepReviewProps {
   updateFormData: (fields: Partial<PackageFormData>) => void;
   onPublish: () => void;
   onSaveDraft: () => void;
+  isSubmitting?: boolean;
 }
 
 export function WizardStepReview({
@@ -20,6 +21,7 @@ export function WizardStepReview({
   updateFormData,
   onPublish,
   onSaveDraft,
+  isSubmitting,
 }: WizardStepReviewProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [showVideoModal, setShowVideoModal] = useState(false);
@@ -149,6 +151,7 @@ export function WizardStepReview({
                       }
                       alt={formData.name || "Package Media"}
                       fill
+                      unoptimized
                       sizes="(min-width: 768px) 50vw, 100vw"
                       className="object-cover group-hover:scale-105 transition-transform duration-500"
                     />
@@ -205,12 +208,21 @@ export function WizardStepReview({
 
       {/* Action Buttons */}
       <div className="flex items-center justify-between pt-6 border-t border-hairline">
-        <Button variant="outline" onClick={onSaveDraft} className="bg-white">
-          Save as draft
+        <Button
+          variant="outline"
+          onClick={onSaveDraft}
+          disabled={isSubmitting}
+          className="bg-white"
+        >
+          {isSubmitting ? "Saving..." : "Save as draft"}
         </Button>
 
-        <Button variant="primary" onClick={onPublish}>
-          Publish
+        <Button
+          variant="primary"
+          onClick={onPublish}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Publishing..." : "Publish"}
         </Button>
       </div>
 

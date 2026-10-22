@@ -1,6 +1,6 @@
 const trimTrailingSlash = (value: string) => value.replace(/\/+$/, "");
 
-const defaultApiBaseUrl = "http://10.10.9.230:3000/api/v1";
+const defaultApiBaseUrl = "http://10.10.9.230:5000/api/v1";
 
 const defaultJwtSecret =
   "6d8e1a3f9b2c5d704e7f0a6b1c8d3e5f9a2b4c7d0e6f1a8b3c5d9e2f4a7b6108";

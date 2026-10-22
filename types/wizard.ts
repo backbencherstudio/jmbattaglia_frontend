@@ -12,6 +12,8 @@ export interface PackageFormData {
   featuresIncluded: string[];
   image: string;
   videoUrl?: string;
+  file?: File | null;
+  existingMediaUrl?: string;
   isRecommended: boolean;
   status: "Published" | "Draft";
 }

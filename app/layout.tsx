@@ -13,6 +13,15 @@ const tradeGothic = localFont({
 export const metadata: Metadata = {
   title: "At Ease Inspections - Schedule an Inspection",
   description: "Schedule an inspection with At Ease Inspections",
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
 };
 
 export default function RootLayout({

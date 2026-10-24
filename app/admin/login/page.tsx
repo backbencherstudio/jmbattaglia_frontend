@@ -13,8 +13,8 @@ import { AuthBanner } from "@/components/admin/auth/AuthBanner";
 export default function AdminLoginPage() {
   const router = useRouter();
   const [login, { isLoading: loading }] = useLoginMutation();
-  const [email, setEmail] = useState("shohidullah1112@student.nstu.edu.bd");
-  const [password, setPassword] = useState("12345678");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState("");

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useMemo } from "react";
 import { StepProps } from "@/types/stepper";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -22,6 +22,16 @@ import {
   FileText,
   StickyNote,
 } from "lucide-react";
+import { useGetFoundationTypesQuery } from "@/redux/features/booking/bookingApi";
+
+const FALLBACK_FOUNDATIONS = [
+  { value: "ec5c1636-7864-11e1-bfb4-b15dbfa5fbfd", label: "Slab on grade" },
+  { value: "ec5c16e0-7864-11e1-bfb4-b15dbfa5fbfd", label: "Crawl Space/Pier and Beam" },
+  { value: "11a8cea0-00eb-4637-b20a-2e5ddcff3db0", label: "Unfinished Basement" },
+  { value: "3ca28aea-6d27-42e7-9790-488db4aa56ad", label: "Finished Basement" },
+  { value: "44be0319-56d4-4ede-bb6c-4a400dc15c94", label: "Condo" },
+  { value: "9dac9947-f96e-46e1-acbd-6b3f613b7abd", label: "Finished/ Unfinished Basement with Crawl" },
+];
 
 export const PropertyDetailsStep: React.FC<StepProps> = ({
   formData,
@@ -29,6 +39,42 @@ export const PropertyDetailsStep: React.FC<StepProps> = ({
   errors,
   clearError,
 }) => {
+  const { data: foundationsRes, isLoading: isLoadingFoundations } = useGetFoundationTypesQuery();
+
+  const foundationOptions = useMemo(() => {
+    const list = foundationsRes?.data;
+    if (Array.isArray(list) && list.length > 0) {
+      return list
+        .filter((item) => item.visible !== false)
+        .map((item) => ({
+          value: item.id,
+          label: item.name,
+        }));
+    }
+    return FALLBACK_FOUNDATIONS;
+  }, [foundationsRes]);
+
+  // Set default foundationType if empty
+  useEffect(() => {
+    if (!formData.foundationType && foundationOptions.length > 0) {
+      const defaultItem = foundationOptions[0];
+      updateFormData({
+        foundationType: defaultItem.value,
+        foundationName: defaultItem.label,
+      });
+    }
+  }, [formData.foundationType, foundationOptions, updateFormData]);
+
+  const handleFoundationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedId = e.target.value;
+    const item = foundationOptions.find((opt) => opt.value === selectedId);
+    updateFormData({
+      foundationType: selectedId,
+      foundationName: item ? item.label : "",
+    });
+    clearError("foundationType");
+  };
+
   return (
     <div className="w-full flex flex-col gap-5 sm:gap-6">
       {/* Header section */}
@@ -77,21 +123,10 @@ export const PropertyDetailsStep: React.FC<StepProps> = ({
         <Select
           label="Foundation Type"
           requiredStar
-          placeholder="Select foundation type"
+          placeholder={isLoadingFoundations ? "Loading foundations..." : "Select foundation type"}
           value={formData.foundationType || ""}
-          onChange={(e) => {
-            updateFormData({ foundationType: e.target.value });
-            clearError("foundationType");
-          }}
-          options={[
-            "Slab-on-Grade",
-            "Crawlspace (Vented / Encapsulated)",
-            "Full Basement (Finished)",
-            "Full Basement (Unfinished)",
-            "Pier & Beam / Post & Pad",
-            "Raised Foundation / Stem Wall",
-            "Combination Foundation",
-          ]}
+          onChange={handleFoundationChange}
+          options={foundationOptions}
           error={errors.foundationType}
           leftIcon={<Home className="w-5 h-5 text-muted" />}
         />
@@ -101,7 +136,7 @@ export const PropertyDetailsStep: React.FC<StepProps> = ({
           label="Client Attending"
           requiredStar
           placeholder="Select attendance option"
-          value={formData.clientAttending || ""}
+          value={formData.clientAttending || "Yes – Client Will Attend Entire Inspection"}
           onChange={(e) => {
             updateFormData({ clientAttending: e.target.value });
             clearError("clientAttending");
@@ -121,7 +156,7 @@ export const PropertyDetailsStep: React.FC<StepProps> = ({
           label="Home Occupied"
           requiredStar
           placeholder="Select occupancy status"
-          value={formData.homeOccupied || ""}
+          value={formData.homeOccupied || "Occupied (Furnished & Inhabited)"}
           onChange={(e) => {
             updateFormData({ homeOccupied: e.target.value });
             clearError("homeOccupied");
@@ -141,7 +176,7 @@ export const PropertyDetailsStep: React.FC<StepProps> = ({
           label="Is it a Gated Community"
           requiredStar
           placeholder="Select access type"
-          value={formData.isGatedCommunity || ""}
+          value={formData.isGatedCommunity || "No – Open Access Community"}
           onChange={(e) => {
             updateFormData({ isGatedCommunity: e.target.value });
             clearError("isGatedCommunity");
@@ -161,7 +196,7 @@ export const PropertyDetailsStep: React.FC<StepProps> = ({
           label="Is there any Alarm System"
           requiredStar
           placeholder="Select alarm system status"
-          value={formData.hasAlarmSystem || ""}
+          value={formData.hasAlarmSystem || "No Alarm System"}
           onChange={(e) => {
             updateFormData({ hasAlarmSystem: e.target.value });
             clearError("hasAlarmSystem");
@@ -181,7 +216,7 @@ export const PropertyDetailsStep: React.FC<StepProps> = ({
           label="Pool/Spa"
           requiredStar
           placeholder="Select pool or spa type"
-          value={formData.hasPoolSpa || ""}
+          value={formData.hasPoolSpa || "None (No Pool or Spa)"}
           onChange={(e) => {
             updateFormData({ hasPoolSpa: e.target.value });
             clearError("hasPoolSpa");
@@ -202,7 +237,7 @@ export const PropertyDetailsStep: React.FC<StepProps> = ({
           label="Type of Sewage System"
           requiredStar
           placeholder="Select sewage disposal type"
-          value={formData.sewageSystem || ""}
+          value={formData.sewageSystem || "Public Sewer Line"}
           onChange={(e) => {
             updateFormData({ sewageSystem: e.target.value });
             clearError("sewageSystem");
@@ -222,7 +257,7 @@ export const PropertyDetailsStep: React.FC<StepProps> = ({
           label="Type of Water System"
           requiredStar
           placeholder="Select water supply source"
-          value={formData.waterSystem || ""}
+          value={formData.waterSystem || "Public / Municipal Water"}
           onChange={(e) => {
             updateFormData({ waterSystem: e.target.value });
             clearError("waterSystem");
@@ -242,7 +277,7 @@ export const PropertyDetailsStep: React.FC<StepProps> = ({
           label="Utilities On"
           requiredStar
           placeholder="Select utility status"
-          value={formData.utilitiesOn || ""}
+          value={formData.utilitiesOn || "All Utilities Fully Operational (Electric, Water, Gas)"}
           onChange={(e) => {
             updateFormData({ utilitiesOn: e.target.value });
             clearError("utilitiesOn");
@@ -263,7 +298,7 @@ export const PropertyDetailsStep: React.FC<StepProps> = ({
           label="How Did You Hear About Us?"
           requiredStar
           placeholder="Select referral source"
-          value={formData.hearAboutUs || ""}
+          value={formData.hearAboutUs || "Google Search / Web"}
           onChange={(e) => {
             updateFormData({ hearAboutUs: e.target.value });
             clearError("hearAboutUs");

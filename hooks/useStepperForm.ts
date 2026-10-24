@@ -3,6 +3,11 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { MainStep, StepperFormData, FormValidationErrors } from "@/types/stepper";
+import {
+  loadBookingFromStorage,
+  saveBookingToStorage,
+  clearBookingFromStorage,
+} from "@/lib/bookingUtils";
 
 export const STEP_CONFIG: MainStep[] = [
   {
@@ -26,7 +31,6 @@ export const STEP_CONFIG: MainStep[] = [
       { id: "property-address", number: 2, title: "Property address", mainStepId: "inspection" },
       { id: "property-details", number: 3, title: "Property details", mainStepId: "inspection" },
       { id: "package-addons", number: 4, title: "Package & add-ons", mainStepId: "inspection" },
-
     ],
   },
   {
@@ -49,6 +53,32 @@ export const STEP_CONFIG: MainStep[] = [
     ],
   },
 ];
+
+const generateIdempotencyKey = (): string => {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
+const DEFAULT_FORM_DATA: StepperFormData = {
+  customerRole: "home-buyer",
+  inspectionKind: "resale-home",
+  state: "Georgia (GA)",
+  hearAboutUs: "Google Search / Web",
+  clientAttending: "Yes – Client Will Attend Entire Inspection",
+  homeOccupied: "Occupied (Furnished & Inhabited)",
+  isGatedCommunity: "No – Open Access Community",
+  hasAlarmSystem: "No Alarm System",
+  hasPoolSpa: "None (No Pool or Spa)",
+  sewageSystem: "Public Sewer Line",
+  waterSystem: "Public / Municipal Water",
+  utilitiesOn: "All Utilities Fully Operational (Electric, Water, Gas)",
+};
 
 export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {
   const router = useRouter();
@@ -83,15 +113,22 @@ export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {
     return { mainIndex, subIndex };
   }, [searchParams]);
 
-  const initialSteps = useMemo(() => parseUrlSteps(), []);
+  const initialSteps = useMemo(() => parseUrlSteps(), [parseUrlSteps]);
 
   const [currentMainStepIndex, setCurrentMainStepIndex] = useState(initialSteps.mainIndex);
   const [currentSubStepIndex, setCurrentSubStepIndex] = useState(initialSteps.subIndex);
 
-  const [formData, setFormData] = useState<StepperFormData>({
-    customerRole: "home-buyer",
-    ...initialData,
+  const [formData, setFormData] = useState<StepperFormData>(() => {
+    const saved = loadBookingFromStorage();
+    const idempotencyKey = saved?.idempotencyKey || generateIdempotencyKey();
+    return {
+      ...DEFAULT_FORM_DATA,
+      ...saved,
+      ...initialData,
+      idempotencyKey,
+    };
   });
+
   const [errors, setErrors] = useState<FormValidationErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -101,6 +138,20 @@ export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {
     setCurrentMainStepIndex(mainIndex);
     setCurrentSubStepIndex(subIndex);
   }, [searchParams, parseUrlSteps]);
+
+  // Load persistence on client mount if not already loaded
+  useEffect(() => {
+    const saved = loadBookingFromStorage();
+    if (saved && Object.keys(saved).length > 0) {
+      setFormData((prev) => {
+        const merged = { ...prev, ...saved };
+        if (!merged.idempotencyKey) {
+          merged.idempotencyKey = generateIdempotencyKey();
+        }
+        return merged;
+      });
+    }
+  }, []);
 
   // Helper to update URL search parameters without full page reload
   const pushStepUrl = useCallback(
@@ -130,8 +181,27 @@ export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {
   );
 
   const updateFormData = useCallback((fields: Partial<StepperFormData>) => {
-    setFormData((prev) => ({ ...prev, ...fields }));
+    setFormData((prev) => {
+      const next = { ...prev, ...fields };
+      saveBookingToStorage(next);
+      return next;
+    });
   }, []);
+
+  const resetFormData = useCallback(() => {
+    clearBookingFromStorage();
+    const newKey = generateIdempotencyKey();
+    const freshData: StepperFormData = {
+      ...DEFAULT_FORM_DATA,
+      idempotencyKey: newKey,
+    };
+    setFormData(freshData);
+    saveBookingToStorage(freshData);
+    setErrors({});
+    setCurrentMainStepIndex(0);
+    setCurrentSubStepIndex(0);
+    pushStepUrl(0, 0);
+  }, [pushStepUrl]);
 
   const setError = useCallback((field: string, message: string) => {
     setErrors((prev) => ({ ...prev, [field]: message }));
@@ -145,7 +215,7 @@ export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {
     });
   }, []);
 
-  // Validation strategy per substep (SOLID principle - easily extensible)
+  // Validation strategy per substep
   const validateCurrentStep = useCallback((): boolean => {
     const newErrors: FormValidationErrors = {};
 
@@ -160,35 +230,46 @@ export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {
         newErrors.email = "Please enter a valid email address.";
       }
     } else if (currentSubStep?.id === "your-info") {
-      if (!formData.firstName) {
+      if (!formData.firstName?.trim()) {
         newErrors.firstName = "First name is required.";
       }
-      if (!formData.lastName) {
+      if (!formData.lastName?.trim()) {
         newErrors.lastName = "Last name is required.";
       }
-      if (!formData.email) {
+      if (!formData.email?.trim()) {
         newErrors.email = "Email address is required.";
       } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
         newErrors.email = "Please enter a valid email address.";
       }
-      if (!formData.phone) {
+      if (!formData.phone?.trim()) {
         newErrors.phone = "Mobile phone number is required.";
+      } else if (!/^[+()0-9 .-]{7,30}$/.test(formData.phone.trim())) {
+        newErrors.phone = "Phone number must be between 7 and 30 characters (digits, spaces, +, -, (), . allowed).";
+      }
+
+      if (formData.customerRole === "buyers-agent") {
+        if (formData.buyerPhone?.trim() && !/^[+()0-9 .-]{7,30}$/.test(formData.buyerPhone.trim())) {
+          newErrors.buyerPhone = "Buyer phone number must be between 7 and 30 characters.";
+        }
+        if (formData.buyerEmail?.trim() && !/\S+@\S+\.\S+/.test(formData.buyerEmail.trim())) {
+          newErrors.buyerEmail = "Please enter a valid buyer email address.";
+        }
       }
     } else if (currentSubStep?.id === "inspection-type") {
       if (!formData.inspectionKind) {
         newErrors.inspectionKind = "Please select what kind of inspection you need.";
       }
     } else if (currentSubStep?.id === "property-address") {
-      if (!formData.addressLine1) {
+      if (!formData.addressLine1?.trim()) {
         newErrors.addressLine1 = "Address Line 1 is required.";
       }
-      if (!formData.city) {
+      if (!formData.city?.trim()) {
         newErrors.city = "City is required.";
       }
-      if (!formData.state) {
+      if (!formData.state?.trim()) {
         newErrors.state = "State is required.";
       }
-      if (!formData.zipCode) {
+      if (!formData.zipCode?.trim()) {
         newErrors.zipCode = "Zip Code is required.";
       }
     } else if (currentSubStep?.id === "property-details") {
@@ -197,6 +278,9 @@ export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {
       }
       if (!formData.squareFeet) {
         newErrors.squareFeet = "Square Feet is required.";
+      }
+      if (!formData.foundationType) {
+        newErrors.foundationType = "Foundation Type is required.";
       }
     } else if (currentSubStep?.id === "package-addons") {
       if (!formData.selectedPackage) {
@@ -207,7 +291,7 @@ export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {
         newErrors.selectedDate = "Please select an inspection date.";
       }
       if (!formData.selectedTimeSlot) {
-        newErrors.selectedTimeSlot = "Please select a time slot.";
+        newErrors.selectedTimeSlot = "Please select an appointment time slot.";
       }
     }
 
@@ -308,6 +392,7 @@ export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {
     currentSubStep,
     formData,
     updateFormData,
+    resetFormData,
     errors,
     setError,
     clearError,

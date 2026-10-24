@@ -3,6 +3,8 @@
 import React from "react";
 import { StepProps } from "@/types/stepper";
 import { useRouter } from "next/navigation";
+import { format24hToDisplayTime } from "@/lib/bookingUtils";
+import { RESALE_PACKAGES, NEW_CONSTRUCTION_PACKAGES, ADDONS_CONFIG } from "@/data/packageAddonsData";
 
 interface ReviewStepProps extends StepProps {
   onNavigateToStep?: (mainStepId: string, subStepId: string) => void;
@@ -21,6 +23,25 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
       router.push(`/?step=${mainStepId}&substep=${subStepId}`);
     }
   };
+
+  // Resolve packages & addons for fallback display
+  const allPackages = [...RESALE_PACKAGES, ...NEW_CONSTRUCTION_PACKAGES];
+  const selectedPkg = allPackages.find((p) => p.id === formData.selectedPackage) || allPackages[0];
+  const selectedAddonsList = (formData.selectedAddons || [])
+    .map((id) => ADDONS_CONFIG.find((a) => a.id === id))
+    .filter(Boolean);
+
+  const fallbackTotal =
+    (selectedPkg?.priceNumeric || 0) +
+    selectedAddonsList.reduce((acc, a) => acc + (a?.priceNumeric || 0), 0);
+
+  const quoteLines = formData.calculatedQuote?.lines;
+  const quoteTotal =
+    formData.calculatedQuote && formData.calculatedQuote.totalCents > 0
+      ? formData.calculatedQuote.totalCents / 100
+      : fallbackTotal;
+
+  const displayTime = format24hToDisplayTime(formData.selectedTimeSlot);
 
   return (
     <div className="w-full flex flex-col gap-6">
@@ -41,92 +62,100 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
 
           <div className="flex flex-col gap-2 text-xs sm:text-sm">
             <div className="flex justify-between items-center py-0.5">
-              <span className="text-sub font-medium">Year Built :</span>
-              <span className="text-main font-bold text-right">{formData.yearBuilt || "e.g. 1998"}</span>
+              <span className="text-sub font-medium">Year Built:</span>
+              <span className="text-main font-bold text-right">{formData.yearBuilt || "Not specified"}</span>
             </div>
 
             <div className="flex justify-between items-center py-0.5">
-              <span className="text-sub font-medium">Square Feet :</span>
+              <span className="text-sub font-medium">Square Feet:</span>
               <span className="text-main font-bold text-right">
-                {formData.squareFeet ? `${formData.squareFeet} sq ft` : "e.g. 2,200 sq ft"}
+                {formData.squareFeet ? `${formData.squareFeet} sq ft` : "Not specified"}
               </span>
             </div>
 
             <div className="flex justify-between items-center py-0.5">
-              <span className="text-sub font-medium">Foundation Type :</span>
-              <span className="text-main font-bold text-right">{formData.foundationType || "Crawl Space"}</span>
+              <span className="text-sub font-medium">Foundation Type:</span>
+              <span className="text-main font-bold text-right">
+                {formData.foundationName || formData.foundationType || "Slab on grade"}
+              </span>
             </div>
 
             <div className="flex justify-between items-center py-0.5">
-              <span className="text-sub font-medium">Client Attending :</span>
-              <span className="text-main font-bold text-right">{formData.clientAttending || "Yes - Client Present"}</span>
+              <span className="text-sub font-medium">Client Attending:</span>
+              <span className="text-main font-bold text-right">{formData.clientAttending || "Yes"}</span>
             </div>
 
             <div className="flex justify-between items-center py-0.5">
-              <span className="text-sub font-medium">Home Occupied :</span>
+              <span className="text-sub font-medium">Home Occupied:</span>
               <span className="text-main font-bold text-right">{formData.homeOccupied || "Occupied"}</span>
             </div>
 
             <div className="flex justify-between items-center py-0.5">
-              <span className="text-sub font-medium">Gated Community :</span>
-              <span className="text-main font-bold text-right">{formData.gatedCommunity || "Yes"}</span>
+              <span className="text-sub font-medium">Gated Community:</span>
+              <span className="text-main font-bold text-right">{formData.isGatedCommunity || "No"}</span>
             </div>
 
             <div className="flex justify-between items-center py-0.5">
-              <span className="text-sub font-medium">Alarm System :</span>
-              <span className="text-main font-bold text-right">{formData.alarmSystem || "Yes"}</span>
+              <span className="text-sub font-medium">Alarm System:</span>
+              <span className="text-main font-bold text-right">{formData.hasAlarmSystem || "No"}</span>
             </div>
 
             <div className="flex justify-between items-center py-0.5">
-              <span className="text-sub font-medium">Pool/Spa :</span>
-              <span className="text-main font-bold text-right">{formData.poolSpa || "Yes"}</span>
+              <span className="text-sub font-medium">Pool / Spa:</span>
+              <span className="text-main font-bold text-right">{formData.hasPoolSpa || "None"}</span>
             </div>
 
             <div className="flex justify-between items-center py-0.5">
-              <span className="text-sub font-medium">Utilities On :</span>
+              <span className="text-sub font-medium">Utilities On:</span>
               <span className="text-main font-bold text-right">{formData.utilitiesOn || "All Utilities On"}</span>
             </div>
 
+            {formData.gateCode && (
+              <div className="flex justify-between items-center py-0.5">
+                <span className="text-sub font-medium">Gate Code:</span>
+                <span className="text-main font-bold text-right">{formData.gateCode}</span>
+              </div>
+            )}
+
             <div className="flex justify-between items-center py-0.5">
-              <span className="text-sub font-medium">Gate Code :</span>
-              <span className="text-main font-bold text-right">{formData.gateCode || "01254"}</span>
+              <span className="text-sub font-medium">Sewage System:</span>
+              <span className="text-main font-bold text-right">{formData.sewageSystem || "Public Sewer Line"}</span>
             </div>
 
             <div className="flex justify-between items-center py-0.5">
-              <span className="text-sub font-medium">Sewage System :</span>
-              <span className="text-main font-bold text-right">{formData.sewageSystem || "Public Sewer System"}</span>
+              <span className="text-sub font-medium">Water System:</span>
+              <span className="text-main font-bold text-right">{formData.waterSystem || "Public / Municipal Water"}</span>
             </div>
 
             <div className="flex justify-between items-center py-0.5">
-              <span className="text-sub font-medium">Water System :</span>
-              <span className="text-main font-bold text-right">{formData.waterSystem || "Well Water"}</span>
+              <span className="text-sub font-medium">Referral:</span>
+              <span className="text-main font-bold text-right">{formData.hearAboutUs || "Google Search / Web"}</span>
             </div>
 
-            <div className="flex justify-between items-center py-0.5">
-              <span className="text-sub font-medium">Referred:</span>
-              <span className="text-main font-bold text-right">{formData.referredBy || "Real Estate Agent"}</span>
-            </div>
+            {formData.dueDiligence && (
+              <div className="flex justify-between items-center py-0.5">
+                <span className="text-sub font-medium">Due Diligence:</span>
+                <span className="text-main font-bold text-right">{formData.dueDiligence}</span>
+              </div>
+            )}
 
-            <div className="flex justify-between items-center py-0.5">
-              <span className="text-sub font-medium">Due Diligence :</span>
-              <span className="text-main font-bold text-right">{formData.dueDiligence || "Any Due"}</span>
-            </div>
-
-            <div className="flex justify-between items-start pt-1">
-              <span className="text-sub font-medium min-w-32">Special Instructions or Notes:</span>
-              <span className="text-main font-bold text-right max-w-[60%] truncate">
-                {formData.specialNotes || "Access instructions, anything we should know..."}
-              </span>
-            </div>
+            {formData.specialInstructions && (
+              <div className="flex justify-between items-start pt-1">
+                <span className="text-sub font-medium min-w-32">Notes:</span>
+                <span className="text-main font-bold text-right max-w-[60%]">
+                  {formData.specialInstructions}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Right Column: Personal Info, Address, Appointment Date & Time */}
+        {/* Right Column: Personal Info, Address, Appointment */}
         <div className="lg:col-span-5 flex flex-col gap-4 w-full">
           {/* Personal Info Box */}
           <div className="bg-canvas border border-hairline rounded-2xl p-4 sm:p-4.5 flex flex-col gap-2.5 shadow-2xs">
             <div className="flex items-center justify-between pb-1 border-b border-hairline/60">
-              <h3 className="text-base font-bold text-main">Personal Info</h3>
+              <h3 className="text-base font-bold text-main">Contact Info</h3>
               <button
                 type="button"
                 onClick={() => handleEdit("about-you", "your-info")}
@@ -138,28 +167,44 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
 
             <div className="flex flex-col gap-1.5 text-xs sm:text-sm">
               <div className="flex justify-between items-center">
-                <span className="text-sub font-medium">First Name :</span>
-                <span className="text-main font-bold text-right">{formData.firstName || "Naffziger"}</span>
+                <span className="text-sub font-medium">Name:</span>
+                <span className="text-main font-bold text-right">
+                  {formData.firstName || ""} {formData.lastName || ""}
+                </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sub font-medium">Last Name :</span>
-                <span className="text-main font-bold text-right">{formData.lastName || "Realty"}</span>
+                <span className="text-sub font-medium">Email:</span>
+                <span className="text-main font-bold text-right">{formData.email || ""}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sub font-medium">Email Address :</span>
-                <span className="text-main font-bold text-right">{formData.email || "info@nrcga.com"}</span>
+                <span className="text-sub font-medium">Phone:</span>
+                <span className="text-main font-bold text-right">{formData.phone || ""}</span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sub font-medium">Mobile Phone :</span>
-                <span className="text-main font-bold text-right">{formData.phone || "(678) 631-1892"}</span>
-              </div>
+
+              {formData.customerRole === "buyers-agent" && formData.buyerFirstName && (
+                <div className="mt-2 pt-2 border-t border-hairline/60 flex flex-col gap-1">
+                  <span className="text-xs font-semibold text-primary">Buyer Client:</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sub font-medium">Client Name:</span>
+                    <span className="text-main font-bold text-right">
+                      {formData.buyerFirstName} {formData.buyerLastName || ""}
+                    </span>
+                  </div>
+                  {formData.buyerEmail && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sub font-medium">Client Email:</span>
+                      <span className="text-main font-bold text-right">{formData.buyerEmail}</span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
           {/* Address Box */}
           <div className="bg-canvas border border-hairline rounded-2xl p-4 sm:p-4.5 flex flex-col gap-2.5 shadow-2xs">
             <div className="flex items-center justify-between pb-1 border-b border-hairline/60">
-              <h3 className="text-base font-bold text-main">Address</h3>
+              <h3 className="text-base font-bold text-main">Inspection Address</h3>
               <button
                 type="button"
                 onClick={() => handleEdit("inspection", "property-address")}
@@ -171,24 +216,17 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
 
             <div className="flex flex-col gap-1.5 text-xs sm:text-sm">
               <div className="flex justify-between items-center">
-                <span className="text-sub font-medium">Address Line 1 :</span>
-                <span className="text-main font-bold text-right">{formData.addressLine1 || "123 Main Street"}</span>
+                <span className="text-sub font-medium">Address:</span>
+                <span className="text-main font-bold text-right">
+                  {formData.addressLine1 || "123 Main Street"}
+                  {formData.addressLine2 ? `, ${formData.addressLine2}` : ""}
+                </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sub font-medium">Address Line 2 :</span>
-                <span className="text-main font-bold text-right">{formData.addressLine2 || "Apt 2B, Unit 100"}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sub font-medium">City :</span>
-                <span className="text-main font-bold text-right">{formData.city || "Atlanta"}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sub font-medium">State :</span>
-                <span className="text-main font-bold text-right">{formData.state || "Georgia (GA)"}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sub font-medium">Zip Code :</span>
-                <span className="text-main font-bold text-right">{formData.zipCode || "30301"}</span>
+                <span className="text-sub font-medium">City, State, Zip:</span>
+                <span className="text-main font-bold text-right">
+                  {formData.city || "Atlanta"}, {formData.state || "GA"} {formData.zipCode || "30301"}
+                </span>
               </div>
             </div>
           </div>
@@ -196,7 +234,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
           {/* Appointment Date & Time Box */}
           <div className="bg-canvas border border-hairline rounded-2xl p-4 sm:p-4.5 flex flex-col gap-2.5 shadow-2xs">
             <div className="flex items-center justify-between pb-1 border-b border-hairline/60">
-              <h3 className="text-base font-bold text-main">Appointment Date & Time</h3>
+              <h3 className="text-base font-bold text-main">Appointment</h3>
               <button
                 type="button"
                 onClick={() => handleEdit("schedule", "date-time")}
@@ -208,91 +246,83 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
 
             <div className="flex flex-col gap-1.5 text-xs sm:text-sm">
               <div className="flex justify-between items-center">
-                <span className="text-sub font-medium">Inspection Date :</span>
-                <span className="text-main font-bold text-right">{formData.selectedDate || "15 July, 2027"}</span>
+                <span className="text-sub font-medium">Date:</span>
+                <span className="text-main font-bold text-right">{formData.selectedDate || "Not chosen"}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sub font-medium">Inspection Time :</span>
-                <span className="text-main font-bold text-right">{formData.selectedTimeSlot || "1:00 PM"}</span>
+                <span className="text-sub font-medium">Time Slot:</span>
+                <span className="text-main font-bold text-right">{displayTime}</span>
               </div>
+              {formData.inspectorName && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sub font-medium">Inspector:</span>
+                  <span className="text-main font-bold text-right">{formData.inspectorName}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Bottom Section: Package Amounts Box */}
-      {(() => {
-        const ALL_PACKAGES: Record<string, { name: string; price: number }> = {
-          "safe-home-package": { name: "Safe Home Package", price: 1236 },
-          "residential-home": { name: "Residential Home Inspection", price: 538 },
-          "radon-testing": { name: "Radon Testing Service", price: 525 },
-          "pre-drywall": { name: "Pre-drywall inspection", price: 465 },
-          "final-inspection": { name: "Final inspection", price: 500 },
-        };
+      {/* Bottom Section: Package Amounts & Verified Quote */}
+      <div className="bg-canvas border border-hairline rounded-2xl p-4 sm:p-5 flex flex-col gap-3 shadow-2xs">
+        <div className="flex items-center justify-between pb-1 border-b border-hairline/60">
+          <div className="flex items-center gap-2">
+            <h3 className="text-base sm:text-lg font-bold text-main">Inspection Services & Fees</h3>
+            {formData.quoteId && (
+              <span className="text-[11px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+                ISN Quoted
+              </span>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => handleEdit("inspection", "package-addons")}
+            className="text-xs sm:text-sm font-bold text-primary hover:underline cursor-pointer transition-all"
+          >
+            Edit
+          </button>
+        </div>
 
-        const ALL_ADDONS: Record<string, { name: string; price: number }> = {
-          "chemical-balancing": { name: "Chemical Balancing", price: 79 },
-          "spa-maintenance": { name: "Spa Maintenance", price: 149 },
-          "filter-replacement": { name: "Filter Replacement", price: 89 },
-          "pool-inspection": { name: "Pool Inspection", price: 199 },
-        };
-
-        const selectedPkgKey =
-          formData.selectedPackage ||
-          (formData.inspectionKind === "new-construction" ? "pre-drywall" : "safe-home-package");
-        const pkgInfo = ALL_PACKAGES[selectedPkgKey] || ALL_PACKAGES["safe-home-package"];
-
-        const selectedAddonKeys: string[] = formData.selectedAddons || ["chemical-balancing"];
-        const addonItems = selectedAddonKeys
-          .map((key) => ALL_ADDONS[key])
-          .filter(Boolean);
-
-        const totalPrice =
-          pkgInfo.price + addonItems.reduce((acc, item) => acc + item.price, 0);
-
-        return (
-          <>
-            <div className="bg-canvas border border-hairline rounded-2xl p-4 sm:p-5 flex flex-col gap-3 shadow-2xs">
-              <div className="flex items-center justify-between pb-1 border-b border-hairline/60">
-                <h3 className="text-base sm:text-lg font-bold text-main">Package Amounts</h3>
-                <button
-                  type="button"
-                  onClick={() => handleEdit("inspection", "package-addons")}
-                  className="text-xs sm:text-sm font-bold text-primary hover:underline cursor-pointer transition-all"
-                >
-                  Edit
-                </button>
-              </div>
-
-              <div className="flex flex-col gap-2 text-xs sm:text-sm">
-                <div className="flex justify-between items-center">
-                  <span className="text-sub font-medium">{pkgInfo.name} :</span>
-                  <span className="text-main font-bold text-right">+${pkgInfo.price.toLocaleString()}</span>
-                </div>
-                {addonItems.map((addon, idx) => (
-                  <div key={idx} className="flex justify-between items-center">
-                    <span className="text-sub font-medium">{addon.name}:</span>
-                    <span className="text-main font-bold text-right">+${addon.price.toLocaleString()}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Bottom Section: Total Amounts */}
-            <div className="flex flex-col gap-1 pt-1">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg sm:text-xl font-extrabold text-main tracking-tight">Total Amounts</h3>
-                <span className="text-xl sm:text-2xl font-extrabold text-[#FF6900]">
-                  ${totalPrice.toLocaleString()}
+        <div className="flex flex-col gap-2 text-xs sm:text-sm">
+          {quoteLines && quoteLines.length > 0 ? (
+            quoteLines.map((line, idx) => (
+              <div key={line.id || idx} className="flex justify-between items-center">
+                <span className="text-sub font-medium">{line.name}:</span>
+                <span className="text-main font-bold text-right">
+                  +${(line.amountCents / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}
                 </span>
               </div>
-              <p className="text-xs sm:text-sm text-sub font-medium">
-                Your inspector will confirm the appointment and final scope before the visit.
-              </p>
-            </div>
-          </>
-        );
-      })()}
+            ))
+          ) : (
+            <>
+              <div className="flex justify-between items-center">
+                <span className="text-sub font-medium">{selectedPkg?.title || "Package"}:</span>
+                <span className="text-main font-bold text-right">+${(selectedPkg?.priceNumeric || 0).toLocaleString()}</span>
+              </div>
+              {selectedAddonsList.map((addon, idx) => (
+                <div key={idx} className="flex justify-between items-center">
+                  <span className="text-sub font-medium">{addon?.title}:</span>
+                  <span className="text-main font-bold text-right">+${(addon?.priceNumeric || 0).toLocaleString()}</span>
+                </div>
+              ))}
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Bottom Section: Total Amounts */}
+      <div className="flex flex-col gap-1 pt-1">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg sm:text-xl font-extrabold text-main tracking-tight">Total Quoted Amount</h3>
+          <span className="text-xl sm:text-2xl font-extrabold text-[#FF6900]">
+            ${quoteTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </span>
+        </div>
+        <p className="text-xs sm:text-sm text-sub font-medium">
+          Real ISN direct booking quotation. Click Complete Order to submit your inspection request.
+        </p>
+      </div>
     </div>
   );
 };

@@ -1,14 +1,15 @@
 import { PackageOption, AddonOption, IncludedItem } from "@/types/packageAddons";
 
+// Real ISN Package & Addon UUIDs
 export const RESALE_PACKAGES: PackageOption[] = [
   {
-    id: "safe-home-package",
+    id: "e2ff6ec2-72b3-4e31-b06b-680c17aec45b",
     title: "Safe Home Package",
     isRecommended: true,
     priceText: "$1,236",
     priceNumeric: 1236,
     priceSubLabel: "Bundle Price",
-    description: "Safe Home Package ensures protection.",
+    description: "Essential protection for you and your loved ones.",
     image: "/assets/images/safe_home_package.jpg",
     videoUrl: "https://www.youtube.com/watch?v=x5B2XZ7PIGQ",
     whyItMatters:
@@ -21,7 +22,7 @@ export const RESALE_PACKAGES: PackageOption[] = [
     ],
   },
   {
-    id: "residential-home",
+    id: "d0d3f4f4-d184-4168-9e87-725f37bda9e9",
     title: "Residential Home Inspection",
     priceText: "$538",
     priceNumeric: 538,
@@ -39,7 +40,7 @@ export const RESALE_PACKAGES: PackageOption[] = [
     ],
   },
   {
-    id: "radon-testing",
+    id: "e3526673-db55-489b-9bc3-018ecfd32c1b",
     title: "Radon Testing Service",
     priceText: "$525",
     priceNumeric: 525,
@@ -60,7 +61,7 @@ export const RESALE_PACKAGES: PackageOption[] = [
 
 export const NEW_CONSTRUCTION_PACKAGES: PackageOption[] = [
   {
-    id: "pre-drywall",
+    id: "c32cb328-765a-4239-a936-b35d2c04a1c5",
     title: "Pre-drywall inspection",
     priceText: "$465",
     priceNumeric: 465,
@@ -78,7 +79,7 @@ export const NEW_CONSTRUCTION_PACKAGES: PackageOption[] = [
     ],
   },
   {
-    id: "final-inspection",
+    id: "10e8a223-122f-42fc-91d6-9d43994558a4",
     title: "Final inspection",
     priceText: "$500",
     priceNumeric: 500,
@@ -99,54 +100,57 @@ export const NEW_CONSTRUCTION_PACKAGES: PackageOption[] = [
 
 export const ADDONS_CONFIG: AddonOption[] = [
   {
-    id: "chemical-balancing",
+    id: "a52111c7-212d-475a-948a-84f5b00c18d3",
     title: "Chemical Balancing",
     priceText: "$79",
     priceNumeric: 79,
+    whyItMatters: "Water chemistry analysis and balancing ensure a healthy, safe swimming environment.",
   },
   {
-    id: "spa-maintenance",
+    id: "56a45531-1ba6-432f-8cc5-2626337ac231",
     title: "Spa Maintenance",
     priceText: "$149",
     priceNumeric: 149,
+    whyItMatters: "Thorough hot tub and spa inspection including heating elements, jets, and safety controls.",
   },
   {
-    id: "filter-replacement",
+    id: "0f347f94-0f6a-4560-9ec0-8f4563f5f722",
     title: "Filter Replacement",
     priceText: "$89",
     priceNumeric: 89,
+    whyItMatters: "Clogged or degraded filters cause poor circulation and short pump life.",
   },
   {
-    id: "pool-inspection",
+    id: "71da77a4-f11f-4462-a160-1ab33a5139bf",
     title: "Pool Inspection",
     priceText: "$199",
     priceNumeric: 199,
     image: "/assets/images/pool_inspection.jpg",
     whyItMatters:
-      "Inspection of pool equipment including built-in spas. Added to home inspection. $199 and up based on size.",
+      "Inspection of pool equipment including built-in spas. Added to home inspection.",
     repairRisk: "$2,000–$10,000",
   },
 ];
 
 export const PACKAGE_INCLUDED_ITEMS: Record<string, IncludedItem[]> = {
-  "safe-home-package": [
+  "e2ff6ec2-72b3-4e31-b06b-680c17aec45b": [
+    { name: "Residential Inspection", priceText: "$622.50", priceNumeric: 622.5 },
     { name: "Termite Letter", priceText: "$75", priceNumeric: 75 },
-    { name: "Mold Assessment", priceText: "$320", priceNumeric: 320 },
-    { name: "Radon Testing", priceText: "$150", priceNumeric: 150 },
-    { name: "Asbestos Inspection", priceText: "$200", priceNumeric: 200 },
-    { name: "Lead Paint Evaluation", priceText: "$180", priceNumeric: 180 },
-    { name: "Water Quality Analysis", priceText: "$130", priceNumeric: 130 },
+    { name: "Radon Test", priceText: "$199", priceNumeric: 199 },
+    { name: "Mold Test", priceText: "$299", priceNumeric: 299 },
+    { name: "Drain Line Inspection", priceText: "$250", priceNumeric: 250 },
   ],
-  "residential-home": [
-    { name: "Residential Home Inspection", priceText: "$538", priceNumeric: 538 },
+  "safe-home-package": [
+    { name: "Residential Inspection", priceText: "$622.50", priceNumeric: 622.5 },
+    { name: "Termite Letter", priceText: "$75", priceNumeric: 75 },
+    { name: "Radon Test", priceText: "$199", priceNumeric: 199 },
+    { name: "Mold Test", priceText: "$299", priceNumeric: 299 },
+    { name: "Drain Line Inspection", priceText: "$250", priceNumeric: 250 },
   ],
-  "radon-testing": [
-    { name: "Radon Testing Service", priceText: "$525", priceNumeric: 525 },
+  "c32cb328-765a-4239-a936-b35d2c04a1c5": [
+    { name: "New Construction Inspection - Pre-Drywall", priceText: "$465", priceNumeric: 465 },
   ],
-  "pre-drywall": [
-    { name: "Pre-drywall inspection", priceText: "$465", priceNumeric: 465 },
-  ],
-  "final-inspection": [
-    { name: "Final inspection", priceText: "$500", priceNumeric: 500 },
+  "10e8a223-122f-42fc-91d6-9d43994558a4": [
+    { name: "New Construction - Final Inspection", priceText: "$500", priceNumeric: 500 },
   ],
 };

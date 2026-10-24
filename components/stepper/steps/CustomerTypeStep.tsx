@@ -5,16 +5,35 @@ import { StepProps } from "@/types/stepper";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
-import { Mail } from "lucide-react";
+import { Mail, CheckCircle, Info } from "lucide-react";
+import { useLazyLookupClientByEmailQuery } from "@/redux/features/booking/bookingApi";
 
 export const CustomerTypeStep: React.FC<StepProps> = ({
   formData,
   updateFormData,
   errors,
   clearError,
+  setError,
 }) => {
-  const [isChecking, setIsChecking] = useState(false);
-  const [recordChecked, setRecordChecked] = useState(false);
+  const [triggerLookup, { isFetching }] = useLazyLookupClientByEmailQuery();
+  const [lookupMessage, setLookupMessage] = useState<{
+    type: "success" | "info" | "error";
+    text: string;
+  } | null>(() => {
+    if (formData.isExistingClient) {
+      return {
+        type: "success",
+        text: "Existing record loaded for this email.",
+      };
+    }
+    if (formData.emailVerified && formData.email) {
+      return {
+        type: "info",
+        text: "Verified. Ready to continue.",
+      };
+    }
+    return null;
+  });
 
   const getRoleTitle = () => {
     switch (formData.customerRole) {
@@ -30,19 +49,74 @@ export const CustomerTypeStep: React.FC<StepProps> = ({
   };
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    updateFormData({ email: e.target.value, emailVerified: false });
-    setRecordChecked(false);
+    const val = e.target.value;
+    updateFormData({ email: val, emailVerified: false, isExistingClient: false });
+    setLookupMessage(null);
     clearError("email");
   };
 
-  const handleCheckRecords = () => {
-    if (!formData.email) return;
-    setIsChecking(true);
-    setTimeout(() => {
-      setIsChecking(false);
-      setRecordChecked(true);
+  const handleCheckRecords = async () => {
+    if (!formData.email?.trim()) {
+      setError("email", "Please enter an email address first.");
+      return;
+    }
+
+    if (!/\S+@\S+\.\S+/.test(formData.email.trim())) {
+      setError("email", "Please enter a valid email address.");
+      return;
+    }
+
+    clearError("email");
+
+    try {
+      const res = await triggerLookup(formData.email.trim()).unwrap();
+      const lookupData = res?.data;
+
+      if (lookupData?.found) {
+        const contact = lookupData.contact;
+        const prevProp = lookupData.previousProperty;
+
+        updateFormData({
+          emailVerified: true,
+          isExistingClient: true,
+          firstName: contact?.firstName || formData.firstName,
+          lastName: contact?.lastName || formData.lastName,
+          phone: contact?.phone || formData.phone,
+          ...(prevProp
+            ? {
+                addressLine1: prevProp.address1 || formData.addressLine1,
+                addressLine2: prevProp.address2 || formData.addressLine2,
+                city: prevProp.city || formData.city,
+                state: prevProp.state || formData.state,
+                zipCode: prevProp.zip || formData.zipCode,
+                yearBuilt: prevProp.yearBuilt ? String(prevProp.yearBuilt) : formData.yearBuilt,
+                squareFeet: prevProp.squareFeet ? String(prevProp.squareFeet) : formData.squareFeet,
+                foundationType: prevProp.foundationType || formData.foundationType,
+              }
+            : {}),
+        });
+
+        setLookupMessage({
+          type: "success",
+          text: `Found existing customer record for ${contact?.firstName || "you"}! Your details have been pre-filled.`,
+        });
+      } else {
+        updateFormData({
+          emailVerified: true,
+          isExistingClient: false,
+        });
+        setLookupMessage({
+          type: "info",
+          text: "No previous booking record found with this email. You can proceed as a new client.",
+        });
+      }
+    } catch {
       updateFormData({ emailVerified: true });
-    }, 1000);
+      setLookupMessage({
+        type: "info",
+        text: "Lookup service unavailable. You can proceed with standard registration.",
+      });
+    }
   };
 
   return (
@@ -64,7 +138,7 @@ export const CustomerTypeStep: React.FC<StepProps> = ({
         label="Email Address"
         requiredStar
         type="email"
-        placeholder="e.g. info@nrcga.com"
+        placeholder="e.g. client@example.com"
         value={formData.email || ""}
         onChange={handleEmailChange}
         error={errors.email}
@@ -74,7 +148,7 @@ export const CustomerTypeStep: React.FC<StepProps> = ({
             type="button"
             variant="green"
             size="sm"
-            isLoading={isChecking}
+            isLoading={isFetching}
             onClick={handleCheckRecords}
             className="rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold"
           >
@@ -83,9 +157,24 @@ export const CustomerTypeStep: React.FC<StepProps> = ({
         }
       />
 
-      {/* Record status banner matching Figma specs */}
-      {recordChecked && (
-        <Alert message="No existing record found." />
+      {/* Record status banner */}
+      {lookupMessage && (
+        <div
+          className={`flex items-start gap-3 p-3.5 sm:p-4 rounded-xl border text-xs sm:text-sm ${
+            lookupMessage.type === "success"
+              ? "bg-green-50 border-green-200 text-green-800"
+              : lookupMessage.type === "error"
+              ? "bg-red-50 border-red-200 text-red-800"
+              : "bg-blue-50 border-blue-200 text-blue-800"
+          }`}
+        >
+          {lookupMessage.type === "success" ? (
+            <CheckCircle className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
+          ) : (
+            <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+          )}
+          <div className="flex-1 font-medium">{lookupMessage.text}</div>
+        </div>
       )}
     </div>
   );

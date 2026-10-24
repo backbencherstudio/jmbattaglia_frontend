@@ -5,33 +5,7 @@ import { StepProps } from "@/types/stepper";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Building2, Building, Globe, MapPin, HelpCircle } from "lucide-react";
-
-const US_STATES = [
-  "Georgia (GA)",
-  "North Carolina (NC)",
-  "South Carolina (SC)",
-  "Florida (FL)",
-  "Tennessee (TN)",
-  "Alabama (AL)",
-  "California (CA)",
-  "Colorado (CO)",
-  "Connecticut (CT)",
-  "Delaware (DE)",
-  "Illinois (IL)",
-  "Indiana (IN)",
-  "Kentucky (KY)",
-  "Maryland (MD)",
-  "Massachusetts (MA)",
-  "Michigan (MI)",
-  "Missouri (MO)",
-  "New Jersey (NJ)",
-  "New York (NY)",
-  "Ohio (OH)",
-  "Pennsylvania (PA)",
-  "Texas (TX)",
-  "Virginia (VA)",
-  "Washington (WA)",
-];
+import { US_STATES } from "@/lib/bookingUtils";
 
 export const PropertyAddressStep: React.FC<StepProps> = ({
   formData,
@@ -103,7 +77,7 @@ export const PropertyAddressStep: React.FC<StepProps> = ({
             label="State"
             requiredStar
             placeholder="Select state"
-            value={formData.state || ""}
+            value={formData.state || "Georgia (GA)"}
             onChange={(e) => {
               updateFormData({ state: e.target.value });
               clearError("state");
@@ -125,7 +99,7 @@ export const PropertyAddressStep: React.FC<StepProps> = ({
             }}
             error={errors.zipCode}
             leftIcon={<MapPin className="w-5 h-5 text-muted" />}
-            rightAction={<HelpCircle className="w-4 h-4 text-muted cursor-pointer hover:text-main" />}
+            rightAction={<HelpCircle className="w-4 h-4 text-muted" />}
           />
         </div>
       </div>

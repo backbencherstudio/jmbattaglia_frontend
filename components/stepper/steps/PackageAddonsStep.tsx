@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { StepProps } from "@/types/stepper";
 import {
   PackageOption,
@@ -18,6 +18,17 @@ import { AddonCard } from "./package-addons/AddonCard";
 import { PackageSummaryCard } from "./package-addons/PackageSummaryCard";
 import { PackageVideoModal } from "./package-addons/PackageVideoModal";
 import { WarnIcon } from "@/components/icons/StepperStepIcons";
+import {
+  useGetPortalPackagesQuery,
+  useGetPortalAddonsQuery,
+  useCalculateServiceQuoteMutation,
+} from "@/redux/features/booking/bookingApi";
+import {
+  buildPropertyDto,
+  sanitizePackageAndServices,
+  sanitizeServiceIds,
+} from "@/lib/bookingUtils";
+import { CheckCircle2, Loader2 } from "lucide-react";
 
 export type { PackageOption, AddonOption, IncludedItem };
 
@@ -28,39 +39,169 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
   clearError,
 }) => {
   const isNewConstruction = formData.inspectionKind === "new-construction";
-  const packagesList = isNewConstruction ? NEW_CONSTRUCTION_PACKAGES : RESALE_PACKAGES;
+  const categoryApi = isNewConstruction ? "NEW_CONSTRUCTION" : "RESALE_HOME";
 
-  // Initialize selected package if not set or invalid for current inspection type
-  useEffect(() => {
-    const validIds = packagesList.map((p) => p.id);
-    if (!formData.selectedPackage || !validIds.includes(formData.selectedPackage)) {
-      updateFormData({ selectedPackage: validIds[0] });
+  // 1. Fetch portal packages & addons from API
+  const { data: packagesRes, isLoading: isLoadingPackages } = useGetPortalPackagesQuery();
+  const { data: addonsRes, isLoading: isLoadingAddons } = useGetPortalAddonsQuery();
+  const [calculateQuote, { isLoading: isCalculatingQuote }] = useCalculateServiceQuoteMutation();
+
+  // 2. Map portal packages with local fallback
+  const packagesList = useMemo<PackageOption[]>(() => {
+    const list = packagesRes?.data;
+    if (Array.isArray(list) && list.length > 0) {
+      const filtered = list.filter((p) => p.category === categoryApi && p.visible !== false);
+      if (filtered.length > 0) {
+        return filtered.map((p) => ({
+          id: p.id,
+          title: p.name,
+          isRecommended: Boolean(p.recommended || p.best),
+          priceText: p.formattedPrice || (p.price ? `$${p.price.toLocaleString()}` : "$0"),
+          priceNumeric: p.price || (p.priceCents ? p.priceCents / 100 : 0),
+          priceSubLabel: p.type === "BUNDLE" ? "Bundle Price" : "Starting",
+          description: p.description,
+          image: p.imageUrl || p.mediaUrl || "/assets/images/safe_home_package.jpg",
+          videoUrl: p.videoUrl || "https://www.youtube.com/watch?v=x5B2XZ7PIGQ",
+          whyItMatters: p.whyItMatters || "",
+          features:
+            p.features && p.features.length > 0
+              ? p.features
+              : [
+                  "Structural components & foundation",
+                  "Roofing system & attic space",
+                  "Electrical panels, wiring & outlets",
+                  "Heating & cooling systems (HVAC)",
+                ],
+        }));
+      }
     }
-  }, [formData.inspectionKind, packagesList, formData.selectedPackage, updateFormData]);
+    return isNewConstruction ? NEW_CONSTRUCTION_PACKAGES : RESALE_PACKAGES;
+  }, [packagesRes, categoryApi, isNewConstruction]);
 
-  // Default addons to Chemical Balancing if not set
-  useEffect(() => {
-    if (!formData.selectedAddons) {
-      updateFormData({ selectedAddons: ["chemical-balancing"] });
+  // 3. Map portal addons with local fallback
+  const addonsList = useMemo<AddonOption[]>(() => {
+    const list = addonsRes?.data;
+    if (Array.isArray(list) && list.length > 0) {
+      const filtered = list.filter(
+        (a) => (!a.category || a.category === categoryApi)
+      );
+      if (filtered.length > 0) {
+        return filtered.map((a) => ({
+          id: a.id,
+          title: a.name,
+          priceText: a.formattedPrice || (a.price ? `$${a.price.toLocaleString()}` : "$0"),
+          priceNumeric: a.price || (a.priceCents ? a.priceCents / 100 : 0),
+          image: a.imageUrl || a.mediaUrl || "/assets/images/pool_inspection.jpg",
+          whyItMatters: a.whyItMatters || "",
+          repairRisk: a.description || "",
+        }));
+      }
     }
-  }, [formData.selectedAddons, updateFormData]);
+    return ADDONS_CONFIG;
+  }, [addonsRes, categoryApi]);
 
-  // Expandable accordions & summary checkbox state
-  const [expandedPackageId, setExpandedPackageId] = useState<string | null>(
-    isNewConstruction ? null : "safe-home-package"
-  );
-  const [expandedAddonId, setExpandedAddonId] = useState<string | null>("pool-inspection");
+  // Initialize selected package if not set or invalid
+  useEffect(() => {
+    if (packagesList.length > 0) {
+      const validIds = packagesList.map((p) => p.id);
+      if (!formData.selectedPackage || !validIds.includes(formData.selectedPackage)) {
+        updateFormData({ selectedPackage: validIds[0] });
+      }
+    }
+  }, [packagesList, formData.selectedPackage, updateFormData]);
+
+  // Expandable accordions & modal state
+  const [expandedPackageId, setExpandedPackageId] = useState<string | null>(null);
+  const [expandedAddonId, setExpandedAddonId] = useState<string | null>(null);
   const [uncheckedIncludedItems, setUncheckedIncludedItems] = useState<string[]>([]);
   const [videoModalPackage, setVideoModalPackage] = useState<PackageOption | null>(null);
 
-  const selectedPackageId =
-    formData.selectedPackage || (isNewConstruction ? "pre-drywall" : "safe-home-package");
-  const selectedAddons = formData.selectedAddons || ["chemical-balancing"];
+  const selectedPackageId = formData.selectedPackage || packagesList[0]?.id || "";
+  const selectedAddons = useMemo(
+    () => sanitizeServiceIds(formData.selectedAddons || []),
+    [formData.selectedAddons]
+  );
+  const selectedAddonsKey = useMemo(() => [...selectedAddons].sort().join(","), [selectedAddons]);
+
+  // Keep latest refs to avoid re-triggering callbacks on formData updates
+  const formDataRef = React.useRef(formData);
+  formDataRef.current = formData;
+
+  const packagesDataRef = React.useRef(packagesRes?.data);
+  packagesDataRef.current = packagesRes?.data;
+
+  const lastQuoteKeyRef = React.useRef<string>("");
+  const isCalculatingRef = React.useRef<boolean>(false);
 
   // Reset unchecked items when package changes
   useEffect(() => {
     setUncheckedIncludedItems([]);
   }, [selectedPackageId]);
+
+  // 4. Trigger ISN Quote Calculation with deduplication and loop guard
+  const triggerQuoteCalculation = useCallback(
+    async (pkgId: string, addonIds: string[]) => {
+      if (!pkgId || isCalculatingRef.current) return;
+
+      const currentFormData = formDataRef.current;
+      const propertyDto = buildPropertyDto(currentFormData);
+      const { packageId: safePackageId, serviceIds: safeServiceIds } =
+        sanitizePackageAndServices(
+          categoryApi,
+          pkgId,
+          addonIds,
+          packagesDataRef.current
+        );
+
+      const quoteKey = `${categoryApi}_${safePackageId || ""}_${[...safeServiceIds].sort().join(",")}_${propertyDto.foundationType}_${propertyDto.squareFeet}_${propertyDto.yearBuilt}`;
+
+      // Guard: do NOT recalculate if the exact same inputs have already been quoted
+      if (lastQuoteKeyRef.current === quoteKey) {
+        return;
+      }
+
+      lastQuoteKeyRef.current = quoteKey;
+      isCalculatingRef.current = true;
+
+      try {
+        const res = await calculateQuote({
+          category: categoryApi,
+          ...(safePackageId ? { packageId: safePackageId } : {}),
+          serviceIds: safeServiceIds,
+          property: propertyDto,
+        }).unwrap();
+
+        if (res?.data?.quoteId) {
+          updateFormData({
+            quoteId: res.data.quoteId,
+            calculatedQuote: res.data,
+            quoteError: null,
+          });
+        }
+      } catch (err: any) {
+        const status = err?.status || err?.statusCode;
+        if (status === 429) {
+          console.warn("ISN rate limit reached, waiting before retry.");
+        } else {
+          console.warn("Quote calculation notice:", err?.data?.message || err?.message);
+        }
+      } finally {
+        isCalculatingRef.current = false;
+      }
+    },
+    [calculateQuote, categoryApi, updateFormData]
+  );
+
+  // Debounced quote calculation when package or addons change
+  useEffect(() => {
+    if (!selectedPackageId) return;
+
+    const timer = setTimeout(() => {
+      triggerQuoteCalculation(selectedPackageId, selectedAddons);
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [selectedPackageId, selectedAddonsKey, triggerQuoteCalculation]);
 
   const handleSelectPackage = (pkgId: string) => {
     updateFormData({ selectedPackage: pkgId });
@@ -95,22 +236,46 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
 
   // Selected object references for summary card
   const selectedPkgObj = packagesList.find((p) => p.id === selectedPackageId) || packagesList[0];
-  const selectedAddonObjects = ADDONS_CONFIG.filter((a) => selectedAddons.includes(a.id));
-  const includedItems = PACKAGE_INCLUDED_ITEMS[selectedPackageId] || [
-    { name: selectedPkgObj?.title || "Home Inspection", priceText: selectedPkgObj?.priceText || "$0" },
-  ];
+  const selectedAddonObjects = addonsList.filter((a) => selectedAddons.includes(a.id));
 
-  // Calculate total amount with deductions for unchecked package items
+  // Included items resolution
+  const includedItems = useMemo<IncludedItem[]>(() => {
+    // Check if raw package from API has services
+    const rawPkg = (packagesRes?.data || []).find((p) => p.id === selectedPackageId);
+    if (rawPkg?.services && rawPkg.services.length > 0) {
+      return rawPkg.services.map((s) => ({
+        name: s.name,
+        priceText: s.priceCents > 0 ? `$${(s.priceCents / 100).toLocaleString()}` : "Included",
+        priceNumeric: s.priceCents / 100,
+      }));
+    }
+    return (
+      PACKAGE_INCLUDED_ITEMS[selectedPackageId] || [
+        {
+          name: selectedPkgObj?.title || "Home Inspection",
+          priceText: selectedPkgObj?.priceText || "$0",
+          priceNumeric: selectedPkgObj?.priceNumeric || 0,
+        },
+      ]
+    );
+  }, [packagesRes, selectedPackageId, selectedPkgObj]);
+
+  // Calculate total amount: prefer live ISN calculated quote total if available
   const uncheckedDeductions = includedItems
     .filter((item) => uncheckedIncludedItems.includes(item.name))
     .reduce((acc, item) => acc + (item.priceNumeric || 0), 0);
 
-  const totalAmount = Math.max(
+  const fallbackTotal = Math.max(
     0,
     (selectedPkgObj?.priceNumeric || 0) +
       selectedAddonObjects.reduce((acc, a) => acc + a.priceNumeric, 0) -
       uncheckedDeductions
   );
+
+  const totalAmount =
+    formData.calculatedQuote && formData.calculatedQuote.totalCents > 0
+      ? formData.calculatedQuote.totalCents / 100
+      : fallbackTotal;
 
   return (
     <div className="w-full flex flex-col lg:flex-row gap-5 sm:gap-6 lg:gap-8 xl:gap-10 items-start">
@@ -126,21 +291,41 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
           </p>
         </div>
 
-        {/* Pricing callout banner */}
-        <div className="bg-canvas border-l-6 border-l-primary border border-hairline rounded-xl p-2.5 xs:p-3 sm:p-3.5 flex items-center gap-2.5">
-          <div className="w-5 h-5 rounded-full border-1.5 border-primary flex items-center justify-center flex-shrink-0 text-primary">
-            <WarnIcon />
+        {/* Pricing & ISN Quote status banner */}
+        <div className="bg-canvas border-l-6 border-l-primary border border-hairline rounded-xl p-3 sm:p-3.5 flex items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2.5">
+            <div className="w-5 h-5 rounded-full border-1.5 border-primary flex items-center justify-center flex-shrink-0 text-primary">
+              <WarnIcon />
+            </div>
+            <p className="text-xs xs:text-sm md:text-base font-semibold text-primary-hover">
+              Pricing is calculated in real-time based on your property details and synced with ISN.
+            </p>
           </div>
-          <p className="text-xs xs:text-sm md:text-base font-semibold text-primary-hover">
-            Pricing is calculated based on your property details and synced with ISN.
-          </p>
+          {isCalculatingQuote ? (
+            <div className="flex items-center gap-1.5 text-xs text-sub font-semibold shrink-0">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
+              <span>Updating quote...</span>
+            </div>
+          ) : formData.quoteId ? (
+            <div className="flex items-center gap-1.5 text-xs text-green-700 font-bold shrink-0 bg-green-50 px-2 py-1 rounded-md border border-green-200">
+              <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
+              <span>Live Quote</span>
+            </div>
+          ) : null}
         </div>
 
         {/* SECTION 1: Choose your package */}
         <div className="flex flex-col gap-3 sm:gap-4 mt-1">
-          <h3 className="text-lg xs:text-xl sm:text-2xl font-extrabold tracking-tight text-main">
-            Choose your package
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg xs:text-xl sm:text-2xl font-extrabold tracking-tight text-main">
+              Choose your package
+            </h3>
+            {isLoadingPackages && (
+              <span className="text-xs text-sub flex items-center gap-1">
+                <Loader2 className="w-3 h-3 animate-spin text-primary" /> Loading live packages...
+              </span>
+            )}
+          </div>
 
           <div className="flex flex-col gap-3 sm:gap-3.5">
             {packagesList.map((pkg) => (
@@ -163,12 +348,19 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
 
         {/* SECTION 2: Optional Add-Ons */}
         <div className="flex flex-col gap-3 sm:gap-4 mt-2">
-          <h3 className="text-lg xs:text-xl sm:text-2xl font-extrabold tracking-tight text-main">
-            Optional Add-Ons
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg xs:text-xl sm:text-2xl font-extrabold tracking-tight text-main">
+              Optional Add-Ons
+            </h3>
+            {isLoadingAddons && (
+              <span className="text-xs text-sub flex items-center gap-1">
+                <Loader2 className="w-3 h-3 animate-spin text-primary" /> Loading add-ons...
+              </span>
+            )}
+          </div>
 
           <div className="flex flex-col gap-3 sm:gap-3.5">
-            {ADDONS_CONFIG.map((addon) => (
+            {addonsList.map((addon) => (
               <AddonCard
                 key={addon.id}
                 addon={addon}
@@ -187,7 +379,7 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
             <WarnIcon />
           </div>
           <p className="text-xs sm:text-sm text-sub leading-normal">
-            <span className="font-extrabold text-main">Fees are estimates.</span> Final pricing confirmed before your appointment. For standalone services (without a home inspection), call us directly at{" "}
+            <span className="font-extrabold text-main">Fees are verified quotes.</span> Final scope confirmed before your appointment. For custom inquiries, call us directly at{" "}
             <a href="tel:7707656869" className="text-primary font-bold hover:underline">
               (770) 765-6869
             </a>.

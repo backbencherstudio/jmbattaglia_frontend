@@ -2,14 +2,16 @@
 
 import React from "react";
 import { PackageOption, AddonOption, IncludedItem } from "@/types/packageAddons";
+import { Loader2 } from "lucide-react";
 
 interface PackageSummaryCardProps {
   selectedPkgObj?: PackageOption;
-  selectedAddonObjects: AddonOption[];
+  selectedAddonObjects: (AddonOption & { isLoading?: boolean })[];
   includedItems: IncludedItem[];
   uncheckedIncludedItems?: string[];
   onToggleIncludedItem?: (itemName: string) => void;
   totalAmount: number;
+  isPackageLoading?: boolean;
 }
 
 export const PackageSummaryCard: React.FC<PackageSummaryCardProps> = ({
@@ -19,6 +21,7 @@ export const PackageSummaryCard: React.FC<PackageSummaryCardProps> = ({
   uncheckedIncludedItems = [],
   onToggleIncludedItem,
   totalAmount,
+  isPackageLoading = false,
 }) => {
   return (
     <div className="w-full lg:w-72 xl:w-80 2xl:w-84 shrink-0 lg:sticky lg:top-6 self-start">
@@ -41,20 +44,27 @@ export const PackageSummaryCard: React.FC<PackageSummaryCardProps> = ({
         <div className="flex flex-col gap-2.5 text-xs sm:text-sm">
           <div className="flex justify-between items-center gap-2">
             <span className="text-sub font-medium truncate">{selectedPkgObj?.title} :</span>
-            <span className="text-main font-extrabold text-right shrink-0">
-              + {selectedPkgObj?.priceText}
-            </span>
+            <div className="flex items-center gap-1.5 shrink-0">
+              {isPackageLoading && <Loader2 className="w-3 h-3 animate-spin text-primary" />}
+              <span className="text-main font-extrabold text-right shrink-0">
+                + {selectedPkgObj?.priceText}
+              </span>
+            </div>
           </div>
 
           {selectedAddonObjects.map((addon) => (
             <div key={addon.id} className="flex justify-between items-center gap-2">
               <span className="text-sub font-medium truncate">{addon.title}:</span>
-              <span className="text-main font-extrabold text-right shrink-0">
-                + {addon.priceText}
-              </span>
+              <div className="flex items-center gap-1.5 shrink-0">
+                {addon.isLoading && <Loader2 className="w-3 h-3 animate-spin text-primary" />}
+                <span className="text-main font-extrabold text-right shrink-0">
+                  + {addon.priceText}
+                </span>
+              </div>
             </div>
           ))}
         </div>
+
 
         {/* Already in your package Section */}
         <div className="pt-3 border-t border-hairline/60 flex flex-col gap-2.5 sm:gap-3">

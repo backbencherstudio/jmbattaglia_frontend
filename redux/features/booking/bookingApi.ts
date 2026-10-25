@@ -52,6 +52,14 @@ export const bookingApi = baseApi.injectEndpoints({
       }),
     }),
 
+    // 4b. Customer-visible single package by ID
+    getPortalPackageById: builder.query<ApiResponse<PortalPackageItem>, string>({
+      query: (id) => ({
+        url: `/portal/packages/${id}`,
+        method: "GET",
+      }),
+    }),
+
     // 5. Customer-visible add-ons
     getPortalAddons: builder.query<ApiResponse<PortalAddonItem[]>, void>({
       query: () => ({
@@ -59,6 +67,15 @@ export const bookingApi = baseApi.injectEndpoints({
         method: "GET",
       }),
     }),
+
+    // 5b. Customer-visible single add-on by ID
+    getPortalAddonById: builder.query<ApiResponse<PortalAddonItem>, string>({
+      query: (id) => ({
+        url: `/portal/addons/${id}`,
+        method: "GET",
+      }),
+    }),
+
 
     // 6. Calculate real ISN quote (retained in Redis for 30 minutes)
     calculateServiceQuote: builder.mutation<
@@ -132,7 +149,11 @@ export const {
   useGetFoundationTypesQuery,
   useGetOrderTypesQuery,
   useGetPortalPackagesQuery,
+  useGetPortalPackageByIdQuery,
+  useLazyGetPortalPackageByIdQuery,
   useGetPortalAddonsQuery,
+  useGetPortalAddonByIdQuery,
+  useLazyGetPortalAddonByIdQuery,
   useCalculateServiceQuoteMutation,
   useGetAvailableSlotsQuery,
   useLazyGetAvailableSlotsQuery,
@@ -140,3 +161,4 @@ export const {
   useGetOrderReceiptQuery,
   useLazyGetOrderReceiptQuery,
 } = bookingApi;
+

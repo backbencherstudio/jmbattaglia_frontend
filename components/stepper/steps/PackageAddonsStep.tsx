@@ -20,14 +20,18 @@ import { PackageVideoModal } from "./package-addons/PackageVideoModal";
 import { WarnIcon } from "@/components/icons/StepperStepIcons";
 import {
   useGetPortalPackagesQuery,
+  useGetPortalPackageByIdQuery,
   useGetPortalAddonsQuery,
+  useLazyGetPortalAddonByIdQuery,
   useCalculateServiceQuoteMutation,
 } from "@/redux/features/booking/bookingApi";
+import type { PortalPackageItem, PortalAddonItem } from "@/types/booking";
 import {
   buildPropertyDto,
   sanitizePackageAndServices,
   sanitizeServiceIds,
 } from "@/lib/bookingUtils";
+
 import { CheckCircle2, Loader2 } from "lucide-react";
 
 export type { PackageOption, AddonOption, IncludedItem };
@@ -122,6 +126,41 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
     [formData.selectedAddons]
   );
   const selectedAddonsKey = useMemo(() => [...selectedAddons].sort().join(","), [selectedAddons]);
+
+  // 1b. Fetch single package by ID when selected
+  const {
+    data: singlePackageRes,
+    isFetching: isFetchingSinglePackage,
+  } = useGetPortalPackageByIdQuery(selectedPackageId, {
+    skip: !selectedPackageId,
+  });
+  const singlePackage = singlePackageRes?.data;
+
+  // 1c. Fetch single add-on by ID when an add-on is selected
+  const [triggerGetAddon] = useLazyGetPortalAddonByIdQuery();
+  const [singleAddonsMap, setSingleAddonsMap] = useState<Record<string, PortalAddonItem>>({});
+  const [loadingAddonIds, setLoadingAddonIds] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    selectedAddons.forEach((addonId) => {
+      if (!singleAddonsMap[addonId] && !loadingAddonIds[addonId]) {
+        setLoadingAddonIds((prev) => ({ ...prev, [addonId]: true }));
+        triggerGetAddon(addonId, true)
+          .unwrap()
+          .then((res) => {
+            if (res?.data) {
+              setSingleAddonsMap((prev) => ({ ...prev, [addonId]: res.data }));
+            }
+          })
+          .catch((err) => {
+            console.error(`Failed to fetch addon ${addonId}:`, err);
+          })
+          .finally(() => {
+            setLoadingAddonIds((prev) => ({ ...prev, [addonId]: false }));
+          });
+      }
+    });
+  }, [selectedAddons, singleAddonsMap, loadingAddonIds, triggerGetAddon]);
 
   // Keep latest refs to avoid re-triggering callbacks on formData updates
   const formDataRef = React.useRef(formData);
@@ -234,13 +273,55 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
     );
   };
 
-  // Selected object references for summary card
-  const selectedPkgObj = packagesList.find((p) => p.id === selectedPackageId) || packagesList[0];
-  const selectedAddonObjects = addonsList.filter((a) => selectedAddons.includes(a.id));
+  // Selected object references for summary card with single API price priority
+  const selectedPkgFromList = packagesList.find((p) => p.id === selectedPackageId) || packagesList[0];
 
-  // Included items resolution
+  const activeSelectedPkgObj = useMemo<PackageOption>(() => {
+    if (singlePackage && singlePackage.id === selectedPackageId) {
+      return {
+        id: singlePackage.id,
+        title: singlePackage.name,
+        isRecommended: Boolean(singlePackage.recommended || singlePackage.best),
+        priceText: singlePackage.formattedPrice || (singlePackage.price ? `$${singlePackage.price.toLocaleString()}` : "$0"),
+        priceNumeric: singlePackage.price ?? (singlePackage.priceCents ? singlePackage.priceCents / 100 : 0),
+        priceSubLabel: singlePackage.type === "BUNDLE" ? "Bundle Price" : "Starting",
+        description: singlePackage.description,
+        image: singlePackage.imageUrl || singlePackage.mediaUrl || selectedPkgFromList?.image || "/assets/images/safe_home_package.jpg",
+        videoUrl: singlePackage.videoUrl || selectedPkgFromList?.videoUrl || "https://www.youtube.com/watch?v=x5B2XZ7PIGQ",
+        whyItMatters: singlePackage.whyItMatters || selectedPkgFromList?.whyItMatters || "",
+        features: singlePackage.features && singlePackage.features.length > 0 ? singlePackage.features : (selectedPkgFromList?.features || []),
+      };
+    }
+    return selectedPkgFromList || packagesList[0];
+  }, [singlePackage, selectedPackageId, selectedPkgFromList, packagesList]);
+
+  // Selected addon objects with single API prices
+  const activeSelectedAddonObjects = useMemo(() => {
+    return selectedAddons.map((id) => {
+      const single = singleAddonsMap[id];
+      const fallback = addonsList.find((a) => a.id === id);
+      return {
+        id,
+        title: single?.name || fallback?.title || "Add-on",
+        priceText: single?.formattedPrice || (single?.price ? `$${single.price.toLocaleString()}` : fallback?.priceText || "$0"),
+        priceNumeric: single?.price ?? (single?.priceCents ? single.priceCents / 100 : fallback?.priceNumeric || 0),
+        image: single?.imageUrl || single?.mediaUrl || fallback?.image,
+        whyItMatters: single?.whyItMatters || fallback?.whyItMatters,
+        repairRisk: single?.description || fallback?.repairRisk,
+        isLoading: Boolean(loadingAddonIds[id]),
+      };
+    });
+  }, [selectedAddons, singleAddonsMap, addonsList, loadingAddonIds]);
+
+  // Included items resolution directly from single package API or fallbacks
   const includedItems = useMemo<IncludedItem[]>(() => {
-    // Check if raw package from API has services
+    if (singlePackage?.services && singlePackage.services.length > 0) {
+      return singlePackage.services.map((s) => ({
+        name: s.name,
+        priceText: s.priceCents > 0 ? `$${(s.priceCents / 100).toLocaleString()}` : "Included",
+        priceNumeric: s.priceCents / 100,
+      }));
+    }
     const rawPkg = (packagesRes?.data || []).find((p) => p.id === selectedPackageId);
     if (rawPkg?.services && rawPkg.services.length > 0) {
       return rawPkg.services.map((s) => ({
@@ -252,30 +333,28 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
     return (
       PACKAGE_INCLUDED_ITEMS[selectedPackageId] || [
         {
-          name: selectedPkgObj?.title || "Home Inspection",
-          priceText: selectedPkgObj?.priceText || "$0",
-          priceNumeric: selectedPkgObj?.priceNumeric || 0,
+          name: activeSelectedPkgObj?.title || "Home Inspection",
+          priceText: activeSelectedPkgObj?.priceText || "$0",
+          priceNumeric: activeSelectedPkgObj?.priceNumeric || 0,
         },
       ]
     );
-  }, [packagesRes, selectedPackageId, selectedPkgObj]);
+  }, [singlePackage, packagesRes, selectedPackageId, activeSelectedPkgObj]);
 
-  // Calculate total amount: prefer live ISN calculated quote total if available
+  // Calculate total amount based on single package price + single add-on prices
   const uncheckedDeductions = includedItems
     .filter((item) => uncheckedIncludedItems.includes(item.name))
     .reduce((acc, item) => acc + (item.priceNumeric || 0), 0);
 
-  const fallbackTotal = Math.max(
+  const directTotal = Math.max(
     0,
-    (selectedPkgObj?.priceNumeric || 0) +
-      selectedAddonObjects.reduce((acc, a) => acc + a.priceNumeric, 0) -
+    (activeSelectedPkgObj?.priceNumeric || 0) +
+      activeSelectedAddonObjects.reduce((acc, a) => acc + (a.priceNumeric || 0), 0) -
       uncheckedDeductions
   );
 
-  const totalAmount =
-    formData.calculatedQuote && formData.calculatedQuote.totalCents > 0
-      ? formData.calculatedQuote.totalCents / 100
-      : fallbackTotal;
+  const totalAmount = directTotal;
+
 
   return (
     <div className="w-full flex flex-col lg:flex-row gap-5 sm:gap-6 lg:gap-8 xl:gap-10 items-start">
@@ -301,7 +380,7 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
               Pricing is calculated in real-time based on your property details and synced with ISN.
             </p>
           </div>
-          {isCalculatingQuote ? (
+          {/* {isCalculatingQuote ? (
             <div className="flex items-center gap-1.5 text-xs text-sub font-semibold shrink-0">
               <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
               <span>Updating quote...</span>
@@ -311,7 +390,7 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
               <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
               <span>Live Quote</span>
             </div>
-          ) : null}
+          ) : null} */}
         </div>
 
         {/* SECTION 1: Choose your package */}
@@ -328,17 +407,21 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
           </div>
 
           <div className="flex flex-col gap-3 sm:gap-3.5">
-            {packagesList.map((pkg) => (
-              <PackageCard
-                key={pkg.id}
-                pkg={pkg}
-                isSelected={selectedPackageId === pkg.id}
-                isExpanded={expandedPackageId === pkg.id}
-                onSelect={handleSelectPackage}
-                onToggleExpand={togglePackageExpand}
-                onOpenVideo={(pkgToOpen) => setVideoModalPackage(pkgToOpen)}
-              />
-            ))}
+            {packagesList.map((pkg) => {
+              const isSelected = selectedPackageId === pkg.id;
+              const displayPkg = isSelected && singlePackage ? activeSelectedPkgObj : pkg;
+              return (
+                <PackageCard
+                  key={pkg.id}
+                  pkg={displayPkg}
+                  isSelected={isSelected}
+                  isExpanded={expandedPackageId === pkg.id}
+                  onSelect={handleSelectPackage}
+                  onToggleExpand={togglePackageExpand}
+                  onOpenVideo={(pkgToOpen) => setVideoModalPackage(pkgToOpen)}
+                />
+              );
+            })}
           </div>
 
           {errors.selectedPackage && (
@@ -360,16 +443,36 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
           </div>
 
           <div className="flex flex-col gap-3 sm:gap-3.5">
-            {addonsList.map((addon) => (
-              <AddonCard
-                key={addon.id}
-                addon={addon}
-                isSelected={selectedAddons.includes(addon.id)}
-                isExpanded={expandedAddonId === addon.id}
-                onToggleSelect={toggleAddonSelect}
-                onToggleExpand={toggleAddonExpand}
-              />
-            ))}
+            {addonsList.map((addon) => {
+              const isSelected = selectedAddons.includes(addon.id);
+              const single = singleAddonsMap[addon.id];
+              const displayAddon = single
+                ? {
+                    id: single.id,
+                    title: single.name,
+                    priceText:
+                      single.formattedPrice ||
+                      (single.price ? `$${single.price.toLocaleString()}` : addon.priceText),
+                    priceNumeric:
+                      single.price ??
+                      (single.priceCents ? single.priceCents / 100 : addon.priceNumeric),
+                    image: single.imageUrl || single.mediaUrl || addon.image,
+                    whyItMatters: single.whyItMatters || addon.whyItMatters,
+                    repairRisk: single.description || addon.repairRisk,
+                  }
+                : addon;
+
+              return (
+                <AddonCard
+                  key={addon.id}
+                  addon={displayAddon}
+                  isSelected={isSelected}
+                  isExpanded={expandedAddonId === addon.id}
+                  onToggleSelect={toggleAddonSelect}
+                  onToggleExpand={toggleAddonExpand}
+                />
+              );
+            })}
           </div>
         </div>
 
@@ -389,13 +492,15 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
 
       {/* Right Column: Sticky Package Amounts Summary Card */}
       <PackageSummaryCard
-        selectedPkgObj={selectedPkgObj}
-        selectedAddonObjects={selectedAddonObjects}
+        selectedPkgObj={activeSelectedPkgObj}
+        selectedAddonObjects={activeSelectedAddonObjects}
         includedItems={includedItems}
         uncheckedIncludedItems={uncheckedIncludedItems}
         onToggleIncludedItem={handleToggleIncludedItem}
         totalAmount={totalAmount}
+        isPackageLoading={isFetchingSinglePackage}
       />
+
 
       {/* Package Video Modal */}
       {videoModalPackage && (

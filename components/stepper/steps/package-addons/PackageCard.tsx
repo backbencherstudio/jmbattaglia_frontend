@@ -65,9 +65,9 @@ export const PackageCard: React.FC<PackageCardProps> = ({
         {/* Price + Action Buttons */}
         <div className="flex items-center justify-between sm:justify-end gap-2.5 sm:gap-3 flex-shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-hairline/50 sm:border-transparent">
           <div className="text-left sm:text-right">
-            <span className="text-[11px] sm:text-xs text-sub font-medium mr-1.5">
+            {/* <span className="text-[11px] sm:text-xs text-sub font-medium mr-1.5">
               {pkg.priceSubLabel}
-            </span>
+            </span> */}
             <span
               className={`text-lg xs:text-xl sm:text-xl md:text-2xl lg:text-xl xl:text-2xl font-extrabold ${
                 pkg.isRecommended || isSelected ? "text-primary" : "text-main"

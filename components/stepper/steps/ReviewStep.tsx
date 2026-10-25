@@ -5,6 +5,10 @@ import { StepProps } from "@/types/stepper";
 import { useRouter } from "next/navigation";
 import { format24hToDisplayTime } from "@/lib/bookingUtils";
 import { RESALE_PACKAGES, NEW_CONSTRUCTION_PACKAGES, ADDONS_CONFIG } from "@/data/packageAddonsData";
+import {
+  useGetPortalPackageByIdQuery,
+  useGetPortalAddonsQuery,
+} from "@/redux/features/booking/bookingApi";
 
 interface ReviewStepProps extends StepProps {
   onNavigateToStep?: (mainStepId: string, subStepId: string) => void;
@@ -24,16 +28,42 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
     }
   };
 
+  const { data: pkgDetailRes } = useGetPortalPackageByIdQuery(formData.selectedPackage || "", {
+    skip: !formData.selectedPackage,
+  });
+  const { data: addonsRes } = useGetPortalAddonsQuery();
+
   // Resolve packages & addons for fallback display
   const allPackages = [...RESALE_PACKAGES, ...NEW_CONSTRUCTION_PACKAGES];
   const selectedPkg = allPackages.find((p) => p.id === formData.selectedPackage) || allPackages[0];
-  const selectedAddonsList = (formData.selectedAddons || [])
-    .map((id) => ADDONS_CONFIG.find((a) => a.id === id))
-    .filter(Boolean);
+
+  const pkgTitle = pkgDetailRes?.data?.name || selectedPkg?.title || "Package";
+  const pkgPriceNumeric =
+    pkgDetailRes?.data?.price ??
+    (pkgDetailRes?.data?.priceCents ? pkgDetailRes.data.priceCents / 100 : selectedPkg?.priceNumeric || 0);
+
+  const selectedAddonsList = (formData.selectedAddons || []).map((id) => {
+    const fromApi = (addonsRes?.data || []).find((a) => a.id === id);
+    if (fromApi) {
+      return {
+        id: fromApi.id,
+        title: fromApi.name,
+        priceText: fromApi.formattedPrice || (fromApi.price ? `$${fromApi.price}` : "$0"),
+        priceNumeric: fromApi.price || (fromApi.priceCents ? fromApi.priceCents / 100 : 0),
+      };
+    }
+    const fromStatic = ADDONS_CONFIG.find((a) => a.id === id);
+    return {
+      id,
+      title: fromStatic?.title || "Add-on",
+      priceText: fromStatic?.priceText || "$0",
+      priceNumeric: fromStatic?.priceNumeric || 0,
+    };
+  });
 
   const fallbackTotal =
-    (selectedPkg?.priceNumeric || 0) +
-    selectedAddonsList.reduce((acc, a) => acc + (a?.priceNumeric || 0), 0);
+    pkgPriceNumeric + selectedAddonsList.reduce((acc, a) => acc + (a?.priceNumeric || 0), 0);
+
 
   const quoteLines = formData.calculatedQuote?.lines;
   const quoteTotal =
@@ -297,9 +327,10 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
           ) : (
             <>
               <div className="flex justify-between items-center">
-                <span className="text-sub font-medium">{selectedPkg?.title || "Package"}:</span>
-                <span className="text-main font-bold text-right">+${(selectedPkg?.priceNumeric || 0).toLocaleString()}</span>
+                <span className="text-sub font-medium">{pkgTitle}:</span>
+                <span className="text-main font-bold text-right">+${pkgPriceNumeric.toLocaleString()}</span>
               </div>
+
               {selectedAddonsList.map((addon, idx) => (
                 <div key={idx} className="flex justify-between items-center">
                   <span className="text-sub font-medium">{addon?.title}:</span>

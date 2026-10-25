@@ -314,13 +314,28 @@ export const format24hToDisplayTime = (time24?: string): string => {
   return `${h}:${mStr || "00"} ${ampm}`;
 };
 
+export const CONFIRMED_ORDER_STORAGE_KEY = "at_ease_last_confirmed_order";
+
 /**
- * Browser LocalStorage persistence helpers with automatic sanitization of legacy non-UUID items.
+ * Browser SessionStorage persistence helpers with automatic sanitization of legacy non-UUID items.
+ * Uses sessionStorage as primary storage per requirements, with graceful migration from localStorage.
  */
 export const loadBookingFromStorage = (): Partial<StepperFormData> | null => {
   if (typeof window === "undefined") return null;
   try {
-    const raw = window.localStorage.getItem(BOOKING_STORAGE_KEY);
+    // 1. Try sessionStorage first
+    let raw = window.sessionStorage.getItem(BOOKING_STORAGE_KEY);
+
+    // 2. Fallback to localStorage for backward compatibility and clean it up
+    if (!raw) {
+      const localRaw = window.localStorage.getItem(BOOKING_STORAGE_KEY);
+      if (localRaw) {
+        raw = localRaw;
+        window.sessionStorage.setItem(BOOKING_STORAGE_KEY, localRaw);
+        window.localStorage.removeItem(BOOKING_STORAGE_KEY);
+      }
+    }
+
     if (!raw) return null;
     const parsed: Partial<StepperFormData> = JSON.parse(raw);
 
@@ -337,7 +352,7 @@ export const loadBookingFromStorage = (): Partial<StepperFormData> | null => {
 
     return parsed;
   } catch (err) {
-    console.error("Failed to load booking from storage:", err);
+    console.error("Failed to load booking from sessionStorage:", err);
     return null;
   }
 };
@@ -345,17 +360,51 @@ export const loadBookingFromStorage = (): Partial<StepperFormData> | null => {
 export const saveBookingToStorage = (data: StepperFormData): void => {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(BOOKING_STORAGE_KEY, JSON.stringify(data));
+    window.sessionStorage.setItem(BOOKING_STORAGE_KEY, JSON.stringify(data));
+    // Remove from localStorage to keep everything cleanly in sessionStorage
+    window.localStorage.removeItem(BOOKING_STORAGE_KEY);
   } catch (err) {
-    console.error("Failed to save booking to storage:", err);
+    console.error("Failed to save booking to sessionStorage:", err);
   }
 };
 
 export const clearBookingFromStorage = (): void => {
   if (typeof window === "undefined") return;
   try {
+    window.sessionStorage.removeItem(BOOKING_STORAGE_KEY);
     window.localStorage.removeItem(BOOKING_STORAGE_KEY);
   } catch (err) {
-    console.error("Failed to clear booking storage:", err);
+    console.error("Failed to clear booking sessionStorage:", err);
   }
 };
+
+export const saveConfirmedOrderToStorage = (data: StepperFormData): void => {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(CONFIRMED_ORDER_STORAGE_KEY, JSON.stringify(data));
+  } catch (err) {
+    console.error("Failed to save confirmed order to sessionStorage:", err);
+  }
+};
+
+export const loadConfirmedOrderFromStorage = (): Partial<StepperFormData> | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(CONFIRMED_ORDER_STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (err) {
+    console.error("Failed to load confirmed order from sessionStorage:", err);
+    return null;
+  }
+};
+
+export const clearConfirmedOrderFromStorage = (): void => {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.removeItem(CONFIRMED_ORDER_STORAGE_KEY);
+  } catch (err) {
+    console.error("Failed to clear confirmed order sessionStorage:", err);
+  }
+};
+

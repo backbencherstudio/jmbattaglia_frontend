@@ -142,13 +142,11 @@ export const StepperLayout: React.FC = () => {
       }).unwrap();
 
       const orderData = orderRes?.data;
-      stepper.updateFormData({
-        orderReceipt: orderData,
-        orderId: orderData?.orderId || orderData?.id || idempotencyKey.slice(0, 8).toUpperCase(),
-      });
+      const finalOrderId =
+        orderData?.orderId || orderData?.id || idempotencyKey.slice(0, 8).toUpperCase();
 
-      // 4. Navigate directly to confirmation step
-      stepper.navigateToStep(3, 1);
+      // 4. Complete order: clear session draft, persist confirmation receipt, and navigate to confirmation
+      stepper.completeOrder(orderData, finalOrderId);
     } catch (err: any) {
       console.error("Order submission error:", err);
       const msg =

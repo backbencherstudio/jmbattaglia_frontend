@@ -7,7 +7,11 @@ import {
   loadBookingFromStorage,
   saveBookingToStorage,
   clearBookingFromStorage,
+  saveConfirmedOrderToStorage,
+  loadConfirmedOrderFromStorage,
+  clearConfirmedOrderFromStorage,
 } from "@/lib/bookingUtils";
+
 
 export const STEP_CONFIG: MainStep[] = [
   {
@@ -119,13 +123,31 @@ export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {
   const [currentSubStepIndex, setCurrentSubStepIndex] = useState(initialSteps.subIndex);
 
   const [formData, setFormData] = useState<StepperFormData>(() => {
-    const saved = loadBookingFromStorage();
-    const idempotencyKey = saved?.idempotencyKey || generateIdempotencyKey();
+    if (typeof window !== "undefined") {
+      const isConfirmation = searchParams.get("substep") === "confirmation";
+      if (isConfirmation) {
+        const confirmed = loadConfirmedOrderFromStorage();
+        if (confirmed && Object.keys(confirmed).length > 0) {
+          return {
+            ...DEFAULT_FORM_DATA,
+            ...confirmed,
+            ...initialData,
+          };
+        }
+      }
+      const saved = loadBookingFromStorage();
+      const idempotencyKey = saved?.idempotencyKey || generateIdempotencyKey();
+      return {
+        ...DEFAULT_FORM_DATA,
+        ...saved,
+        ...initialData,
+        idempotencyKey,
+      };
+    }
     return {
       ...DEFAULT_FORM_DATA,
-      ...saved,
       ...initialData,
-      idempotencyKey,
+      idempotencyKey: generateIdempotencyKey(),
     };
   });
 
@@ -139,19 +161,27 @@ export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {
     setCurrentSubStepIndex(subIndex);
   }, [searchParams, parseUrlSteps]);
 
-  // Load persistence on client mount if not already loaded
+  // Load persistence on client mount
   useEffect(() => {
-    const saved = loadBookingFromStorage();
-    if (saved && Object.keys(saved).length > 0) {
-      setFormData((prev) => {
-        const merged = { ...prev, ...saved };
-        if (!merged.idempotencyKey) {
-          merged.idempotencyKey = generateIdempotencyKey();
-        }
-        return merged;
-      });
+    const isConfirmation = searchParams.get("substep") === "confirmation";
+    if (isConfirmation) {
+      const confirmed = loadConfirmedOrderFromStorage();
+      if (confirmed && Object.keys(confirmed).length > 0) {
+        setFormData((prev) => ({ ...prev, ...confirmed }));
+      }
+    } else {
+      const saved = loadBookingFromStorage();
+      if (saved && Object.keys(saved).length > 0) {
+        setFormData((prev) => {
+          const merged = { ...prev, ...saved };
+          if (!merged.idempotencyKey) {
+            merged.idempotencyKey = generateIdempotencyKey();
+          }
+          return merged;
+        });
+      }
     }
-  }, []);
+  }, [searchParams]);
 
   // Helper to update URL search parameters without full page reload
   const pushStepUrl = useCallback(
@@ -183,25 +213,65 @@ export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {
   const updateFormData = useCallback((fields: Partial<StepperFormData>) => {
     setFormData((prev) => {
       const next = { ...prev, ...fields };
+      // Save draft booking to sessionStorage
       saveBookingToStorage(next);
       return next;
     });
   }, []);
 
+  const completeOrder = useCallback(
+    (orderReceipt: any, orderId: string) => {
+      // 1. Immediately clear the draft booking from sessionStorage
+      clearBookingFromStorage();
+
+      // 2. Snapshot the completed booking and persist in confirmed order storage
+      setFormData((prev) => {
+        const confirmedSnapshot: StepperFormData = {
+          ...prev,
+          orderReceipt,
+          orderId,
+        };
+        saveConfirmedOrderToStorage(confirmedSnapshot);
+        return confirmedSnapshot;
+      });
+
+      // 3. Clear any validation errors
+      setErrors({});
+
+      // 4. Navigate directly to confirmation step (Review & confirm -> Confirmation)
+      const reviewConfirmIdx = STEP_CONFIG.findIndex((s) => s.id === "review-confirm");
+      const confirmationSubIdx =
+        reviewConfirmIdx !== -1
+          ? STEP_CONFIG[reviewConfirmIdx].subSteps.findIndex((sub) => sub.id === "confirmation")
+          : 1;
+
+      setCurrentMainStepIndex(reviewConfirmIdx !== -1 ? reviewConfirmIdx : 3);
+      setCurrentSubStepIndex(confirmationSubIdx !== -1 ? confirmationSubIdx : 1);
+      pushStepUrl(
+        reviewConfirmIdx !== -1 ? reviewConfirmIdx : 3,
+        confirmationSubIdx !== -1 ? confirmationSubIdx : 1
+      );
+    },
+    [pushStepUrl]
+  );
+
   const resetFormData = useCallback(() => {
+    // Clear both draft and confirmed booking state from sessionStorage
     clearBookingFromStorage();
+    clearConfirmedOrderFromStorage();
+
     const newKey = generateIdempotencyKey();
     const freshData: StepperFormData = {
       ...DEFAULT_FORM_DATA,
       idempotencyKey: newKey,
     };
     setFormData(freshData);
-    saveBookingToStorage(freshData);
     setErrors({});
     setCurrentMainStepIndex(0);
     setCurrentSubStepIndex(0);
     pushStepUrl(0, 0);
   }, [pushStepUrl]);
+
 
   const setError = useCallback((field: string, message: string) => {
     setErrors((prev) => ({ ...prev, [field]: message }));
@@ -401,6 +471,7 @@ export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {
     selectMainStep,
     selectSubStep,
     navigateToStep,
+    completeOrder,
     isFirstStep,
     isLastStep,
     isSubmitting,

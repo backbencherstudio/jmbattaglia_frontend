@@ -31,13 +31,13 @@ export const PackageSummaryCard: React.FC<PackageSummaryCardProps> = ({
           <h3 className="font-extrabold text-base sm:text-lg text-main tracking-tight">
             Package Amounts
           </h3>
-          <button
+          {/* <button
             type="button"
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
             className="text-primary font-bold text-xs sm:text-sm underline hover:text-primary-hover cursor-pointer transition-colors"
           >
             Edit
-          </button>
+          </button> */}
         </div>
 
         {/* Selected Package & Addons list */}

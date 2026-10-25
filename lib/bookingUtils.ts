@@ -279,13 +279,13 @@ export const buildBuyerContactDto = (formData: StepperFormData): ContactDto | un
  * Converts 12h time format like "8:00 AM" or "1:00 PM" into 24h format "08:00" or "13:00".
  */
 export const formatTimeSlotTo24h = (timeSlot?: string): string => {
-  if (!timeSlot) return "09:00";
+  if (!timeSlot || !timeSlot.trim()) return "";
   if (/^(?:[01]\d|2[0-3]):(?:00|15|30|45)$/.test(timeSlot.trim())) {
     return timeSlot.trim();
   }
 
   const match = timeSlot.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
-  if (!match) return "09:00";
+  if (!match) return "";
 
   let hours = parseInt(match[1], 10);
   const minutes = match[2];
@@ -304,7 +304,7 @@ export const formatTimeSlotTo24h = (timeSlot?: string): string => {
  * Converts 24h time format "08:00" to "8:00 AM".
  */
 export const format24hToDisplayTime = (time24?: string): string => {
-  if (!time24) return "9:00 AM";
+  if (!time24 || !time24.trim()) return "";
   const [hStr, mStr] = time24.split(":");
   let h = parseInt(hStr, 10);
   if (isNaN(h)) return time24;

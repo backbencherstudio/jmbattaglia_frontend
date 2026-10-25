@@ -202,24 +202,21 @@ export const DateTimeStep: React.FC<StepProps> = ({
     };
   }, [availableSlotsOnDate, activeDate]);
 
-  // 8. Auto-select slot if available slots change and none is selected
+  // 8. If a time slot was previously selected, clear it if it's no longer valid on the active date
   useEffect(() => {
-    if (hasRealSlots && availableSlotsOnDate.length > 0) {
+    if (formData.selectedTimeSlot) {
       const currentSelected24 = formatTimeSlotTo24h(formData.selectedTimeSlot);
-      const slotMatches = availableSlotsOnDate.some((s) => s.time === currentSelected24);
+      const allSlotsOnCurrentDate = [...morningSlots, ...afternoonSlots, ...eveningSlots];
+      const slotMatches = allSlotsOnCurrentDate.some((s) => s.time === currentSelected24);
       if (!slotMatches) {
-        const firstSlot = availableSlotsOnDate[0];
         updateFormData({
-          selectedDate: firstSlot.date,
-          selectedTimeSlot: firstSlot.time,
-          inspectorId: firstSlot.inspectorId,
-          inspectorName: firstSlot.inspectorName,
-          durationMinutes: firstSlot.durationMinutes,
+          selectedTimeSlot: "",
+          inspectorId: undefined,
+          inspectorName: undefined,
         });
-        clearError("selectedTimeSlot");
       }
     }
-  }, [hasRealSlots, availableSlotsOnDate, formData.selectedTimeSlot, updateFormData, clearError]);
+  }, [activeDate, morningSlots, afternoonSlots, eveningSlots, formData.selectedTimeSlot, updateFormData]);
 
   // 9. Calendar Navigation Controls
   const isPrevMonthDisabled = useMemo(() => {
@@ -270,7 +267,12 @@ export const DateTimeStep: React.FC<StepProps> = ({
     const formattedDate = `${currentYear}-${String(currentMonthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     if (formattedDate < todayStr || formattedDate > maxDateStr) return;
 
-    updateFormData({ selectedDate: formattedDate });
+    updateFormData({
+      selectedDate: formattedDate,
+      selectedTimeSlot: "",
+      inspectorId: undefined,
+      inspectorName: undefined,
+    });
     clearError("selectedDate");
   };
 
@@ -286,7 +288,7 @@ export const DateTimeStep: React.FC<StepProps> = ({
     clearError("selectedDate");
   };
 
-  const selected24h = formatTimeSlotTo24h(formData.selectedTimeSlot);
+  const selected24h = formData.selectedTimeSlot ? formatTimeSlotTo24h(formData.selectedTimeSlot) : "";
 
   return (
     <div className="w-full flex flex-col gap-6">
@@ -484,7 +486,7 @@ export const DateTimeStep: React.FC<StepProps> = ({
                 </span>
                 <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
                   {morningSlots.map((slot) => {
-                    const isSelected = selected24h === slot.time;
+                    const isSelected = Boolean(selected24h && selected24h === slot.time);
                     return (
                       <button
                         key={`m-${slot.time}-${slot.inspectorId || "id"}`}
@@ -512,7 +514,7 @@ export const DateTimeStep: React.FC<StepProps> = ({
                 </span>
                 <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
                   {afternoonSlots.map((slot) => {
-                    const isSelected = selected24h === slot.time;
+                    const isSelected = Boolean(selected24h && selected24h === slot.time);
                     return (
                       <button
                         key={`a-${slot.time}-${slot.inspectorId || "id"}`}
@@ -540,7 +542,7 @@ export const DateTimeStep: React.FC<StepProps> = ({
                 </span>
                 <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
                   {eveningSlots.map((slot) => {
-                    const isSelected = selected24h === slot.time;
+                    const isSelected = Boolean(selected24h && selected24h === slot.time);
                     return (
                       <button
                         key={`e-${slot.time}-${slot.inspectorId || "id"}`}

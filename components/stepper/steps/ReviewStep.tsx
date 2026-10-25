@@ -71,7 +71,9 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
       ? formData.calculatedQuote.totalCents / 100
       : fallbackTotal;
 
-  const displayTime = format24hToDisplayTime(formData.selectedTimeSlot);
+  const displayTime = formData.selectedTimeSlot
+    ? format24hToDisplayTime(formData.selectedTimeSlot)
+    : "Not chosen";
 
   return (
     <div className="w-full flex flex-col gap-6">

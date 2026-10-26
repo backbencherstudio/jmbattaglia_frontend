@@ -19,11 +19,20 @@ import { PackageCard } from "@/components/admin/packages/PackageCard";
 import { AddonCard } from "@/components/admin/packages/AddonCard";
 import { PackageDetailsView } from "@/components/admin/packages/PackageDetailsView";
 import { CreatePackageWizard } from "@/components/admin/packages/CreatePackageWizard";
+import { CreateAddonModal } from "@/components/admin/packages/CreateAddonModal";
+import {
+  PackageCardSkeleton,
+  AddonCardSkeleton,
+} from "@/components/admin/packages/PackageManagementSkeleton";
 import { PackageVideoModal } from "@/components/stepper/steps/package-addons/PackageVideoModal";
 import { PackageOption } from "@/types/packageAddons";
 import {
   useGetAdminPackagesQuery,
 } from "@/redux/features/packages/packageApi";
+import {
+  useGetAdminAddonsQuery,
+} from "@/redux/features/packages/addonApi";
+import type { ApiAddonItem } from "@/types/addons";
 import { useAppDispatch } from "@/redux/store";
 import { initNewDraft } from "@/redux/features/packages/packageDraftSlice";
 import { getErrorMessage } from "@/lib/getErrorMessage";
@@ -67,13 +76,23 @@ export function PackageManagementContent() {
     }
   }, [debouncedSearch, categoryKey]);
 
+  // Local UI State
+  const [showOnlyDrafts, setShowOnlyDrafts] = useState(false);
+  const [isCreateAddonModalOpen, setIsCreateAddonModalOpen] = useState(false);
+  const [videoModalPackage, setVideoModalPackage] =
+    useState<PackageItem | null>(null);
+  const [notification, setNotification] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
   // API Queries & Mutations with debounced search & pagination
   const {
     data: packagesResponse,
     isLoading: isLoadingPackages,
     isFetching: isFetchingPackages,
     error: packagesError,
-    refetch,
+    refetch: refetchPackages,
   } = useGetAdminPackagesQuery(
     {
       page,
@@ -86,15 +105,27 @@ export function PackageManagementContent() {
     }
   );
 
+  const addonCategoryApi =
+    categoryKey === "new-construction" ? "NEW_CONSTRUCTION" : "RESALE_HOME";
 
-  // Local UI State
-  const [videoModalPackage, setVideoModalPackage] =
-    useState<PackageItem | null>(null);
-  const [showOnlyDrafts, setShowOnlyDrafts] = useState(false);
-  const [notification, setNotification] = useState<{
-    type: "success" | "error";
-    message: string;
-  } | null>(null);
+  const {
+    data: addonsResponse,
+    isLoading: isLoadingAddons,
+    isFetching: isFetchingAddons,
+    refetch: refetchAddons,
+  } = useGetAdminAddonsQuery(
+    {
+      page,
+      limit: pageSize,
+      search: debouncedSearch.trim() || undefined,
+      category: addonCategoryApi,
+      status: showOnlyDrafts ? "DRAFT" : undefined,
+    },
+    {
+      refetchOnFocus: true,
+      refetchOnReconnect: true,
+    }
+  );
 
   // Compute live packages from API or fallback
   const apiPackagesList: ApiPackage[] = Array.isArray(packagesResponse?.data)
@@ -111,7 +142,17 @@ export function PackageManagementContent() {
       ? apiPackagesList.map(mapApiPackageToPackageItem)
       : initialPackages;
 
-  const [addons] = useState<AddonItem[]>(initialAddons);
+  // Compute live add-ons from API or fallback
+  const apiAddonsList: ApiAddonItem[] = addonsResponse?.data?.items || [];
+  const totalAddonsCount: number =
+    typeof addonsResponse?.data?.total === "number"
+      ? addonsResponse.data.total
+      : apiAddonsList.length;
+
+  const addons: ApiAddonItem[] =
+    addonsResponse && Array.isArray(apiAddonsList)
+      ? apiAddonsList
+      : (initialAddons as unknown as ApiAddonItem[]);
 
   // Helper to map PackageItem to PackageOption for PackageVideoModal
   const toPackageOption = (item: PackageItem): PackageOption => ({
@@ -135,8 +176,13 @@ export function PackageManagementContent() {
   const selectedPackage =
     packages.find((p) => p.id === selectedId) || packages[0];
 
-  // Count draft packages
-  const draftCount = packages.filter((p) => p.status === "Draft").length;
+  // Count draft packages & addons
+  const packageDraftCount = packages.filter((p) => p.status === "Draft").length;
+  const addonDraftCount = addons.filter(
+    (a) => (a.status || "").toUpperCase() === "DRAFT",
+  ).length;
+  const currentDraftCount =
+    currentTab === "packages" ? packageDraftCount : addonDraftCount;
 
   // Filtered lists based on search, category and draft filter
   const filteredPackages = packages.filter((pkg) => {
@@ -148,16 +194,24 @@ export function PackageManagementContent() {
     return matchesCategory && matchesSearch && matchesDraft;
   });
 
-  const filteredAddons = addons.filter((addon) =>
-    addon.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredAddons = addons.filter((addon) => {
+    const matchesSearch =
+      addon.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (addon.description || "")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+    const matchesDraft = showOnlyDrafts
+      ? (addon.status || "").toUpperCase() === "DRAFT"
+      : true;
+    return matchesSearch && matchesDraft;
+  });
 
   const handleDeletePackage = (item: PackageItem) => {
     setNotification({
       type: "success",
       message: `Package "${item.name}" was successfully deleted.`,
     });
-    refetch();
+    refetchPackages();
   };
 
   // If viewing details page
@@ -203,7 +257,7 @@ export function PackageManagementContent() {
             step: null,
             tab: "packages",
           });
-          refetch();
+          refetchPackages();
         }}
       />
     );
@@ -243,7 +297,7 @@ export function PackageManagementContent() {
           <h2 className="font-trade font-bold text-2xl sm:text-3xl text-main tracking-tight">
             Package Management
           </h2>
-          {isFetchingPackages && (
+          {(isFetchingPackages || isFetchingAddons) && (
             <RefreshCw className="w-4 h-4 text-primary animate-spin" />
           )}
         </div>
@@ -272,10 +326,10 @@ export function PackageManagementContent() {
                   tab: "packages",
                 });
               } else {
-                router.push("/admin/packages?tab=addons");
+                setIsCreateAddonModalOpen(true);
               }
             }}
-            className="h-11 flex items-center justify-center space-x-1.5 whitespace-nowrap px-4 py-0"
+            className="h-11 flex items-center justify-center space-x-1.5 whitespace-nowrap px-4 py-0 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>
@@ -286,7 +340,7 @@ export function PackageManagementContent() {
           <Button
             variant="outline"
             onClick={() => setShowOnlyDrafts(!showOnlyDrafts)}
-            className={`h-11 flex items-center justify-center space-x-1.5 whitespace-nowrap px-4 py-0 transition-colors ${
+            className={`h-11 flex items-center justify-center space-x-1.5 whitespace-nowrap px-4 py-0 transition-colors cursor-pointer ${
               showOnlyDrafts
                 ? "bg-primary text-white border-primary"
                 : "bg-canvas border-hairline text-sub hover:text-main"
@@ -295,8 +349,10 @@ export function PackageManagementContent() {
             <Eye className="w-4 h-4" />
             <span>
               {showOnlyDrafts
-                ? "Show all packages"
-                : `Review ${draftCount} draft${draftCount === 1 ? "" : "s"}`}
+                ? currentTab === "packages"
+                  ? "Show all packages"
+                  : "Show all add-ons"
+                : `Review ${currentDraftCount} draft${currentDraftCount === 1 ? "" : "s"}`}
             </span>
           </Button>
         </div>
@@ -306,10 +362,10 @@ export function PackageManagementContent() {
       <UnderlineTabs
         tabs={[
           { id: "packages", label: "Packages", count: totalPackagesCount },
-          { id: "addons", label: "Add-ons", count: addons.length },
+          { id: "addons", label: "Add-ons", count: totalAddonsCount },
         ]}
         activeTab={currentTab}
-        onChange={(tabId) => updateQueryParams({ tab: tabId })}
+        onChange={(tabId) => updateQueryParams({ tab: tabId, page: null })}
       />
 
       {/* TAB 1: PACKAGES */}
@@ -322,16 +378,15 @@ export function PackageManagementContent() {
               { id: "new-construction", label: "New Construction" },
             ]}
             activeId={categoryKey}
-            onChange={(catId) => updateQueryParams({ category: catId })}
+            onChange={(catId) => updateQueryParams({ category: catId, page: null })}
           />
 
           {/* Loading Indicator */}
           {isLoadingPackages && packages.length === 0 ? (
-            <div className="bg-canvas border border-hairline rounded-2xl p-16 flex flex-col items-center justify-center space-y-3">
-              <Loader2 className="w-8 h-8 text-primary animate-spin" />
-              <p className="font-trade font-bold text-main">
-                Loading packages from server...
-              </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <PackageCardSkeleton key={idx} />
+              ))}
             </div>
           ) : filteredPackages.length === 0 ? (
             <div className="bg-canvas border border-hairline rounded-2xl p-12 text-center text-sub space-y-3">
@@ -404,17 +459,76 @@ export function PackageManagementContent() {
 
       {/* TAB 2: ADD-ONS */}
       {currentTab === "addons" && (
-        <div>
-          {filteredAddons.length === 0 ? (
-            <div className="bg-canvas border border-hairline rounded-2xl p-12 text-center text-sub">
-              No add-ons found matching your criteria.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {filteredAddons.map((addon) => (
-                <AddonCard key={addon.id} item={addon} />
+        <div className="space-y-6">
+          {/* Sub Pill Tabs for Addons Category */}
+          <PillTabs
+            items={[
+              { id: "resale", label: "Resale Home" },
+              { id: "new-construction", label: "New Construction" },
+            ]}
+            activeId={categoryKey}
+            onChange={(catId) => updateQueryParams({ category: catId, page: null })}
+          />
+
+          {/* Loading Indicator */}
+          {isLoadingAddons && addons.length === 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-pulse">
+              {Array.from({ length: 8 }).map((_, idx) => (
+                <AddonCardSkeleton key={idx} />
               ))}
             </div>
+          ) : filteredAddons.length === 0 ? (
+            <div className="bg-canvas border border-hairline rounded-2xl p-12 text-center text-sub space-y-3">
+              <p>No add-ons found matching your criteria.</p>
+              {showOnlyDrafts && (
+                <Button
+                  variant="outline"
+                  onClick={() => setShowOnlyDrafts(false)}
+                  className="bg-white"
+                >
+                  Clear draft filter
+                </Button>
+              )}
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {filteredAddons.map((addon) => (
+                  <AddonCard key={addon.id} item={addon} />
+                ))}
+              </div>
+
+              {/* Pagination for Add-ons */}
+              {totalAddonsCount > pageSize && (
+                <div className="rounded-2xl overflow-hidden border border-hairline shadow-xs mt-6">
+                  <Pagination
+                    total={totalAddonsCount}
+                    page={page}
+                    limit={pageSize}
+                    hasNextPage={page < Math.ceil(totalAddonsCount / pageSize)}
+                    hasPrevPage={page > 1}
+                    onPageChange={(newPage) => {
+                      setPage(newPage);
+                      updateQueryParams({ page: String(newPage) });
+                    }}
+                    onNextPage={() => {
+                      if (page < Math.ceil(totalAddonsCount / pageSize)) {
+                        const nextP = page + 1;
+                        setPage(nextP);
+                        updateQueryParams({ page: String(nextP) });
+                      }
+                    }}
+                    onPrevPage={() => {
+                      if (page > 1) {
+                        const prevP = page - 1;
+                        setPage(prevP);
+                        updateQueryParams({ page: String(prevP) });
+                      }
+                    }}
+                  />
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
@@ -426,6 +540,21 @@ export function PackageManagementContent() {
           onClose={() => setVideoModalPackage(null)}
         />
       )}
+
+      {/* Create Add-on Modal */}
+      <CreateAddonModal
+        isOpen={isCreateAddonModalOpen}
+        onClose={() => setIsCreateAddonModalOpen(false)}
+        onSuccess={(newAddon) => {
+          setNotification({
+            type: "success",
+            message: newAddon?.name
+              ? `Add-on "${newAddon.name}" created successfully!`
+              : "Add-on created successfully!",
+          });
+          refetchAddons();
+        }}
+      />
     </div>
   );
 }

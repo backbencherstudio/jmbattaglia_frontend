@@ -36,16 +36,25 @@ const baseQuery = fetchBaseQuery({
   prepareHeaders: (headers, { getState, endpoint }) => {
     headers.set("accept", "application/json");
 
-    // Do NOT attach Authorization token for public auth endpoints (login, forgot-password, reset-password)
+    // Do NOT attach Authorization token for public auth endpoints (login, forgot-password, reset-password, refresh)
     if (endpoint && publicAuthEndpoints.has(endpoint)) {
+      headers.delete("Authorization");
+      return headers;
+    }
+
+    // If Authorization header is explicitly set to empty string, strip it
+    if (headers.get("Authorization") === "") {
+      headers.delete("Authorization");
       return headers;
     }
 
     const token =
       (getState() as RootState).auth?.token ||
-      Cookies.get(authCookieNames.token);
+      (typeof window !== "undefined"
+        ? Cookies.get(authCookieNames.token)
+        : null);
 
-    if (token) {
+    if (token && !headers.has("Authorization")) {
       headers.set("Authorization", `Bearer ${token}`);
     }
 
@@ -67,71 +76,88 @@ const baseQueryWithReauth: BaseQueryFn<
   const requestUrl = typeof args === "object" && "url" in args ? args.url : args;
   const isAuthPublicRequest =
     requestUrl === "/auth/refresh/token" ||
+    requestUrl.endsWith("/auth/refresh/token") ||
     requestUrl === "/auth/login" ||
-    requestUrl.startsWith("/auth/forgot-password") ||
-    requestUrl.startsWith("/auth/verify-reset-otp") ||
-    requestUrl.startsWith("/auth/reset-password");
+    requestUrl.endsWith("/auth/login") ||
+    requestUrl.includes("/auth/forgot-password") ||
+    requestUrl.includes("/auth/verify-reset-otp") ||
+    requestUrl.includes("/auth/reset-password");
 
   if (result.error?.status === 401 && !isAuthPublicRequest) {
     const state = api.getState() as RootState;
-    const { refreshToken, role, user } = state.auth;
+    const currentRefreshToken =
+      state.auth?.refreshToken ||
+      (typeof window !== "undefined"
+        ? Cookies.get(authCookieNames.refreshToken)
+        : null);
 
-    if (refreshToken) {
-      try {
-        if (!refreshPromise) {
-          refreshPromise = Promise.resolve(
-            baseQuery(
-              {
-                url: "/auth/refresh/token",
-                method: "POST",
-                body: { refreshToken },
+    if (!currentRefreshToken) {
+      // No refresh token available, session is completely expired
+      api.dispatch(logOut());
+      if (typeof window !== "undefined") {
+        window.location.replace("/admin/login");
+      }
+      return result;
+    }
+
+    try {
+      if (!refreshPromise) {
+        refreshPromise = Promise.resolve(
+          baseQuery(
+            {
+              url: "/auth/refresh/token",
+              method: "POST",
+              body: { refreshToken: currentRefreshToken },
+              headers: {
+                Authorization: "", // explicitly omit any stale Authorization header
               },
-              api,
-              extraOptions,
-            ),
-          );
-        }
-
-        const refreshResult = await refreshPromise;
-        refreshPromise = null;
-
-        if (!("data" in refreshResult) || !refreshResult.data) {
-          throw new Error("Session refresh failed.");
-        }
-
-        const refreshedTokens = extractAuthTokens(
-          refreshResult.data as RefreshTokenResponse,
-        );
-
-        if (!refreshedTokens.accessToken) {
-          throw new Error(
-            "Refresh token response did not include an access token.",
-          );
-        }
-
-        api.dispatch(
-          setCredentials({
-            token: refreshedTokens.accessToken,
-            refreshToken: refreshedTokens.refreshToken ?? refreshToken,
-            role,
-            user,
-          }),
-        );
-
-        // Retry original request with newly refreshed token
-        result = await baseQuery(args, api, extraOptions);
-      } catch (error) {
-        refreshPromise = null;
-        api.dispatch(logOut());
-
-        if (typeof window !== "undefined") {
-          window.location.assign("/admin/login");
-        }
-
-        console.error(
-          getErrorMessage(error, "Session expired. Please log in again."),
+            },
+            api,
+            extraOptions,
+          ),
         );
       }
+
+      const refreshResult = await refreshPromise;
+      refreshPromise = null;
+
+      if (refreshResult.error || !refreshResult.data) {
+        throw new Error(
+          getErrorMessage(refreshResult.error, "Session refresh failed."),
+        );
+      }
+
+      const refreshedTokens = extractAuthTokens(refreshResult.data);
+
+      if (!refreshedTokens.accessToken) {
+        throw new Error(
+          "Refresh token response did not include a valid access token.",
+        );
+      }
+
+      api.dispatch(
+        setCredentials({
+          token: refreshedTokens.accessToken,
+          refreshToken: refreshedTokens.refreshToken ?? currentRefreshToken,
+          role: state.auth.role,
+          user: state.auth.user,
+          rememberMe: true,
+        }),
+      );
+
+      // Retry original request with newly refreshed credentials
+      result = await baseQuery(args, api, extraOptions);
+    } catch (error) {
+      refreshPromise = null;
+      api.dispatch(logOut());
+
+      if (typeof window !== "undefined") {
+        window.location.replace("/admin/login");
+      }
+
+      console.error(
+        getErrorMessage(error, "Session expired. Please log in again."),
+      );
     }
   }
 
@@ -179,6 +205,22 @@ export const baseApi = createApi({
         method: "POST",
         body,
       }),
+      onQueryStarted: async (_arg, { dispatch, queryFulfilled }) => {
+        try {
+          const { data } = await queryFulfilled;
+          const { accessToken, refreshToken } = extractAuthTokens(data);
+          if (accessToken) {
+            dispatch(
+              setCredentials({
+                token: accessToken,
+                refreshToken,
+              }),
+            );
+          }
+        } catch {
+          // handled by caller
+        }
+      },
     }),
   }),
 });

@@ -5,8 +5,15 @@ import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { authCookieNames } from "@/lib/auth/config";
 import { verifyAdminToken } from "@/lib/auth/jwt";
+import { env } from "@/lib/env";
+import { extractAuthTokens } from "@/redux/features/auth/authHelpers";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
-import { logOut, selectCurrentToken } from "@/redux/features/auth/authSlice";
+import {
+  logOut,
+  setCredentials,
+  selectCurrentToken,
+  selectCurrentRefreshToken,
+} from "@/redux/features/auth/authSlice";
 import { AdminSidebar } from "@/components/admin/layout/AdminSidebar";
 import { AdminHeader } from "@/components/admin/layout/AdminHeader";
 
@@ -18,6 +25,7 @@ export default function ProtectedAdminLayout({
   const router = useRouter();
   const dispatch = useAppDispatch();
   const stateToken = useAppSelector(selectCurrentToken);
+  const stateRefreshToken = useAppSelector(selectCurrentRefreshToken);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   useEffect(() => {
@@ -26,21 +34,53 @@ export default function ProtectedAdminLayout({
     const checkAuth = async () => {
       try {
         const token = stateToken || Cookies.get(authCookieNames.token);
+        const refreshToken =
+          stateRefreshToken || Cookies.get(authCookieNames.refreshToken);
 
-        if (!token) {
-          if (isMounted) {
-            dispatch(logOut());
-            router.replace("/admin/login");
+        // 1. If valid access token is present, verify it
+        if (token) {
+          const verification = await verifyAdminToken(token);
+          if (verification.isValid && isMounted) {
+            return; // Access token is active and valid
           }
-          return;
         }
 
-        // Verify token signature, expiration and role
-        const verification = await verifyAdminToken(token);
+        // 2. If access token is missing or expired, attempt seamless refresh using refreshToken
+        if (refreshToken) {
+          try {
+            const res = await fetch(`${env.apiBaseUrl}/auth/refresh/token`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                accept: "application/json",
+              },
+              body: JSON.stringify({ refreshToken }),
+            });
 
-        if (!isMounted) return;
+            if (res.ok) {
+              const json = await res.json();
+              const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
+                extractAuthTokens(json);
 
-        if (!verification.isValid) {
+              if (newAccessToken && isMounted) {
+                dispatch(
+                  setCredentials({
+                    token: newAccessToken,
+                    refreshToken: newRefreshToken || refreshToken,
+                    role: "ADMIN",
+                    rememberMe: true,
+                  }),
+                );
+                return; // Successfully refreshed session! Do not log out!
+              }
+            }
+          } catch (refreshErr) {
+            console.error("Auto session refresh failed in layout:", refreshErr);
+          }
+        }
+
+        // 3. If neither access token nor refresh token is valid, log out safely
+        if (isMounted) {
           dispatch(logOut());
           router.replace("/admin/login");
         }
@@ -58,7 +98,7 @@ export default function ProtectedAdminLayout({
     return () => {
       isMounted = false;
     };
-  }, [stateToken, router, dispatch]);
+  }, [stateToken, stateRefreshToken, router, dispatch]);
 
   return (
     <div className="flex min-h-screen bg-canvas">

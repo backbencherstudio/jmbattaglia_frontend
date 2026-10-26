@@ -44,6 +44,14 @@ export const addonApi = baseApi.injectEndpoints({
           : [{ type: "Addon", id: "LIST" }],
     }),
 
+    getAdminAddonById: builder.query<ApiEnvelope<ApiAddonItem>, string>({
+      query: (id) => ({
+        url: `/admin/addons/${id}`,
+        method: "GET",
+      }),
+      providesTags: (_result, _error, id) => [{ type: "Addon", id }],
+    }),
+
     createAdminAddon: builder.mutation<ApiEnvelope<ApiAddonItem>, FormData>({
       query: (formData) => ({
         url: "/admin/addons",
@@ -57,16 +65,48 @@ export const addonApi = baseApi.injectEndpoints({
       ],
     }),
 
-    deleteAdminAddon: builder.mutation<ApiEnvelope<unknown>, string>({
-      query: (id) => ({
-        url: `/admin/addons/${id}`,
-        method: "DELETE",
-      }),
-      invalidatesTags: [
+    updateAdminAddon: builder.mutation<
+      ApiEnvelope<ApiAddonItem>,
+      { id: string; formData: FormData } | { id: string; body: Partial<ApiAddonItem> }
+    >({
+      query: (arg) => {
+        const isFormData = "formData" in arg;
+        return {
+          url: `/admin/addons/${arg.id}`,
+          method: "PATCH",
+          body: isFormData ? arg.formData : arg.body,
+        };
+      },
+      invalidatesTags: (_result, _error, arg) => [
         { type: "Addon", id: "LIST" },
+        { type: "Addon", id: arg.id },
         "Dashboard",
         "Metric",
       ],
+    }),
+
+    deleteAdminAddon: builder.mutation<
+      ApiEnvelope<unknown>,
+      string | { id: string; permanent?: boolean }
+    >({
+      query: (arg) => {
+        const id = typeof arg === "string" ? arg : arg.id;
+        const permanent = typeof arg === "object" && arg.permanent;
+        return {
+          url: `/admin/addons/${id}`,
+          method: "DELETE",
+          params: permanent ? { permanent: true } : undefined,
+        };
+      },
+      invalidatesTags: (_result, _error, arg) => {
+        const id = typeof arg === "string" ? arg : arg.id;
+        return [
+          { type: "Addon", id: "LIST" },
+          { type: "Addon", id },
+          "Dashboard",
+          "Metric",
+        ];
+      },
     }),
   }),
   overrideExisting: true,
@@ -74,7 +114,9 @@ export const addonApi = baseApi.injectEndpoints({
 
 export const {
   useGetAdminAddonsQuery,
+  useGetAdminAddonByIdQuery,
   useCreateAdminAddonMutation,
+  useUpdateAdminAddonMutation,
   useDeleteAdminAddonMutation,
 } = addonApi;
 

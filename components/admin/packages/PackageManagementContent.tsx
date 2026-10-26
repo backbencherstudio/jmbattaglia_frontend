@@ -19,6 +19,7 @@ import { AddonCard } from "@/components/admin/packages/AddonCard";
 import { PackageDetailsView } from "@/components/admin/packages/PackageDetailsView";
 import { CreatePackageWizard } from "@/components/admin/packages/CreatePackageWizard";
 import { CreateAddonModal } from "@/components/admin/packages/CreateAddonModal";
+import { EditAddonModal } from "@/components/admin/packages/EditAddonModal";
 import { DeleteAddonModal } from "@/components/admin/packages/DeleteAddonModal";
 import {
   PackageCardSkeleton,
@@ -231,14 +232,10 @@ export function PackageManagementContent() {
     }
   };
 
-  // Add-on Edit State & Handler (Ready for user's update API)
-  const [, setEditingAddon] = useState<ApiAddonItem | AddonItem | null>(null);
+  // Add-on Edit State & Handler
+  const [editingAddon, setEditingAddon] = useState<ApiAddonItem | AddonItem | null>(null);
   const handleEditAddon = (item: ApiAddonItem | AddonItem) => {
     setEditingAddon(item);
-    setNotification({
-      type: "success",
-      message: `Selected "${item.name}" for edit. Ready for update API integration.`,
-    });
   };
 
   // If viewing details page
@@ -584,6 +581,23 @@ export function PackageManagementContent() {
               ? `Add-on "${newAddon.name}" created successfully!`
               : "Add-on created successfully!",
           });
+          refetchAddons();
+        }}
+      />
+
+      {/* Edit Add-on Modal */}
+      <EditAddonModal
+        isOpen={Boolean(editingAddon)}
+        addon={editingAddon}
+        onClose={() => setEditingAddon(null)}
+        onSuccess={(updatedAddon) => {
+          setNotification({
+            type: "success",
+            message: updatedAddon?.name
+              ? `Add-on "${updatedAddon.name}" updated successfully!`
+              : "Add-on updated successfully!",
+          });
+          setEditingAddon(null);
           refetchAddons();
         }}
       />

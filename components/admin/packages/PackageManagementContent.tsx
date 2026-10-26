@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { Plus, Eye, Check, AlertCircle, X, Loader2, RefreshCw } from "lucide-react";
+import { useState } from "react";
+import { Plus, Eye, Check, AlertCircle, X, RefreshCw } from "lucide-react";
 import {
   PackageItem,
   AddonItem,
@@ -20,6 +19,7 @@ import { AddonCard } from "@/components/admin/packages/AddonCard";
 import { PackageDetailsView } from "@/components/admin/packages/PackageDetailsView";
 import { CreatePackageWizard } from "@/components/admin/packages/CreatePackageWizard";
 import { CreateAddonModal } from "@/components/admin/packages/CreateAddonModal";
+import { DeleteAddonModal } from "@/components/admin/packages/DeleteAddonModal";
 import {
   PackageCardSkeleton,
   AddonCardSkeleton,
@@ -31,6 +31,7 @@ import {
 } from "@/redux/features/packages/packageApi";
 import {
   useGetAdminAddonsQuery,
+  useDeleteAdminAddonMutation,
 } from "@/redux/features/packages/addonApi";
 import type { ApiAddonItem } from "@/types/addons";
 import { useAppDispatch } from "@/redux/store";
@@ -40,7 +41,6 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { Pagination } from "@/components/ui/Pagination";
 
 export function PackageManagementContent() {
-  const router = useRouter();
   const dispatch = useAppDispatch();
   const { getParam, updateQueryParams } = useTabQuery();
 
@@ -48,9 +48,11 @@ export function PackageManagementContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 400);
 
-  // Pagination State (Synced with URL)
-  const pageParam = parseInt(getParam("page", "1"), 10) || 1;
-  const [page, setPage] = useState(pageParam);
+  // Pagination State (Directly driven by URL)
+  const page = parseInt(getParam("page", "1"), 10) || 1;
+  const setPage = (newPage: number) => {
+    updateQueryParams({ page: newPage > 1 ? String(newPage) : null });
+  };
   const pageSize = 9;
 
   // URL State Management using useTabQuery hook
@@ -61,20 +63,6 @@ export function PackageManagementContent() {
     categoryKey === "new-construction" ? "New Construction" : "Resale Home";
   const currentView = getParam("view", "list"); // 'list' | 'details' | 'create'
   const selectedId = getParam("id");
-
-  // Keep page in sync with URL
-  useEffect(() => {
-    const p = parseInt(getParam("page", "1"), 10) || 1;
-    setPage(p);
-  }, [getParam("page")]);
-
-  // Reset page to 1 when search or category changes
-  useEffect(() => {
-    if (page !== 1) {
-      setPage(1);
-      updateQueryParams({ page: null });
-    }
-  }, [debouncedSearch, categoryKey]);
 
   // Local UI State
   const [showOnlyDrafts, setShowOnlyDrafts] = useState(false);
@@ -91,7 +79,6 @@ export function PackageManagementContent() {
     data: packagesResponse,
     isLoading: isLoadingPackages,
     isFetching: isFetchingPackages,
-    error: packagesError,
     refetch: refetchPackages,
   } = useGetAdminPackagesQuery(
     {
@@ -128,13 +115,16 @@ export function PackageManagementContent() {
   );
 
   // Compute live packages from API or fallback
-  const apiPackagesList: ApiPackage[] = Array.isArray(packagesResponse?.data)
-    ? packagesResponse.data
-    : (packagesResponse?.data as any)?.items || [];
+  const pkgData = packagesResponse?.data;
+  const apiPackagesList: ApiPackage[] = Array.isArray(pkgData)
+    ? pkgData
+    : pkgData && typeof pkgData === "object" && "items" in pkgData && Array.isArray(pkgData.items)
+    ? (pkgData.items as ApiPackage[])
+    : [];
 
   const totalPackagesCount: number =
-    typeof (packagesResponse?.data as any)?.total === "number"
-      ? (packagesResponse?.data as any).total
+    pkgData && !Array.isArray(pkgData) && typeof pkgData === "object" && "total" in pkgData && typeof pkgData.total === "number"
+      ? pkgData.total
       : apiPackagesList.length;
 
   const packages: PackageItem[] =
@@ -212,6 +202,43 @@ export function PackageManagementContent() {
       message: `Package "${item.name}" was successfully deleted.`,
     });
     refetchPackages();
+  };
+
+  // Add-on Delete Modal State & Mutation
+  const [addonToDelete, setAddonToDelete] = useState<ApiAddonItem | AddonItem | null>(null);
+  const [deleteAddonError, setDeleteAddonError] = useState<string | null>(null);
+  const [deleteAdminAddon, { isLoading: isDeletingAddon }] = useDeleteAdminAddonMutation();
+
+  const handleOpenDeleteAddon = (item: ApiAddonItem | AddonItem) => {
+    setDeleteAddonError(null);
+    setAddonToDelete(item);
+  };
+
+  const handleConfirmDeleteAddon = async () => {
+    if (!addonToDelete) return;
+    try {
+      setDeleteAddonError(null);
+      await deleteAdminAddon(addonToDelete.id).unwrap();
+      const deletedName = addonToDelete.name;
+      setAddonToDelete(null);
+      setNotification({
+        type: "success",
+        message: `Add-on "${deletedName}" was successfully deleted.`,
+      });
+      refetchAddons();
+    } catch (err) {
+      setDeleteAddonError(getErrorMessage(err, "Failed to delete add-on."));
+    }
+  };
+
+  // Add-on Edit State & Handler (Ready for user's update API)
+  const [, setEditingAddon] = useState<ApiAddonItem | AddonItem | null>(null);
+  const handleEditAddon = (item: ApiAddonItem | AddonItem) => {
+    setEditingAddon(item);
+    setNotification({
+      type: "success",
+      message: `Selected "${item.name}" for edit. Ready for update API integration.`,
+    });
   };
 
   // If viewing details page
@@ -494,7 +521,12 @@ export function PackageManagementContent() {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {filteredAddons.map((addon) => (
-                  <AddonCard key={addon.id} item={addon} />
+                  <AddonCard
+                    key={addon.id}
+                    item={addon}
+                    onEdit={handleEditAddon}
+                    onDelete={handleOpenDeleteAddon}
+                  />
                 ))}
               </div>
 
@@ -554,6 +586,21 @@ export function PackageManagementContent() {
           });
           refetchAddons();
         }}
+      />
+
+      {/* Delete Add-on Modal */}
+      <DeleteAddonModal
+        isOpen={Boolean(addonToDelete)}
+        addonItem={addonToDelete}
+        isDeleting={isDeletingAddon}
+        errorMessage={deleteAddonError}
+        onClose={() => {
+          if (!isDeletingAddon) {
+            setAddonToDelete(null);
+            setDeleteAddonError(null);
+          }
+        }}
+        onConfirm={handleConfirmDeleteAddon}
       />
     </div>
   );

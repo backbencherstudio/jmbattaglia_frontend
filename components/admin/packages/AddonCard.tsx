@@ -2,16 +2,18 @@
 
 import React from "react";
 import Image from "next/image";
+import { Edit, Trash2 } from "lucide-react";
 import { AddonItem } from "@/types/packages";
 import type { ApiAddonItem } from "@/types/addons";
 import { formatAddonPrice, getAddonImage } from "@/types/addons";
 
 export interface AddonCardProps {
   item: AddonItem | ApiAddonItem;
-  onDelete?: (id: string, name: string) => void;
+  onEdit?: (item: AddonItem | ApiAddonItem) => void;
+  onDelete?: (item: AddonItem | ApiAddonItem) => void;
 }
 
-export function AddonCard({ item }: AddonCardProps) {
+export function AddonCard({ item, onEdit, onDelete }: AddonCardProps) {
   const isApiItem = "priceCents" in item || "status" in item || "kind" in item;
   const name = item.name;
   const price = isApiItem ? formatAddonPrice(item as ApiAddonItem) : item.price;
@@ -45,8 +47,8 @@ export function AddonCard({ item }: AddonCardProps) {
         </div>
       )}
 
-      {/* Image Container */}
-      <div className="relative w-full h-44 sm:h-48 rounded-xl overflow-hidden bg-neutral-900">
+      {/* Image Container with Action Icons */}
+      <div className="relative w-full h-44 sm:h-48 rounded-xl overflow-hidden bg-neutral-900 group/thumb">
         <Image
           src={image || "/assets/images/pool_inspection.jpg"}
           alt={name}
@@ -55,6 +57,35 @@ export function AddonCard({ item }: AddonCardProps) {
           sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
           className="object-cover group-hover:scale-105 transition-transform duration-500"
         />
+
+        {/* Action Icons Top Right (matching PackageCard style) */}
+        <div className="absolute top-3 right-3 flex flex-col space-y-2 z-10">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit?.(item);
+            }}
+            className="p-2 bg-white/90 hover:bg-white backdrop-blur-md rounded-lg text-main hover:text-primary transition-colors shadow-xs cursor-pointer"
+            title="Edit Add-on"
+            aria-label="Edit Add-on"
+          >
+            <Edit className="w-4 h-4" />
+          </button>
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete?.(item);
+            }}
+            className="p-2 bg-white/90 hover:bg-white backdrop-blur-md rounded-lg text-danger hover:bg-danger-bg transition-colors shadow-xs cursor-pointer"
+            title="Delete Add-on"
+            aria-label="Delete Add-on"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* Content */}

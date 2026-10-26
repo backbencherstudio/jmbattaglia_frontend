@@ -4,13 +4,9 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { authCookieNames } from "@/lib/auth/config";
-import { verifyAdminToken } from "@/lib/auth/jwt";
-import { env } from "@/lib/env";
-import { extractAuthTokens } from "@/redux/features/auth/authHelpers";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
   logOut,
-  setCredentials,
   selectCurrentToken,
   selectCurrentRefreshToken,
 } from "@/redux/features/auth/authSlice";
@@ -31,66 +27,20 @@ export default function ProtectedAdminLayout({
   useEffect(() => {
     let isMounted = true;
 
-    const checkAuth = async () => {
-      try {
-        const token = stateToken || Cookies.get(authCookieNames.token);
-        const refreshToken =
-          stateRefreshToken || Cookies.get(authCookieNames.refreshToken);
+    const checkAuth = () => {
+      const token = stateToken || Cookies.get(authCookieNames.token);
+      const refreshToken =
+        stateRefreshToken || Cookies.get(authCookieNames.refreshToken);
 
-        // 1. If valid access token is present, verify it
-        if (token) {
-          const verification = await verifyAdminToken(token);
-          if (verification.isValid && isMounted) {
-            return; // Access token is active and valid
-          }
-        }
-
-        // 2. If access token is missing or expired, attempt seamless refresh using refreshToken
-        if (refreshToken) {
-          try {
-            const res = await fetch(`${env.apiBaseUrl}/auth/refresh/token`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                accept: "application/json",
-              },
-              body: JSON.stringify({ refreshToken }),
-            });
-
-            if (res.ok) {
-              const json = await res.json();
-              const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
-                extractAuthTokens(json);
-
-              if (newAccessToken && isMounted) {
-                dispatch(
-                  setCredentials({
-                    token: newAccessToken,
-                    refreshToken: newRefreshToken || refreshToken,
-                    role: "ADMIN",
-                    rememberMe: true,
-                  }),
-                );
-                return; // Successfully refreshed session! Do not log out!
-              }
-            }
-          } catch (refreshErr) {
-            console.error("Auto session refresh failed in layout:", refreshErr);
-          }
-        }
-
-        // 3. If neither access token nor refresh token is valid, log out safely
-        if (isMounted) {
-          dispatch(logOut());
-          router.replace("/admin/login");
-        }
-      } catch (err) {
-        console.error("Authorization check error:", err);
+      // If user has neither token nor refreshToken, they must authenticate
+      if (!token && !refreshToken) {
         if (isMounted) {
           dispatch(logOut());
           router.replace("/admin/login");
         }
       }
+      // Note: If token is expired, baseApi automatically refreshes it via refresh token
+      // on the first API query using a single-flight mutex promise without race conditions.
     };
 
     checkAuth();

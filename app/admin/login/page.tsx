@@ -4,14 +4,17 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, Eye, EyeOff, ShieldCheck, ArrowRight } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { useLoginMutation } from "@/redux/api/baseApi";
+import { useAppDispatch } from "@/redux/store";
+import { handleAuthSuccess } from "@/redux/features/auth/authHelpers";
 import { getErrorMessage } from "@/lib/getErrorMessage";
 import { GuestAuthGuard } from "@/components/admin/auth/GuestAuthGuard";
 import { AuthBanner } from "@/components/admin/auth/AuthBanner";
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const [login, { isLoading: loading }] = useLoginMutation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -35,7 +38,13 @@ export default function AdminLoginPage() {
         rememberMe,
       }).unwrap();
 
-      if (response.success) {
+      handleAuthSuccess(response, dispatch, rememberMe);
+
+      if (
+        response.success ||
+        Boolean((response as unknown as Record<string, unknown>)?.accessToken) ||
+        Boolean((response as unknown as Record<string, unknown>)?.data)
+      ) {
         router.push("/admin/dashboard");
       }
     } catch (err) {

@@ -2,7 +2,6 @@ import {
   BaseQueryFn,
   FetchArgs,
   FetchBaseQueryError,
-  QueryReturnValue,
   createApi,
   fetchBaseQuery,
 } from "@reduxjs/toolkit/query/react";
@@ -42,19 +41,13 @@ const baseQuery = fetchBaseQuery({
       return headers;
     }
 
-    // If Authorization header is explicitly set to empty string, strip it
-    if (headers.get("Authorization") === "") {
-      headers.delete("Authorization");
-      return headers;
-    }
-
     const token =
       (getState() as RootState).auth?.token ||
       (typeof window !== "undefined"
         ? Cookies.get(authCookieNames.token)
         : null);
 
-    if (token && !headers.has("Authorization")) {
+    if (token) {
       headers.set("Authorization", `Bearer ${token}`);
     }
 
@@ -62,15 +55,15 @@ const baseQuery = fetchBaseQuery({
   },
 });
 
-let refreshPromise: Promise<
-  QueryReturnValue<unknown, FetchBaseQueryError>
-> | null = null;
+// Single-flight promise to handle concurrent 401s without race conditions
+let refreshPromise: Promise<unknown> | null = null;
 
 const baseQueryWithReauth: BaseQueryFn<
   string | FetchArgs,
   unknown,
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
+  const tokenBeforeRequest = (api.getState() as RootState).auth?.token;
   let result = await baseQuery(args, api, extraOptions);
 
   const requestUrl = typeof args === "object" && "url" in args ? args.url : args;
@@ -84,50 +77,62 @@ const baseQueryWithReauth: BaseQueryFn<
     requestUrl.includes("/auth/reset-password");
 
   if (result.error?.status === 401 && !isAuthPublicRequest) {
-    const state = api.getState() as RootState;
-    const currentRefreshToken =
-      state.auth?.refreshToken ||
-      (typeof window !== "undefined"
-        ? Cookies.get(authCookieNames.refreshToken)
-        : null);
+    const currentState = api.getState() as RootState;
 
-    if (!currentRefreshToken) {
-      // No refresh token available, session is completely expired
-      api.dispatch(logOut());
-      if (typeof window !== "undefined") {
-        window.location.replace("/admin/login");
-      }
-      return result;
+    // 1. If another concurrent request has already refreshed the token, retry immediately
+    if (currentState.auth?.token && currentState.auth.token !== tokenBeforeRequest) {
+      return await baseQuery(args, api, extraOptions);
     }
 
     try {
+      // 2. If a refresh is already in progress, wait for it to complete
+      if (refreshPromise) {
+        await refreshPromise;
+        const freshState = api.getState() as RootState;
+        if (freshState.auth?.token && freshState.auth.token !== tokenBeforeRequest) {
+          return await baseQuery(args, api, extraOptions);
+        }
+      }
+
+      const currentRefreshToken =
+        (api.getState() as RootState).auth?.refreshToken ||
+        (typeof window !== "undefined"
+          ? Cookies.get(authCookieNames.refreshToken)
+          : null);
+
+      if (!currentRefreshToken) {
+        api.dispatch(logOut());
+        if (typeof window !== "undefined") {
+          window.location.replace("/admin/login");
+        }
+        return result;
+      }
+
       if (!refreshPromise) {
-        refreshPromise = Promise.resolve(
-          baseQuery(
-            {
-              url: "/auth/refresh/token",
-              method: "POST",
-              body: { refreshToken: currentRefreshToken },
-              headers: {
-                Authorization: "", // explicitly omit any stale Authorization header
-              },
+        refreshPromise = (async () => {
+          const res = await fetch(`${env.apiBaseUrl}/auth/refresh/token`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              accept: "application/json",
             },
-            api,
-            extraOptions,
-          ),
-        );
+            body: JSON.stringify({ refreshToken: currentRefreshToken.trim() }),
+          });
+
+          if (!res.ok) {
+            const errData = await res.json().catch(() => null);
+            const errMsg =
+              errData?.message ||
+              `Refresh token failed with status ${res.status}`;
+            throw new Error(errMsg);
+          }
+
+          return await res.json();
+        })();
       }
 
-      const refreshResult = await refreshPromise;
-      refreshPromise = null;
-
-      if (refreshResult.error || !refreshResult.data) {
-        throw new Error(
-          getErrorMessage(refreshResult.error, "Session refresh failed."),
-        );
-      }
-
-      const refreshedTokens = extractAuthTokens(refreshResult.data);
+      const refreshResponseData = await refreshPromise;
+      const refreshedTokens = extractAuthTokens(refreshResponseData);
 
       if (!refreshedTokens.accessToken) {
         throw new Error(
@@ -135,12 +140,13 @@ const baseQueryWithReauth: BaseQueryFn<
         );
       }
 
+      const latestState = api.getState() as RootState;
       api.dispatch(
         setCredentials({
           token: refreshedTokens.accessToken,
           refreshToken: refreshedTokens.refreshToken ?? currentRefreshToken,
-          role: state.auth.role,
-          user: state.auth.user,
+          role: latestState.auth.role,
+          user: latestState.auth.user,
           rememberMe: true,
         }),
       );
@@ -148,7 +154,6 @@ const baseQueryWithReauth: BaseQueryFn<
       // Retry original request with newly refreshed credentials
       result = await baseQuery(args, api, extraOptions);
     } catch (error) {
-      refreshPromise = null;
       api.dispatch(logOut());
 
       if (typeof window !== "undefined") {
@@ -158,6 +163,8 @@ const baseQueryWithReauth: BaseQueryFn<
       console.error(
         getErrorMessage(error, "Session expired. Please log in again."),
       );
+    } finally {
+      refreshPromise = null;
     }
   }
 

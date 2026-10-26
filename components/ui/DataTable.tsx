@@ -11,6 +11,8 @@ export function DataTable<T>({
   emptyMessage = "No items found.",
   className = "",
   bordered = true,
+  onRowClick,
+  rowClassName = "",
 }: DataTableProps<T>) {
   const { ref, isDragging, events } = useDraggableScroll();
 
@@ -62,10 +64,18 @@ export function DataTable<T>({
             ) : (
               data.map((item, rowIndex) => {
                 const key = keyExtractor(item);
+                const extraRowClass =
+                  typeof rowClassName === "function"
+                    ? rowClassName(item, rowIndex)
+                    : rowClassName;
+
                 return (
                   <tr
                     key={key}
-                    className="hover:bg-canvas/50 transition-colors"
+                    onClick={() => onRowClick?.(item, rowIndex)}
+                    className={`hover:bg-canvas/50 transition-colors ${
+                      onRowClick ? "cursor-pointer" : ""
+                    } ${extraRowClass}`}
                   >
                     {columns.map((col, colIndex) => {
                       const isLast = colIndex === columns.length - 1;

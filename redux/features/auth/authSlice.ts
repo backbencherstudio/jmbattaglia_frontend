@@ -35,7 +35,7 @@ const initialState: AuthState = {
   user: null,
 };
 
-const clearAuthCookies = () => {
+export const clearAuthCookies = () => {
   Cookies.remove(authCookieNames.token, { path: "/" });
   Cookies.remove(authCookieNames.refreshToken, { path: "/" });
   Cookies.remove(authCookieNames.role, { path: "/" });
@@ -48,9 +48,8 @@ const persistAuthCookies = ({
   role,
   rememberMe = true,
 }: SetCredentialsPayload) => {
-  clearAuthCookies();
-
   if (!token) {
+    clearAuthCookies();
     return;
   }
 
@@ -71,7 +70,7 @@ const persistAuthCookies = ({
     Cookies.set(authCookieNames.role, role, cookieOptions);
   }
 
-  // Also set admin_session for Next.js route protection proxy compatibility
+  // Set admin_session for route protection proxy compatibility
   Cookies.set(authCookieNames.adminSession, "authenticated", cookieOptions);
 };
 
@@ -81,21 +80,43 @@ const authSlice = createSlice({
   reducers: {
     setCredentials: (state, action: PayloadAction<SetCredentialsPayload>) => {
       const {
-        token = null,
-        refreshToken = null,
-        role = null,
-        user = null,
+        token,
+        refreshToken,
+        role,
+        user,
         rememberMe = true,
       } = action.payload;
 
-      state.token = token;
-      state.refreshToken = refreshToken;
-      state.role = role;
-      if (user) {
+      if (token !== undefined) {
+        state.token = token;
+      }
+
+      if (refreshToken !== undefined) {
+        state.refreshToken = refreshToken;
+      }
+
+      if (role !== undefined) {
+        state.role = role;
+      }
+
+      if (user !== undefined && user !== null) {
         state.user = user;
       }
 
-      persistAuthCookies({ token, refreshToken, role, rememberMe });
+      const activeToken = state.token;
+      const activeRefreshToken =
+        state.refreshToken ||
+        (typeof window !== "undefined"
+          ? Cookies.get(authCookieNames.refreshToken) ?? null
+          : null);
+      const activeRole = state.role;
+
+      persistAuthCookies({
+        token: activeToken,
+        refreshToken: activeRefreshToken,
+        role: activeRole,
+        rememberMe,
+      });
     },
     setUser: (state, action: PayloadAction<IUser | null>) => {
       state.user = action.payload;
@@ -114,7 +135,11 @@ const authSlice = createSlice({
 export const { setCredentials, setUser, logOut } = authSlice.actions;
 
 export const selectCurrentToken = (state: RootState) => state.auth.token;
-export const selectCurrentRefreshToken = (state: RootState) => state.auth.refreshToken;
+export const selectCurrentRefreshToken = (state: RootState) =>
+  state.auth.refreshToken ||
+  (typeof window !== "undefined"
+    ? Cookies.get(authCookieNames.refreshToken) ?? null
+    : null);
 export const selectCurrentRole = (state: RootState) => state.auth.role;
 export const selectCurrentUser = (state: RootState) => state.auth.user;
 export const selectIsAuthenticated = (state: RootState) =>

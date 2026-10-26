@@ -150,6 +150,7 @@ export const baseApi = createApi({
     "Metric",
     "Booking",
     "Setting",
+    "Dashboard",
   ],
   endpoints: (builder) => ({
     login: builder.mutation<LoginResponse, LoginParams>({

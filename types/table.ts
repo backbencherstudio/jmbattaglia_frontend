@@ -28,4 +28,6 @@ export interface DataTableProps<T> {
   emptyMessage?: string;
   className?: string;
   bordered?: boolean;
+  onRowClick?: (item: T, index: number) => void;
+  rowClassName?: string | ((item: T, index: number) => string);
 }

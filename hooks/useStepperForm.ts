@@ -122,34 +122,12 @@ export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {
   const [currentMainStepIndex, setCurrentMainStepIndex] = useState(initialSteps.mainIndex);
   const [currentSubStepIndex, setCurrentSubStepIndex] = useState(initialSteps.subIndex);
 
-  const [formData, setFormData] = useState<StepperFormData>(() => {
-    if (typeof window !== "undefined") {
-      const isConfirmation = searchParams.get("substep") === "confirmation";
-      if (isConfirmation) {
-        const confirmed = loadConfirmedOrderFromStorage();
-        if (confirmed && Object.keys(confirmed).length > 0) {
-          return {
-            ...DEFAULT_FORM_DATA,
-            ...confirmed,
-            ...initialData,
-          };
-        }
-      }
-      const saved = loadBookingFromStorage();
-      const idempotencyKey = saved?.idempotencyKey || generateIdempotencyKey();
-      return {
-        ...DEFAULT_FORM_DATA,
-        ...saved,
-        ...initialData,
-        idempotencyKey,
-      };
-    }
-    return {
-      ...DEFAULT_FORM_DATA,
-      ...initialData,
-      idempotencyKey: generateIdempotencyKey(),
-    };
-  });
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  const [formData, setFormData] = useState<StepperFormData>(() => ({
+    ...DEFAULT_FORM_DATA,
+    ...initialData,
+  }));
 
   const [errors, setErrors] = useState<FormValidationErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -161,8 +139,9 @@ export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {
     setCurrentSubStepIndex(subIndex);
   }, [searchParams, parseUrlSteps]);
 
-  // Load persistence on client mount
+  // Load persistence safely on client mount to prevent SSR/hydration mismatch
   useEffect(() => {
+    setIsHydrated(true);
     const isConfirmation = searchParams.get("substep") === "confirmation";
     if (isConfirmation) {
       const confirmed = loadConfirmedOrderFromStorage();
@@ -178,6 +157,13 @@ export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {
             merged.idempotencyKey = generateIdempotencyKey();
           }
           return merged;
+        });
+      } else {
+        setFormData((prev) => {
+          if (!prev.idempotencyKey) {
+            return { ...prev, idempotencyKey: generateIdempotencyKey() };
+          }
+          return prev;
         });
       }
     }
@@ -476,5 +462,6 @@ export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {
     isLastStep,
     isSubmitting,
     setIsSubmitting,
+    isHydrated,
   };
 };

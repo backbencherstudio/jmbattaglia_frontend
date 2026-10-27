@@ -198,17 +198,17 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
             </div>
 
             <div className="flex flex-col gap-1.5 text-xs sm:text-sm">
-              <div className="flex justify-between items-center">
+              <div className="flex flex-wrap justify-between items-center">
                 <span className="text-sub font-medium">Name:</span>
                 <span className="text-main font-bold text-right">
                   {formData.firstName || ""} {formData.lastName || ""}
                 </span>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex flex-wrap justify-between items-center">
                 <span className="text-sub font-medium">Email:</span>
                 <span className="text-main font-bold text-right">{formData.email || ""}</span>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex flex-wrap justify-between items-center">
                 <span className="text-sub font-medium">Phone:</span>
                 <span className="text-main font-bold text-right">{formData.phone || ""}</span>
               </div>

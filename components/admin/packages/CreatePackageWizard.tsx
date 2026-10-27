@@ -113,6 +113,16 @@ export function CreatePackageWizard({
 
     fd.append("description", (formData.shortDescription || "").trim());
 
+    // Step 1: Services (ISN service UUIDs)
+    if (Array.isArray(formData.serviceIds)) {
+      formData.serviceIds
+        .filter(Boolean)
+        .forEach((serviceId) => {
+          fd.append("services", serviceId);
+          fd.append("serviceIds", serviceId);
+        });
+    }
+
     // Step 2: Educational Content & Media
     fd.append("whyItMatters", (formData.whyItMatters || "").trim());
 
@@ -149,6 +159,15 @@ export function CreatePackageWizard({
       } catch {
         // proceed
       }
+    } else {
+      // On edit/update, retain existing mediaId if no new file is uploaded
+      const existingMediaId =
+        packageDetailData?.data?.mediaId ||
+        packageDetailData?.data?.media?.[0]?.id;
+      if (existingMediaId) {
+        fd.append("mediaId", existingMediaId);
+        fd.append("mediaIds", existingMediaId);
+      }
     }
 
     return fd;
@@ -165,6 +184,10 @@ export function CreatePackageWizard({
     }
     if (!formData.price?.trim()) {
       setFormError("Starting price is required.");
+      return;
+    }
+    if (!formData.serviceIds || formData.serviceIds.length === 0) {
+      setFormError("Please select at least one ISN service for this package.");
       return;
     }
 

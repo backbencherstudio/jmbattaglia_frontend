@@ -1,10 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Box, Layers } from "lucide-react";
 import { PackageCategory, PackageType } from "@/types/packages";
 import { PackageFormData } from "@/types/wizard";
 import { Button } from "@/components/ui/Button";
+import { WizardServiceSelector } from "./WizardServiceSelector";
 
 interface WizardStepBasicInfoProps {
   formData: PackageFormData;
@@ -21,12 +22,22 @@ export function WizardStepBasicInfo({
   onSaveDraft,
   isSubmitting,
 }: WizardStepBasicInfoProps) {
+  const [serviceError, setServiceError] = useState<string | null>(null);
+
   const handleContinue = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.price) {
+    setServiceError(null);
+
+    if (!formData.name?.trim() || !formData.price?.trim()) {
       alert("Please enter package name and starting price.");
       return;
     }
+
+    if (!formData.serviceIds || formData.serviceIds.length === 0) {
+      setServiceError("Please select at least one ISN service for this package.");
+      return;
+    }
+
     onNext();
   };
 
@@ -150,6 +161,17 @@ export function WizardStepBasicInfo({
             className="w-full px-4 py-3 bg-white border border-hairline rounded-xl text-sm font-medium text-main placeholder:text-muted focus:outline-none focus:border-brand-border"
           />
         </div>
+
+        {/* Services Selection */}
+        <WizardServiceSelector
+          packageType={formData.type}
+          selectedServiceIds={formData.serviceIds || []}
+          onChange={(serviceIds) => {
+            setServiceError(null);
+            updateFormData({ serviceIds });
+          }}
+          error={serviceError}
+        />
       </div>
 
       {/* Action Buttons */}

@@ -2,6 +2,8 @@ import { baseApi } from "@/redux/api/baseApi";
 import type {
   AdminPackagesResponse,
   AdminPackageDetailResponse,
+  AdminServicesResponse,
+  GetAdminServicesParams,
   ApiEnvelope,
 } from "@/types/packages";
 
@@ -54,6 +56,26 @@ export const packageApi = baseApi.injectEndpoints({
       providesTags: (result, error, id) => [{ type: "Package", id }],
     }),
 
+    getAdminServices: builder.query<
+      AdminServicesResponse,
+      GetAdminServicesParams | void
+    >({
+      query: (params) => {
+        const queryParams: Record<string, string | number> = {
+          page: params?.page || 1,
+          limit: params?.limit || 100,
+        };
+        if (params?.search && params.search.trim()) {
+          queryParams.search = params.search.trim();
+        }
+        return {
+          url: "/admin/services",
+          method: "GET",
+          params: queryParams,
+        };
+      },
+    }),
+
     createAdminPackage: builder.mutation<AdminPackageDetailResponse, FormData>({
       query: (formData) => ({
         url: "/admin/packages",
@@ -92,6 +114,7 @@ export const packageApi = baseApi.injectEndpoints({
 export const {
   useGetAdminPackagesQuery,
   useGetAdminPackageByIdQuery,
+  useGetAdminServicesQuery,
   useCreateAdminPackageMutation,
   useUpdateAdminPackageMutation,
   useDeleteAdminPackageMutation,

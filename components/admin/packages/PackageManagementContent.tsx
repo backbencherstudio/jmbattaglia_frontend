@@ -249,6 +249,10 @@ export function PackageManagementContent() {
           onEdit={() =>
             updateQueryParams({ view: "create", id: selectedId, step: "basic" })
           }
+          onDelete={(item) => {
+            updateQueryParams({ view: "list", id: null });
+            handleDeletePackage(item);
+          }}
           onOpenVideo={(item) => setVideoModalPackage(item)}
         />
         {videoModalPackage && (

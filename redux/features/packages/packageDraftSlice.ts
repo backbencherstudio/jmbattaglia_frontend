@@ -8,6 +8,7 @@ export const initialPackageFormData: PackageFormData = {
   name: "",
   shortDescription: "",
   price: "",
+  serviceIds: [],
   whyItMatters:
     "A persuasive sentence shown in the expandable block on the portal — e.g. 'Buyers make a six-figure decision on a single walkthrough. A Signature inspection surfaces the repairs that change the negotiation.'",
   featuresIncluded: [
@@ -94,6 +95,13 @@ export const packageDraftSlice = createSlice({
         "/assets/images/safe_home_package.jpg";
       const isVideo = primaryMedia?.mimeType?.startsWith("video/") || false;
 
+      const rawServices = pkg.serviceIds || (pkg as any).services || [];
+      const serviceIds = Array.isArray(rawServices)
+        ? rawServices
+            .map((s: any) => (typeof s === "string" ? s : s?.id || ""))
+            .filter(Boolean)
+        : [];
+
       state.activePackageId = pkg.id;
       state.formData = {
         type,
@@ -101,6 +109,7 @@ export const packageDraftSlice = createSlice({
         name: pkg.name || "",
         shortDescription: pkg.description || "",
         price: priceString,
+        serviceIds,
         whyItMatters:
           pkg.whyItMatters || initialPackageFormData.whyItMatters,
         featuresIncluded:

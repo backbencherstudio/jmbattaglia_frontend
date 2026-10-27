@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Image from "next/image";
-import { CheckCircle2, ChevronUp, ChevronDown, Play } from "lucide-react";
+import { CheckCircle2, ChevronUp, ChevronDown, Play, Check } from "lucide-react";
 import { PackageFormData } from "@/types/wizard";
 import { Button } from "@/components/ui/Button";
 import { PackageVideoModal } from "@/components/stepper/steps/package-addons/PackageVideoModal";
 import { PackageOption } from "@/types/packageAddons";
+import { useGetAdminServicesQuery } from "@/redux/features/packages/packageApi";
 
 interface WizardStepReviewProps {
   formData: PackageFormData;
@@ -25,6 +26,16 @@ export function WizardStepReview({
 }: WizardStepReviewProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [showVideoModal, setShowVideoModal] = useState(false);
+
+  const { data: servicesResponse } = useGetAdminServicesQuery({ limit: 100 });
+  const servicesList = servicesResponse?.data?.items || [];
+  const servicesMap = useMemo(() => {
+    const map = new Map<string, string>();
+    servicesList.forEach((s) => {
+      map.set(s.id, s.name || `Service (${s.id.slice(0, 8)})`);
+    });
+    return map;
+  }, [servicesList]);
 
   const reviewPkgOption: PackageOption = {
     id: "wizard-review-preview",
@@ -189,6 +200,26 @@ export function WizardStepReview({
                     ))}
                   </div>
                 </div>
+
+                {/* Bundled ISN Services */}
+                {Array.isArray(formData.serviceIds) && formData.serviceIds.length > 0 && (
+                  <div className="bg-canvas border border-hairline p-4 rounded-xl space-y-2">
+                    <h5 className="font-trade font-bold text-xs text-main uppercase tracking-wider">
+                      Bundled Services ({formData.serviceIds.length})
+                    </h5>
+                    <div className="flex flex-wrap gap-2">
+                      {formData.serviceIds.map((id) => (
+                        <span
+                          key={id}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-hairline rounded-lg text-xs font-semibold text-main shadow-2xs"
+                        >
+                          <Check className="w-3.5 h-3.5 text-accent-green shrink-0" />
+                          <span>{servicesMap.get(id) || `Service (${id.slice(0, 8)})`}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Why It Matters Callout Block */}
                 <div className="bg-canvas border-l-4 border-primary p-4 rounded-r-xl space-y-1">

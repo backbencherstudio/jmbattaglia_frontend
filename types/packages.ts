@@ -21,7 +21,31 @@ export interface PackageItem {
   whyItMatters?: string;
   featuresIncluded?: string[];
   priceCents?: number;
+  serviceIds?: string[];
 }
+
+export interface AdminIsnService {
+  id: string;
+  name: string;
+  visible?: boolean;
+  ancillary?: boolean;
+  orderTypeId?: string;
+  kind?: "SERVICE" | "ADDON" | string;
+  source?: string;
+}
+
+export interface GetAdminServicesParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+}
+
+export type AdminServicesResponse = ApiEnvelope<{
+  items: AdminIsnService[];
+  total: number;
+  page: number;
+  limit: number;
+}>;
 
 export interface AddonItem {
   id: string;
@@ -52,6 +76,7 @@ export interface ApiPackage {
   active?: boolean;
   visible?: boolean;
   serviceIds?: string[];
+  services?: string[];
   description?: string;
   best?: boolean;
   sequence?: number;
@@ -118,6 +143,13 @@ export function mapApiPackageToPackageItem(apiPkg: ApiPackage): PackageItem {
 
   const videoUrl = isVideo ? rawMediaUrl : undefined;
 
+  const rawServices = apiPkg.serviceIds || (apiPkg as any).services || [];
+  const serviceIds = Array.isArray(rawServices)
+    ? rawServices
+        .map((s: any) => (typeof s === "string" ? s : s?.id || ""))
+        .filter(Boolean)
+    : [];
+
   return {
     id: apiPkg.id,
     name: apiPkg.name || "Untitled Package",
@@ -135,5 +167,6 @@ export function mapApiPackageToPackageItem(apiPkg: ApiPackage): PackageItem {
     whyItMatters: apiPkg.whyItMatters || "",
     featuresIncluded: Array.isArray(apiPkg.features) ? apiPkg.features : [],
     priceCents,
+    serviceIds,
   };
 }

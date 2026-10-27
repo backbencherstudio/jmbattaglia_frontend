@@ -8,6 +8,7 @@ export interface PackageFormData {
   name: string;
   shortDescription: string;
   price: string;
+  serviceIds: string[];
   whyItMatters: string;
   featuresIncluded: string[];
   image: string;

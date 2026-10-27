@@ -1,17 +1,32 @@
 "use client";
 
-import React from "react";
+import React, { useState, useMemo } from "react";
 import Image from "next/image";
-import { Edit, CheckCircle2, Play, ChevronRight, Loader2 } from "lucide-react";
+import {
+  Edit,
+  Trash2,
+  CheckCircle2,
+  Play,
+  ChevronRight,
+  Loader2,
+  Check,
+} from "lucide-react";
 import { PackageItem, mapApiPackageToPackageItem } from "@/types/packages";
 import { Button } from "@/components/ui/Button";
-import { useGetAdminPackageByIdQuery } from "@/redux/features/packages/packageApi";
+import {
+  useGetAdminPackageByIdQuery,
+  useGetAdminServicesQuery,
+  useDeleteAdminPackageMutation,
+} from "@/redux/features/packages/packageApi";
+import { DeletePackageModal } from "./DeletePackageModal";
+import { getErrorMessage } from "@/lib/getErrorMessage";
 
 interface PackageDetailsViewProps {
   packageId?: string;
   packageItem?: PackageItem;
   onBack: () => void;
   onEdit: (item: PackageItem) => void;
+  onDelete?: (item: PackageItem) => void;
   onOpenVideo?: (item: PackageItem) => void;
 }
 
@@ -20,6 +35,7 @@ export function PackageDetailsView({
   packageItem: initialItem,
   onBack,
   onEdit,
+  onDelete,
   onOpenVideo,
 }: PackageDetailsViewProps) {
   const { data: detailResponse, isLoading } = useGetAdminPackageByIdQuery(
@@ -27,9 +43,40 @@ export function PackageDetailsView({
     { skip: !packageId }
   );
 
+  const { data: servicesResponse } = useGetAdminServicesQuery({ limit: 100 });
+  const servicesList = servicesResponse?.data?.items || [];
+  const servicesMap = useMemo(() => {
+    const map = new Map<string, string>();
+    servicesList.forEach((s) => {
+      map.set(s.id, s.name || `Service (${s.id.slice(0, 8)})`);
+    });
+    return map;
+  }, [servicesList]);
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteAdminPackage, { isLoading: isDeleting }] =
+    useDeleteAdminPackageMutation();
+
   const packageItem: PackageItem | undefined = detailResponse?.data
     ? mapApiPackageToPackageItem(detailResponse.data)
     : initialItem;
+
+  const handleConfirmDelete = async () => {
+    if (!packageItem) return;
+    try {
+      setDeleteError(null);
+      await deleteAdminPackage(packageItem.id).unwrap();
+      setShowDeleteModal(false);
+      if (onDelete) {
+        onDelete(packageItem);
+      } else {
+        onBack();
+      }
+    } catch (err) {
+      setDeleteError(getErrorMessage(err, "Failed to delete package."));
+    }
+  };
 
   if (isLoading && !packageItem) {
     return (
@@ -53,6 +100,16 @@ export function PackageDetailsView({
 
   return (
     <div className="space-y-6">
+      {/* Delete Confirmation Modal */}
+      <DeletePackageModal
+        isOpen={showDeleteModal}
+        packageItem={packageItem}
+        isDeleting={isDeleting}
+        errorMessage={deleteError}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleConfirmDelete}
+      />
+
       {/* Breadcrumb & Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
@@ -71,14 +128,28 @@ export function PackageDetailsView({
           </h2>
         </div>
 
-        <Button
-          variant="primary"
-          onClick={() => onEdit(packageItem)}
-          className="w-full sm:w-auto flex items-center space-x-2"
-        >
-          <Edit className="w-4 h-4" />
-          <span>Edit package</span>
-        </Button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              setDeleteError(null);
+              setShowDeleteModal(true);
+            }}
+            className="px-4 py-2.5 rounded-xl border border-danger/30 text-danger hover:bg-danger-bg text-sm font-trade font-bold transition-colors flex items-center gap-2 cursor-pointer"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span>Delete</span>
+          </button>
+
+          <Button
+            variant="primary"
+            onClick={() => onEdit(packageItem)}
+            className="flex items-center space-x-2"
+          >
+            <Edit className="w-4 h-4" />
+            <span>Edit package</span>
+          </Button>
+        </div>
       </div>
 
       {/* Basic Info Card */}
@@ -124,6 +195,26 @@ export function PackageDetailsView({
             </p>
           </div>
         </div>
+
+        {/* Bundled Services row */}
+        {Array.isArray(packageItem.serviceIds) && packageItem.serviceIds.length > 0 && (
+          <div className="pt-4 border-t border-hairline space-y-2">
+            <p className="text-xs font-bold text-main uppercase tracking-wider">
+              Bundled Services ({packageItem.serviceIds.length})
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {packageItem.serviceIds.map((id) => (
+                <span
+                  key={id}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-hairline rounded-lg text-xs font-semibold text-main shadow-2xs"
+                >
+                  <Check className="w-3.5 h-3.5 text-accent-green shrink-0" />
+                  <span>{servicesMap.get(id) || `Service (${id.slice(0, 8)})`}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Why it matters & Features Included & Media Card */}

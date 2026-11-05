@@ -8,7 +8,6 @@ import {
   ApiPackage,
   mapApiPackageToPackageItem,
 } from "@/types/packages";
-import { initialPackages, initialAddons } from "@/data/packagesData";
 import { useTabQuery } from "@/hooks/useTabQuery";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { Button } from "@/components/ui/Button";
@@ -75,6 +74,9 @@ export function PackageManagementContent() {
     message: string;
   } | null>(null);
 
+  const addonCategoryApi =
+    categoryKey === "new-construction" ? "NEW_CONSTRUCTION" : "RESALE_HOME";
+
   // API Queries & Mutations with debounced search & pagination
   const {
     data: packagesResponse,
@@ -86,15 +88,14 @@ export function PackageManagementContent() {
       page,
       limit: pageSize,
       search: debouncedSearch.trim() || undefined,
+      category: addonCategoryApi,
+      status: showOnlyDrafts ? "DRAFT" : undefined,
     },
     {
       refetchOnFocus: true,
       refetchOnReconnect: true,
     }
   );
-
-  const addonCategoryApi =
-    categoryKey === "new-construction" ? "NEW_CONSTRUCTION" : "RESALE_HOME";
 
   const {
     data: addonsResponse,
@@ -115,7 +116,7 @@ export function PackageManagementContent() {
     }
   );
 
-  // Compute live packages from API or fallback
+  // Compute live packages from API or empty list while loading
   const pkgData = packagesResponse?.data;
   const apiPackagesList: ApiPackage[] = Array.isArray(pkgData)
     ? pkgData
@@ -131,9 +132,9 @@ export function PackageManagementContent() {
   const packages: PackageItem[] =
     packagesResponse && Array.isArray(apiPackagesList)
       ? apiPackagesList.map(mapApiPackageToPackageItem)
-      : initialPackages;
+      : [];
 
-  // Compute live add-ons from API or fallback
+  // Compute live add-ons from API or empty list while loading
   const apiAddonsList: ApiAddonItem[] = addonsResponse?.data?.items || [];
   const totalAddonsCount: number =
     typeof addonsResponse?.data?.total === "number"
@@ -143,7 +144,7 @@ export function PackageManagementContent() {
   const addons: ApiAddonItem[] =
     addonsResponse && Array.isArray(apiAddonsList)
       ? apiAddonsList
-      : (initialAddons as unknown as ApiAddonItem[]);
+      : [];
 
   // Helper to map PackageItem to PackageOption for PackageVideoModal
   const toPackageOption = (item: PackageItem): PackageOption => ({

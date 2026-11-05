@@ -11,6 +11,8 @@ export interface GetPackagesQueryParams {
   page?: number;
   limit?: number;
   search?: string;
+  category?: string;
+  status?: string;
 }
 
 export const packageApi = baseApi.injectEndpoints({
@@ -26,6 +28,12 @@ export const packageApi = baseApi.injectEndpoints({
         };
         if (params?.search && params.search.trim()) {
           queryParams.search = params.search.trim();
+        }
+        if (params?.category) {
+          queryParams.category = params.category;
+        }
+        if (params?.status) {
+          queryParams.status = params.status;
         }
         return {
           url: "/admin/packages",

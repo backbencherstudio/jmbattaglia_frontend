@@ -133,8 +133,8 @@ export const StepperLayout: React.FC = () => {
         inspectorId: formData.inspectorId || "89758475-7ef9-4ebc-a264-d11c6b821d0b",
       };
 
-      const idempotencyKey =
-        formData.idempotencyKey || generateIdempotencyKey();
+      const idempotencyKey = generateIdempotencyKey();
+      stepper.updateFormData({ idempotencyKey });
 
       const orderRes = await createOrder({
         payload,
@@ -149,6 +149,7 @@ export const StepperLayout: React.FC = () => {
       stepper.completeOrder(orderData, finalOrderId);
     } catch (err: any) {
       console.error("Order submission error:", err);
+      stepper.updateFormData({ idempotencyKey: generateIdempotencyKey() });
       const msg =
         err?.data?.message ||
         err?.error ||

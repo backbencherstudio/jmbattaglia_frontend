@@ -32,15 +32,15 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
 
       {/* Sidebar Drawer */}
       <aside
-        className={`fixed lg:static top-0 bottom-0 left-0 z-50 w-64 md:w-64 lg:w-68 xl:w-72 bg-sidebar-bg border-r border-sidebar-border min-h-screen flex flex-col justify-between p-5 lg:p-6 shrink-0 gap-[0.625rem] transition-all duration-300 ease-in-out ${
+        className={`fixed lg:static top-0 bottom-0 left-0 z-50 w-72 md:w-72 lg:w-80 xl:w-80 bg-sidebar-bg border-r border-sidebar-border h-screen h-[100dvh] max-h-screen flex flex-col justify-between p-5 lg:p-6 shrink-0 gap-[0.625rem] transition-all duration-300 ease-in-out ${
           isOpen
             ? "translate-x-0 shadow-2xl"
             : "-translate-x-full lg:translate-x-0"
         }`}
       >
-        <div className="space-y-6">
+        <div className="flex flex-col min-h-0 space-y-6">
           {/* Logo Container (Centered) */}
-          <div className="relative flex items-center justify-center w-full pt-1">
+          <div className="relative flex items-center justify-center w-full pt-1 shrink-0">
             <Link
               href="/admin/dashboard"
               onClick={onClose}
@@ -68,7 +68,7 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
           </div>
 
           {/* Navigation Items */}
-          <nav className="space-y-1.5">
+          <nav className="space-y-1.5 overflow-y-auto min-h-0">
             {adminNavItems.map((item) => {
               const isActive =
                 pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -86,12 +86,12 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
         </div>
 
         {/* Logout Action Button at Bottom */}
-        <div className="pt-4 border-t border-sidebar-border">
+        <div className="pt-4 border-t border-sidebar-border shrink-0">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center space-x-3 px-3.5 py-3 rounded-lg font-trade font-bold text-base lg:text-[1.125rem] xl:text-[1.25rem] leading-[140%] tracking-[0.0125rem] text-danger bg-danger-bg hover:opacity-90 transition-all cursor-pointer whitespace-nowrap"
+            className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-trade font-bold text-sm lg:text-[0.95rem] xl:text-[1rem] leading-[140%] tracking-[0.0125rem] text-danger bg-danger-bg hover:opacity-90 transition-all cursor-pointer whitespace-nowrap"
           >
-            <LogOutIcon className="w-6 h-6 lg:w-7 lg:h-7 shrink-0 text-danger" />
+            <LogOutIcon className="w-5.5 h-5.5 lg:w-6 lg:h-6 shrink-0 text-danger" />
             <span>Log out</span>
           </button>
         </div>

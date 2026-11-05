@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Eye, Check, AlertCircle, X, RefreshCw } from "lucide-react";
 import {
   PackageItem,
@@ -65,7 +65,9 @@ export function PackageManagementContent() {
   const selectedId = getParam("id");
 
   // Local UI State
-  const [showOnlyDrafts, setShowOnlyDrafts] = useState(false);
+  const [showOnlyDrafts, setShowOnlyDrafts] = useState(
+    getParam("status")?.toUpperCase() === "DRAFT"
+  );
   const [isCreateAddonModalOpen, setIsCreateAddonModalOpen] = useState(false);
   const [videoModalPackage, setVideoModalPackage] =
     useState<PackageItem | null>(null);
@@ -73,6 +75,11 @@ export function PackageManagementContent() {
     type: "success" | "error";
     message: string;
   } | null>(null);
+
+  // Sync draft filter when URL status query changes
+  useEffect(() => {
+    setShowOnlyDrafts(getParam("status")?.toUpperCase() === "DRAFT");
+  }, [getParam]);
 
   const addonCategoryApi =
     categoryKey === "new-construction" ? "NEW_CONSTRUCTION" : "RESALE_HOME";
@@ -367,15 +374,18 @@ export function PackageManagementContent() {
           </Button>
 
           <Button
-            variant="outline"
-            onClick={() => setShowOnlyDrafts(!showOnlyDrafts)}
-            className={`h-11 flex items-center justify-center space-x-1.5 whitespace-nowrap px-4 py-0 transition-colors cursor-pointer ${
-              showOnlyDrafts
-                ? "bg-primary text-white border-primary"
-                : "bg-canvas border-hairline text-sub hover:text-main"
-            }`}
+            variant={showOnlyDrafts ? "primary" : "outline"}
+            onClick={() => {
+              const nextState = !showOnlyDrafts;
+              setShowOnlyDrafts(nextState);
+              updateQueryParams({
+                status: nextState ? "DRAFT" : null,
+                page: null,
+              });
+            }}
+            className="h-11 flex items-center justify-center space-x-1.5 whitespace-nowrap px-4 py-0 transition-colors cursor-pointer"
           >
-            <Eye className="w-4 h-4" />
+            <Eye className="w-4 h-4 shrink-0" />
             <span>
               {showOnlyDrafts
                 ? currentTab === "packages"
@@ -423,7 +433,10 @@ export function PackageManagementContent() {
               {showOnlyDrafts && (
                 <Button
                   variant="outline"
-                  onClick={() => setShowOnlyDrafts(false)}
+                  onClick={() => {
+                    setShowOnlyDrafts(false);
+                    updateQueryParams({ status: null, page: null });
+                  }}
                   className="bg-white"
                 >
                   Clear draft filter
@@ -512,7 +525,10 @@ export function PackageManagementContent() {
               {showOnlyDrafts && (
                 <Button
                   variant="outline"
-                  onClick={() => setShowOnlyDrafts(false)}
+                  onClick={() => {
+                    setShowOnlyDrafts(false);
+                    updateQueryParams({ status: null, page: null });
+                  }}
                   className="bg-white"
                 >
                   Clear draft filter

@@ -114,7 +114,7 @@ export function ProfileForm({
             placeholder="Dana Smith"
             required
             disabled={isSaving}
-            className="w-full px-4 py-3 bg-white border border-hairline rounded-xl text-sm font-medium text-main focus:outline-none focus:border-brand-border disabled:opacity-60"
+            className="w-full h-11 px-4 bg-white border border-hairline rounded-xl text-sm font-medium text-main focus:outline-none focus:border-brand-border disabled:opacity-60"
           />
         </div>
 
@@ -130,7 +130,7 @@ export function ProfileForm({
             value={initialData.email || email}
             readOnly
             disabled
-            className="w-full px-4 py-3 bg-canvas border border-hairline rounded-xl text-sm font-medium text-muted cursor-not-allowed select-none opacity-80"
+            className="w-full h-11 px-4 bg-canvas border border-hairline rounded-xl text-sm font-medium text-muted cursor-not-allowed select-none opacity-80"
           />
         </div>
       </div>
@@ -157,12 +157,12 @@ export function ProfileForm({
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 placeholder="••••••••••••"
                 disabled={isSaving}
-                className="w-full pl-3.5 pr-10 py-3 bg-white border border-hairline rounded-xl text-sm font-medium text-main focus:outline-none focus:border-brand-border disabled:opacity-60"
+                className="w-full h-11 pl-4 pr-10 bg-white border border-hairline rounded-xl text-sm font-medium text-main focus:outline-none focus:border-brand-border disabled:opacity-60 password-input leading-normal"
               />
               <button
                 type="button"
                 onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted hover:text-main cursor-pointer"
+                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted hover:text-main cursor-pointer"
               >
                 {showCurrentPassword ? (
                   <EyeOff className="w-4 h-4" />
@@ -185,12 +185,12 @@ export function ProfileForm({
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="••••••••••••"
                 disabled={isSaving}
-                className="w-full pl-3.5 pr-10 py-3 bg-white border border-hairline rounded-xl text-sm font-medium text-main focus:outline-none focus:border-brand-border disabled:opacity-60"
+                className="w-full h-11 pl-4 pr-10 bg-white border border-hairline rounded-xl text-sm font-medium text-main focus:outline-none focus:border-brand-border disabled:opacity-60 password-input leading-normal"
               />
               <button
                 type="button"
                 onClick={() => setShowNewPassword(!showNewPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted hover:text-main cursor-pointer"
+                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted hover:text-main cursor-pointer"
               >
                 {showNewPassword ? (
                   <EyeOff className="w-4 h-4" />
@@ -213,12 +213,12 @@ export function ProfileForm({
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••••••"
                 disabled={isSaving}
-                className="w-full pl-3.5 pr-10 py-3 bg-white border border-hairline rounded-xl text-sm font-medium text-main focus:outline-none focus:border-brand-border disabled:opacity-60"
+                className="w-full h-11 pl-4 pr-10 bg-white border border-hairline rounded-xl text-sm font-medium text-main focus:outline-none focus:border-brand-border disabled:opacity-60 password-input leading-normal"
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted hover:text-main cursor-pointer"
+                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted hover:text-main cursor-pointer"
               >
                 {showConfirmPassword ? (
                   <EyeOff className="w-4 h-4" />

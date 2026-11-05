@@ -69,7 +69,8 @@ export const LEGACY_ADDON_UUID_MAP: Record<string, string> = {
 export const LEGACY_PACKAGE_UUID_MAP: Record<string, string> = {
   "safe-home-package": "e2ff6ec2-72b3-4e31-b06b-680c17aec45b",
   "safe-home-package-1": "da540feb-c721-4da3-992a-8c7aeee37147",
-  "residential-home": "d0d3f4f4-d184-4168-9e87-725f37bda9e9",
+  "residential-home": "bbbc1155-310f-11e3-80f0-22000afd1674",
+  "d0d3f4f4-d184-4168-9e87-725f37bda9e9": "bbbc1155-310f-11e3-80f0-22000afd1674",
   "radon-testing": "e3526673-db55-489b-9bc3-018ecfd32c1b",
   "pre-drywall": "c32cb328-765a-4239-a936-b35d2c04a1c5",
   "final-inspection": "10e8a223-122f-42fc-91d6-9d43994558a4",
@@ -138,6 +139,22 @@ export const sanitizePackageAndServices = (
   }
 
   // Resale home
+  const isResidentialService =
+    cleanPkgId === "bbbc1155-310f-11e3-80f0-22000afd1674" ||
+    cleanPkgId === "d0d3f4f4-d184-4168-9e87-725f37bda9e9" ||
+    packageId === "residential-home";
+
+  if (isResidentialService) {
+    const primaryServiceId = "bbbc1155-310f-11e3-80f0-22000afd1674";
+    if (!cleanServiceIds.includes(primaryServiceId)) {
+      cleanServiceIds = [primaryServiceId, ...cleanServiceIds];
+    }
+    return {
+      packageId: undefined,
+      serviceIds: cleanServiceIds,
+    };
+  }
+
   if (!cleanPkgId) {
     cleanPkgId = "e2ff6ec2-72b3-4e31-b06b-680c17aec45b";
   }

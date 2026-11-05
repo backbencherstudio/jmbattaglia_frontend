@@ -22,7 +22,7 @@ export const RESALE_PACKAGES: PackageOption[] = [
     ],
   },
   {
-    id: "d0d3f4f4-d184-4168-9e87-725f37bda9e9",
+    id: "bbbc1155-310f-11e3-80f0-22000afd1674",
     title: "Residential Home Inspection",
     priceText: "$538",
     priceNumeric: 538,

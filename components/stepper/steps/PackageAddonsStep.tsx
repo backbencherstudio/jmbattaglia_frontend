@@ -52,9 +52,11 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
 
   // 2. Map portal packages with local fallback
   const packagesList = useMemo<PackageOption[]>(() => {
-    const list = packagesRes?.data;
+    const list = Array.isArray(packagesRes?.data)
+      ? packagesRes.data
+      : (packagesRes?.data as any)?.items;
     if (Array.isArray(list) && list.length > 0) {
-      const filtered = list.filter((p) => p.category === categoryApi && p.visible !== false);
+      const filtered = list.filter((p) => (!p.category || p.category === categoryApi) && p.visible !== false);
       if (filtered.length > 0) {
         return filtered.map((p) => ({
           id: p.id,

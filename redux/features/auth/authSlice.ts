@@ -27,6 +27,9 @@ const getCookieValue = (cookieName: string) => {
   return Cookies.get(cookieName) ?? null;
 };
 
+const shouldUseSecureCookies = () =>
+  typeof window === "undefined" || window.location.protocol === "https:";
+
 const initialState: AuthState = {
   token: getCookieValue(authCookieNames.token),
   role: normalizeAuthRole(getCookieValue(authCookieNames.role)),
@@ -54,7 +57,7 @@ const persistAuthCookies = ({
   }
 
   const cookieOptions: Cookies.CookieAttributes = {
-    secure: process.env.NODE_ENV === "production",
+    secure: shouldUseSecureCookies(),
     sameSite: "lax",
     path: "/",
     expires: 1, // 24 hours boundary; Sanctum validates TTL on API calls
@@ -103,7 +106,7 @@ const authSlice = createSlice({
       if (action.payload?.role) {
         state.role = normalizeAuthRole(action.payload.role);
         Cookies.set(authCookieNames.role, state.role as string, {
-          secure: process.env.NODE_ENV === "production",
+          secure: shouldUseSecureCookies(),
           sameSite: "lax",
           path: "/",
         });

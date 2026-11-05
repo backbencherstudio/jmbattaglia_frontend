@@ -62,10 +62,10 @@ export const authApi = baseApi.injectEndpoints({
 
     changePassword: builder.mutation<
       { success?: boolean; message?: string },
-      { old_password?: string; current_password?: string; new_password: string }
+      { currentPassword?: string; newPassword: string; confirmPassword?: string }
     >({
       query: (data) => ({
-        url: "/auth/change-password",
+        url: "/admin/profile/password",
         method: "POST",
         body: data,
       }),

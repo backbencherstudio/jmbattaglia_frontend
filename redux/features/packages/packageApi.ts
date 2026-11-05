@@ -89,11 +89,16 @@ export const packageApi = baseApi.injectEndpoints({
       AdminPackageDetailResponse,
       { id: string; formData: FormData }
     >({
-      query: ({ id, formData }) => ({
-        url: `/admin/packages/${id}`,
-        method: "PATCH",
-        body: formData,
-      }),
+      query: ({ id, formData }) => {
+        if (!formData.has("_method")) {
+          formData.append("_method", "PATCH");
+        }
+        return {
+          url: `/admin/packages/${id}`,
+          method: "POST",
+          body: formData,
+        };
+      },
       invalidatesTags: (result, error, { id }) => [
         { type: "Package", id: "LIST" },
         { type: "Package", id },

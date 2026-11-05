@@ -19,7 +19,6 @@ export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,10 +34,9 @@ export default function AdminLoginPage() {
       const response = await login({
         email,
         password,
-        rememberMe,
       }).unwrap();
 
-      handleAuthSuccess(response, dispatch, rememberMe);
+      handleAuthSuccess(response, dispatch);
 
       if (
         response.success ||
@@ -153,21 +151,6 @@ export default function AdminLoginPage() {
                     )}
                   </button>
                 </div>
-              </div>
-
-              {/* Remember Me */}
-              <div className="flex items-center justify-between">
-                <label className="flex items-center space-x-2.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 text-primary border-hairline rounded  accent-primary cursor-pointer"
-                  />
-                  <span className="text-xs font-medium text-sub">
-                    Remember me for 7 days
-                  </span>
-                </label>
               </div>
 
               {/* Submit Button */}

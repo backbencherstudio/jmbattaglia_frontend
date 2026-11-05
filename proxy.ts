@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { authCookieNames, isGuestAdminRoute } from "@/lib/auth/config";
-import { verifyAdminToken } from "@/lib/auth/jwt";
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get(authCookieNames.token)?.value;
-  const refreshToken = request.cookies.get(authCookieNames.refreshToken)?.value;
 
   const isAdminRoute = pathname.startsWith("/admin");
   if (!isAdminRoute) {
@@ -17,12 +15,9 @@ export async function proxy(request: NextRequest) {
 
   // 1. Guest Auth Routes (/admin/login, /admin/forget, /admin/reset, etc.)
   if (isGuestAuthRoute) {
-    if (token) {
-      const verification = await verifyAdminToken(token);
-      if (verification.isValid) {
-        // Authenticated admin should not visit guest login/reset pages
-        return NextResponse.redirect(new URL("/admin/dashboard", request.url));
-      }
+    if (token && token.trim().length > 0) {
+      // Authenticated admin should not visit guest login/reset pages
+      return NextResponse.redirect(new URL("/admin/dashboard", request.url));
     }
 
     // Friendly aliases for unauthenticated visitors
@@ -48,9 +43,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // 2. Protected Admin Routes (/admin/dashboard, /admin/packages, /admin/settings, etc.)
-  // Allow access if either a token OR a refreshToken is present in cookies
-  // (client-side baseApi handles automatic seamless token refresh on 401 without race conditions)
-  if (!token && !refreshToken) {
+  if (!token || token.trim().length === 0) {
     const loginUrl = new URL("/admin/login", request.url);
     loginUrl.searchParams.set("from", pathname);
     const response = NextResponse.redirect(loginUrl);
@@ -63,9 +56,9 @@ export async function proxy(request: NextRequest) {
 
 function clearAuthCookies(response: NextResponse) {
   response.cookies.delete(authCookieNames.token);
-  response.cookies.delete(authCookieNames.refreshToken);
   response.cookies.delete(authCookieNames.role);
   response.cookies.delete(authCookieNames.adminSession);
+  response.cookies.delete("atease_refresh_token");
 }
 
 export const config = {

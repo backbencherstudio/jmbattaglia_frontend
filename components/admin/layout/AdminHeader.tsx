@@ -4,6 +4,7 @@ import React from "react";
 import Image from "next/image";
 import { Menu } from "lucide-react";
 import { useGetAdminProfileQuery } from "@/redux/features/profile/profileApi";
+import { resolveMediaUrl } from "@/lib/env";
 
 interface AdminHeaderProps {
   onMenuToggle?: () => void;
@@ -14,11 +15,7 @@ export function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
   const profile = profileResponse?.data;
 
   const displayName = profile?.name || profile?.firstName || "Admin";
-  const avatarSrc = profile?.avatarUrl
-    ? profile.avatarUrl.startsWith("http")
-      ? profile.avatarUrl
-      : `http://10.10.9.230:3000${profile.avatarUrl.startsWith("/") ? "" : "/"}${profile.avatarUrl}`
-    : "/assets/images/logo.png";
+  const avatarSrc = resolveMediaUrl(profile?.avatarUrl) || "/assets/images/logo.png";
 
   return (
     <header className="flex items-center justify-between py-4 sm:py-6 px-4 sm:px-8 bg-canvas border-b border-hairline">

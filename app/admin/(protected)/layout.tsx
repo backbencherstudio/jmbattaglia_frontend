@@ -7,9 +7,10 @@ import { authCookieNames } from "@/lib/auth/config";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
   logOut,
+  setUser,
   selectCurrentToken,
-  selectCurrentRefreshToken,
 } from "@/redux/features/auth/authSlice";
+import { useGetMeQuery } from "@/redux/features/auth/authApi";
 import { AdminSidebar } from "@/components/admin/layout/AdminSidebar";
 import { AdminHeader } from "@/components/admin/layout/AdminHeader";
 
@@ -21,34 +22,54 @@ export default function ProtectedAdminLayout({
   const router = useRouter();
   const dispatch = useAppDispatch();
   const stateToken = useAppSelector(selectCurrentToken);
-  const stateRefreshToken = useAppSelector(selectCurrentRefreshToken);
+  const token =
+    stateToken ||
+    (typeof window !== "undefined"
+      ? Cookies.get(authCookieNames.token) ?? null
+      : null);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  // Fetch current user details & permissions from backend /auth/me
+  const { data: meResponse } = useGetMeQuery(undefined, {
+    skip: !token,
+    refetchOnMountOrArgChange: true,
+  });
 
   useEffect(() => {
     let isMounted = true;
 
-    const checkAuth = () => {
-      const token = stateToken || Cookies.get(authCookieNames.token);
-      const refreshToken =
-        stateRefreshToken || Cookies.get(authCookieNames.refreshToken);
+    // If user has no token, they must authenticate
+    if (!token) {
+      if (isMounted) {
+        dispatch(logOut());
+        router.replace("/admin/login");
+      }
+      return;
+    }
 
-      // If user has neither token nor refreshToken, they must authenticate
-      if (!token && !refreshToken) {
+    if (meResponse?.data) {
+      const userData = meResponse.data;
+      const isAdmin =
+        userData.role === "ADMIN" ||
+        (Array.isArray(userData.roles) && userData.roles.includes("ADMIN"));
+
+      if (!isAdmin) {
         if (isMounted) {
           dispatch(logOut());
           router.replace("/admin/login");
         }
+        return;
       }
-      // Note: If token is expired, baseApi automatically refreshes it via refresh token
-      // on the first API query using a single-flight mutex promise without race conditions.
-    };
 
-    checkAuth();
+      if (isMounted) {
+        dispatch(setUser(userData));
+      }
+    }
 
     return () => {
       isMounted = false;
     };
-  }, [stateToken, stateRefreshToken, router, dispatch]);
+  }, [token, meResponse, router, dispatch]);
 
   return (
     <div className="flex min-h-screen bg-canvas">

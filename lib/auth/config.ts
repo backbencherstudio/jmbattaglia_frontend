@@ -2,7 +2,6 @@ import type { AuthRole } from "@/types/auth";
 
 export const authCookieNames = {
   token: "atease_auth_token",
-  refreshToken: "atease_refresh_token",
   role: "atease_auth_role",
   adminSession: "admin_session",
 } as const;

@@ -1,20 +1,16 @@
-import type {
-  LoginResponse,
-  RefreshTokenResponse,
-  IUser,
-} from "@/types/auth";
+import type { LoginResponse, IUser } from "@/types/auth";
 import { normalizeAuthRole } from "@/lib/auth/config";
 import type { AppDispatch } from "@/redux/store";
 import { setCredentials } from "@/redux/features/auth/authSlice";
 
 /**
- * Robustly extracts accessToken and refreshToken from various backend response formats:
- * - { success: true, data: { accessToken: "...", refreshToken: "..." } }
- * - { accessToken: "...", refreshToken: "..." }
- * - Snake_case aliases (access_token, refresh_token) or token alias
+ * Extracts Sanctum accessToken from Laravel response formats:
+ * - { success: true, data: { accessToken: "...", ... } }
+ * - { accessToken: "...", ... }
+ * - Snake_case aliases (access_token, token)
  */
 export const extractAuthTokens = (
-  payload?: LoginResponse | RefreshTokenResponse | unknown | null,
+  payload?: LoginResponse | unknown | null,
 ): { accessToken: string | null; refreshToken: string | null } => {
   if (!payload || typeof payload !== "object") {
     return {
@@ -38,21 +34,14 @@ export const extractAuthTokens = (
       ? data.token.trim()
       : null;
 
-  const refreshToken =
-    typeof data.refreshToken === "string" && data.refreshToken.trim()
-      ? data.refreshToken.trim()
-      : typeof data.refresh_token === "string" && data.refresh_token.trim()
-      ? data.refresh_token.trim()
-      : null;
-
   return {
     accessToken,
-    refreshToken,
+    refreshToken: null,
   };
 };
 
 export const extractLoginAuthData = (payload: LoginResponse | unknown) => {
-  const { accessToken, refreshToken } = extractAuthTokens(payload);
+  const { accessToken } = extractAuthTokens(payload);
   const payloadObj = (payload && typeof payload === "object" ? payload : {}) as Record<string, unknown>;
   const data =
     payloadObj.data && typeof payloadObj.data === "object"
@@ -65,7 +54,6 @@ export const extractLoginAuthData = (payload: LoginResponse | unknown) => {
 
   return {
     accessToken,
-    refreshToken,
     role,
     user,
   };
@@ -74,18 +62,15 @@ export const extractLoginAuthData = (payload: LoginResponse | unknown) => {
 export const handleAuthSuccess = (
   payload: LoginResponse | unknown,
   dispatch: AppDispatch,
-  rememberMe: boolean = true,
 ) => {
-  const { accessToken, refreshToken, role, user } = extractLoginAuthData(payload);
+  const { accessToken, role, user } = extractLoginAuthData(payload);
 
   if (accessToken) {
     dispatch(
       setCredentials({
         token: accessToken,
-        refreshToken,
         role,
         user,
-        rememberMe,
       }),
     );
   }

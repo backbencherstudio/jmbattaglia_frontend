@@ -4,7 +4,6 @@ import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { authCookieNames } from "@/lib/auth/config";
-import { verifyAdminToken } from "@/lib/auth/jwt";
 import { useAppSelector } from "@/redux/store";
 import { selectCurrentToken } from "@/redux/features/auth/authSlice";
 
@@ -24,16 +23,12 @@ export function GuestAuthGuard({ children }: GuestAuthGuardProps) {
   useEffect(() => {
     let isMounted = true;
 
-    const checkGuestAccess = async () => {
+    const checkGuestAccess = () => {
       try {
         const activeToken = stateToken || Cookies.get(authCookieNames.token);
 
-        if (activeToken) {
-          const verification = await verifyAdminToken(activeToken);
-          if (verification.isValid && isMounted) {
-            router.replace("/admin/dashboard");
-            return;
-          }
+        if (activeToken && activeToken.trim() && isMounted) {
+          router.replace("/admin/dashboard");
         }
       } catch (err) {
         console.error("Guest access check error:", err);

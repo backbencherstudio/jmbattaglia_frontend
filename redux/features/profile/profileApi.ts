@@ -15,11 +15,17 @@ export const profileApi = baseApi.injectEndpoints({
     }),
 
     updateAdminProfile: builder.mutation<UpdateProfileResponse, FormData>({
-      query: (body) => ({
-        url: "/admin/profile",
-        method: "PATCH",
-        body,
-      }),
+      query: (formData) => {
+        // Method spoofing for PHP/Laravel multipart form data handling
+        if (formData instanceof FormData && !formData.has("_method")) {
+          formData.append("_method", "PATCH");
+        }
+        return {
+          url: "/admin/profile",
+          method: "POST",
+          body: formData,
+        };
+      },
       invalidatesTags: ["User", "Setting"],
     }),
   }),

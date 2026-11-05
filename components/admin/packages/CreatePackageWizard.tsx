@@ -118,8 +118,8 @@ export function CreatePackageWizard({
       formData.serviceIds
         .filter(Boolean)
         .forEach((serviceId) => {
-          fd.append("services", serviceId);
-          fd.append("serviceIds", serviceId);
+          fd.append("services[]", serviceId);
+          fd.append("serviceIds[]", serviceId);
         });
     }
 
@@ -131,7 +131,7 @@ export function CreatePackageWizard({
         .map((f) => f.trim())
         .filter(Boolean)
         .forEach((feature) => {
-          fd.append("features", feature);
+          fd.append("features[]", feature);
         });
     }
 
@@ -165,8 +165,8 @@ export function CreatePackageWizard({
         packageDetailData?.data?.mediaId ||
         packageDetailData?.data?.media?.[0]?.id;
       if (existingMediaId) {
-        fd.append("mediaId", existingMediaId);
-        fd.append("mediaIds", existingMediaId);
+        fd.append("mediaId", String(existingMediaId));
+        fd.append("mediaIds[]", String(existingMediaId));
       }
     }
 

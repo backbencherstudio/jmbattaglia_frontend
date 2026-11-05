@@ -28,6 +28,7 @@ import {
   formatTimeSlotTo24h,
   sanitizePackageAndServices,
   isValidPhone,
+  generateIdempotencyKey,
 } from "@/lib/bookingUtils";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { DirectOrderPayload } from "@/types/booking";
@@ -133,8 +134,7 @@ export const StepperLayout: React.FC = () => {
       };
 
       const idempotencyKey =
-        formData.idempotencyKey ||
-        (typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : "");
+        formData.idempotencyKey || generateIdempotencyKey();
 
       const orderRes = await createOrder({
         payload,
@@ -143,7 +143,7 @@ export const StepperLayout: React.FC = () => {
 
       const orderData = orderRes?.data;
       const finalOrderId =
-        orderData?.orderId || orderData?.id || idempotencyKey.slice(0, 8).toUpperCase();
+        orderData?.orderId || orderData?.id || orderData?.reference || idempotencyKey.slice(0, 8).toUpperCase();
 
       // 4. Complete order: clear session draft, persist confirmation receipt, and navigate to confirmation
       stepper.completeOrder(orderData, finalOrderId);

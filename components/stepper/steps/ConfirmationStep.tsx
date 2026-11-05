@@ -74,7 +74,7 @@ export const ConfirmationStep: React.FC<StepProps> = ({ formData, resetFormData 
                 STEP 10 OF 10 — CONFIRMED
               </span>
               <span className="text-xs font-mono bg-canvas border border-hairline px-2.5 py-1 rounded-lg text-sub font-semibold">
-                ID: {orderId}
+                {formData.orderReceipt?.reference ? `REF: ${formData.orderReceipt.reference}` : `ID: ${orderId}`}
               </span>
             </div>
 

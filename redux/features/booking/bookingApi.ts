@@ -6,7 +6,6 @@ import type {
   PortalPackageItem,
   PortalAddonItem,
   CalculatedQuoteData,
-  AvailableSlotItem,
   AvailableSlotsData,
   DirectOrderPayload,
 } from "@/types/booking";
@@ -69,7 +68,7 @@ export const bookingApi = baseApi.injectEndpoints({
     }),
 
     // 5b. Customer-visible single add-on by ID
-    getPortalAddonById: builder.query<ApiResponse<PortalAddonItem>, string>({
+    getPortalAddonById: builder.query<ApiResponse<PortalAddonItem>, number | string>({
       query: (id) => ({
         url: `/portal/addons/${id}`,
         method: "GET",
@@ -120,7 +119,7 @@ export const bookingApi = baseApi.injectEndpoints({
         url: "/portal/order",
         method: "POST",
         headers: {
-          "idempotency-key": idempotencyKey,
+          "Idempotency-Key": idempotencyKey,
         },
         body: payload,
       }),
@@ -129,13 +128,13 @@ export const bookingApi = baseApi.injectEndpoints({
     // 9. Read order receipt using its original submission key
     getOrderReceipt: builder.query<
       ApiResponse<any>,
-      { id: string; idempotencyKey: string }
+      { id: number | string; idempotencyKey: string }
     >({
       query: ({ id, idempotencyKey }) => ({
         url: `/portal/order/${id}`,
         method: "GET",
         headers: {
-          "idempotency-key": idempotencyKey,
+          "Idempotency-Key": idempotencyKey,
         },
       }),
     }),

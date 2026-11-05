@@ -44,7 +44,7 @@ export const addonApi = baseApi.injectEndpoints({
           : [{ type: "Addon", id: "LIST" }],
     }),
 
-    getAdminAddonById: builder.query<ApiEnvelope<ApiAddonItem>, string>({
+    getAdminAddonById: builder.query<ApiEnvelope<ApiAddonItem>, number | string>({
       query: (id) => ({
         url: `/admin/addons/${id}`,
         method: "GET",
@@ -67,13 +67,16 @@ export const addonApi = baseApi.injectEndpoints({
 
     updateAdminAddon: builder.mutation<
       ApiEnvelope<ApiAddonItem>,
-      { id: string; formData: FormData } | { id: string; body: Partial<ApiAddonItem> }
+      { id: number | string; formData: FormData } | { id: number | string; body: Partial<ApiAddonItem> }
     >({
       query: (arg) => {
         const isFormData = "formData" in arg;
+        if (isFormData && arg.formData instanceof FormData && !arg.formData.has("_method")) {
+          arg.formData.append("_method", "PATCH");
+        }
         return {
           url: `/admin/addons/${arg.id}`,
-          method: "PATCH",
+          method: isFormData ? "POST" : "PATCH",
           body: isFormData ? arg.formData : arg.body,
         };
       },
@@ -87,10 +90,10 @@ export const addonApi = baseApi.injectEndpoints({
 
     deleteAdminAddon: builder.mutation<
       ApiEnvelope<unknown>,
-      string | { id: string; permanent?: boolean }
+      number | string | { id: number | string; permanent?: boolean }
     >({
       query: (arg) => {
-        const id = typeof arg === "string" ? arg : arg.id;
+        const id = typeof arg === "object" ? arg.id : arg;
         const permanent = typeof arg === "object" && arg.permanent;
         return {
           url: `/admin/addons/${id}`,
@@ -99,7 +102,7 @@ export const addonApi = baseApi.injectEndpoints({
         };
       },
       invalidatesTags: (_result, _error, arg) => {
-        const id = typeof arg === "string" ? arg : arg.id;
+        const id = typeof arg === "object" ? arg.id : arg;
         return [
           { type: "Addon", id: "LIST" },
           { type: "Addon", id },

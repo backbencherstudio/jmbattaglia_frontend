@@ -1,7 +1,7 @@
 import type { ApiEnvelope } from "@/types/packages";
 
 export interface ApiAddonMedia {
-  id: string;
+  id: number | string;
   objectKey?: string;
   filename?: string;
   mimeType?: string;
@@ -10,14 +10,14 @@ export interface ApiAddonMedia {
   url: string;
   altText?: string;
   status?: string;
-  createdBy?: string;
+  createdBy?: number | string;
   expiresAt?: string;
   createdAt?: string;
   updatedAt?: string;
 }
 
 export interface ApiAddonItem {
-  id: string;
+  id: number | string;
   name: string;
   description?: string;
   category?: "RESALE_HOME" | "NEW_CONSTRUCTION" | string;
@@ -29,9 +29,9 @@ export interface ApiAddonItem {
   whyItMatters?: string;
   features?: string[];
   media?: ApiAddonMedia[];
-  mediaIds?: string[];
+  mediaIds?: (number | string)[];
   mediaUrl?: string | null;
-  mediaId?: string | null;
+  mediaId?: number | string | null;
   mediaType?: string;
   isVideo?: boolean;
   videoUrl?: string | null;
@@ -46,7 +46,7 @@ export interface ApiAddonItem {
     ancillary?: boolean;
   }>;
   status?: "PUBLISHED" | "DRAFT" | "ARCHIVED" | string;
-  localCatalogId?: string;
+  localCatalogId?: number | string;
 }
 
 export interface AdminAddonsResponseData {

@@ -116,7 +116,7 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
 
   // Expandable accordions & modal state
   const [expandedPackageId, setExpandedPackageId] = useState<string | null>(null);
-  const [expandedAddonId, setExpandedAddonId] = useState<string | null>(null);
+  const [expandedAddonId, setExpandedAddonId] = useState<string | number | null>(null);
   const [uncheckedIncludedItems, setUncheckedIncludedItems] = useState<string[]>([]);
   const [videoModalPackage, setVideoModalPackage] = useState<PackageOption | null>(null);
 
@@ -138,8 +138,8 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
 
   // 1c. Fetch single add-on by ID when an add-on is selected
   const [triggerGetAddon] = useLazyGetPortalAddonByIdQuery();
-  const [singleAddonsMap, setSingleAddonsMap] = useState<Record<string, PortalAddonItem>>({});
-  const [loadingAddonIds, setLoadingAddonIds] = useState<Record<string, boolean>>({});
+  const [singleAddonsMap, setSingleAddonsMap] = useState<Record<string | number, PortalAddonItem>>({});
+  const [loadingAddonIds, setLoadingAddonIds] = useState<Record<string | number, boolean>>({});
 
   useEffect(() => {
     selectedAddons.forEach((addonId) => {
@@ -253,14 +253,15 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
     handleSelectPackage(pkgId);
   };
 
-  const toggleAddonSelect = (addonId: string) => {
+  const toggleAddonSelect = (addonId: string | number) => {
     const current = [...selectedAddons];
-    const exists = current.includes(addonId);
-    const updated = exists ? current.filter((id) => id !== addonId) : [...current, addonId];
+    const strId = String(addonId);
+    const exists = current.some((id) => String(id) === strId);
+    const updated = exists ? current.filter((id) => String(id) !== strId) : [...current, addonId];
     updateFormData({ selectedAddons: updated });
   };
 
-  const toggleAddonExpand = (addonId: string, e: React.MouseEvent) => {
+  const toggleAddonExpand = (addonId: string | number, e: React.MouseEvent) => {
     e.stopPropagation();
     setExpandedAddonId((prev) => (prev === addonId ? null : addonId));
   };
@@ -299,7 +300,7 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
   const activeSelectedAddonObjects = useMemo(() => {
     return selectedAddons.map((id) => {
       const single = singleAddonsMap[id];
-      const fallback = addonsList.find((a) => a.id === id);
+      const fallback = addonsList.find((a) => String(a.id) === String(id));
       return {
         id,
         title: single?.name || fallback?.title || "Add-on",
@@ -373,7 +374,7 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
         {/* Pricing & ISN Quote status banner */}
         <div className="bg-canvas border-l-6 border-l-primary border border-hairline rounded-xl p-3 sm:p-3.5 flex items-center justify-between gap-2.5">
           <div className="flex items-center gap-2.5">
-            <div className="w-5 h-5 rounded-full border-1.5 border-primary flex items-center justify-center flex-shrink-0 text-primary">
+            <div className="w-5 h-5 rounded-full border-1.5 border-primary flex items-center justify-center shrink-0 text-primary">
               <WarnIcon />
             </div>
             <p className="text-xs xs:text-sm md:text-base font-semibold text-primary-hover">
@@ -444,9 +445,9 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
 
           <div className="flex flex-col gap-3 sm:gap-3.5">
             {addonsList.map((addon) => {
-              const isSelected = selectedAddons.includes(addon.id);
+              const isSelected = selectedAddons.some((id) => String(id) === String(addon.id));
               const single = singleAddonsMap[addon.id];
-              const displayAddon = single
+              const displayAddon: AddonOption = single
                 ? {
                     id: single.id,
                     title: single.name,
@@ -478,7 +479,7 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
 
         {/* Bottom Info Callout Banner */}
         <div className="bg-canvas border-l-6 border-l-primary border border-hairline rounded-xl p-3 xs:p-3.5 sm:p-4 flex items-start gap-2.5 sm:gap-3 mt-2">
-          <div className="w-5 h-5 rounded-full border-1.5 border-primary flex items-center justify-center flex-shrink-0 text-primary mt-0.5">
+          <div className="w-5 h-5 rounded-full border-1.5 border-primary flex items-center justify-center shrink-0 text-primary mt-0.5">
             <WarnIcon />
           </div>
           <p className="text-xs sm:text-sm text-sub leading-normal">

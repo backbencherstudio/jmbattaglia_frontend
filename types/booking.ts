@@ -55,7 +55,7 @@ export interface PortalPackageItem {
 }
 
 export interface PortalAddonItem {
-  id: string;
+  id: number | string;
   name: string;
   description: string;
   category: "RESALE_HOME" | "NEW_CONSTRUCTION";

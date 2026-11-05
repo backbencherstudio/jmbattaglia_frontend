@@ -86,10 +86,13 @@ export const NEW_CONSTRUCTION_SERVICES: Record<string, string> = {
 /**
  * Sanitizes serviceIds ensuring ONLY valid UUIDs are kept, converting legacy slugs.
  */
-export const sanitizeServiceIds = (serviceIds?: string[] | null): string[] => {
+export const sanitizeServiceIds = (serviceIds?: (string | number)[] | null): string[] => {
   if (!Array.isArray(serviceIds)) return [];
   const mapped = serviceIds
-    .map((id) => (isUuid(id) ? id : LEGACY_ADDON_UUID_MAP[id] || null))
+    .map((id) => {
+      const strId = String(id);
+      return isUuid(strId) ? strId : LEGACY_ADDON_UUID_MAP[strId] || null;
+    })
     .filter((id): id is string => Boolean(id) && isUuid(id));
 
   return Array.from(new Set(mapped));
@@ -104,7 +107,7 @@ export const sanitizeServiceIds = (serviceIds?: string[] | null): string[] => {
 export const sanitizePackageAndServices = (
   category: "RESALE_HOME" | "NEW_CONSTRUCTION",
   packageId?: string | null,
-  serviceIds?: string[] | null,
+  serviceIds?: (string | number)[] | null,
   availablePackages?: any[]
 ): { packageId?: string; serviceIds: string[] } => {
   let cleanServiceIds = sanitizeServiceIds(serviceIds);
@@ -407,4 +410,21 @@ export const clearConfirmedOrderFromStorage = (): void => {
     console.error("Failed to clear confirmed order sessionStorage:", err);
   }
 };
+
+/**
+ * Generates a random 64-character hexadecimal idempotency key
+ * required by the Laravel booking API (32 random bytes encoded as hex).
+ */
+export const generateIdempotencyKey = (): string => {
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    const bytes = crypto.getRandomValues(new Uint8Array(32));
+    return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+  }
+  let hex = "";
+  for (let i = 0; i < 64; i++) {
+    hex += Math.floor(Math.random() * 16).toString(16);
+  }
+  return hex;
+};
+
 

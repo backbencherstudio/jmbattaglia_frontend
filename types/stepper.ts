@@ -64,8 +64,8 @@ export interface StepperFormData {
   specialInstructions?: string;
 
   // Step 2: Inspection - Package & Add-ons
-  selectedPackage?: string; // UUID from portal packages
-  selectedAddons?: string[]; // Array of UUIDs from portal addons
+  selectedPackage?: string; // Provider ID from portal packages
+  selectedAddons?: (number | string)[]; // Array of IDs from portal addons
   
   // Calculated ISN Quote (valid for 30 minutes in Redis)
   quoteId?: string;
@@ -81,7 +81,7 @@ export interface StepperFormData {
 
   // Submission & Receipt
   idempotencyKey?: string;
-  orderId?: string;
+  orderId?: number | string;
   orderReceipt?: any;
 
   // Dynamic step metadata

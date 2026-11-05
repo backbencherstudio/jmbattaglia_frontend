@@ -1,13 +1,15 @@
 export type AuthRole = "ADMIN" | "CLIENT" | "USER" | string | null;
 
 export interface IUser {
-  id: string;
+  id: number | string;
   email: string;
+  name?: string;
   firstName?: string | null;
   lastName?: string | null;
   fullName: string;
   avatarUrl?: string | null;
   role: AuthRole;
+  roles?: string[];
   permissions?: string[];
   isEmailVerified?: boolean;
   phone?: string | null;
@@ -23,11 +25,12 @@ export interface LoginParams {
 
 export interface LoginData {
   accessToken: string;
-  refreshToken: string;
   tokenType: string;
   expiresIn: number;
-  refreshExpiresIn: number;
+  expiresAt?: string;
   user: IUser;
+  refreshToken?: string | null;
+  refreshExpiresIn?: number | null;
 }
 
 export interface LoginResponse {
@@ -38,15 +41,16 @@ export interface LoginResponse {
 }
 
 export interface RefreshTokenParams {
-  refreshToken: string;
+  refreshToken?: string;
 }
 
 export interface RefreshTokenData {
   accessToken: string;
-  refreshToken: string;
   tokenType: string;
   expiresIn: number;
-  refreshExpiresIn: number;
+  expiresAt?: string;
+  refreshToken?: string;
+  refreshExpiresIn?: number;
 }
 
 export interface RefreshTokenResponse {
@@ -112,4 +116,3 @@ export interface ResetPasswordResponse {
   message: string;
   data?: unknown;
 }
-

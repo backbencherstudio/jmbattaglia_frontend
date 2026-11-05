@@ -1,17 +1,23 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { ChevronRight, Loader2, AlertCircle } from "lucide-react";
 import {
   useGetAdminProfileQuery,
   useUpdateAdminProfileMutation,
 } from "@/redux/features/profile/profileApi";
+import { useAppDispatch } from "@/redux/store";
+import { logOut } from "@/redux/features/auth/authSlice";
+import { baseApi } from "@/redux/api/baseApi";
 import { ProfilePictureUploader } from "@/components/admin/settings/ProfilePictureUploader";
 import { ProfileForm } from "@/components/admin/settings/ProfileForm";
 import { SettingsSkeleton } from "@/components/admin/settings/SettingsSkeleton";
 import { getErrorMessage } from "@/lib/getErrorMessage";
 
 export function SettingsContent() {
+  const router = useRouter();
+  const dispatch = useAppDispatch();
   const {
     data: profileResponse,
     isLoading: isFetching,
@@ -81,15 +87,15 @@ export function SettingsContent() {
 
       const requiresReauth = response.data?.requiresReauthentication;
       if (requiresReauth) {
-        setSuccessMessage(
-          response.message ||
-            "Profile updated successfully. Email or password was updated; you may need to sign in again.",
-        );
-      } else {
-        setSuccessMessage(
-          response.message || "Profile updated successfully!",
-        );
+        dispatch(logOut());
+        dispatch(baseApi.util.resetApiState());
+        router.push("/admin/login?message=" + encodeURIComponent("Security credentials updated. Please log in again with your new credentials."));
+        return;
       }
+
+      setSuccessMessage(
+        response.message || "Profile updated successfully!",
+      );
 
       // Reset file change states
       setSelectedFile(null);

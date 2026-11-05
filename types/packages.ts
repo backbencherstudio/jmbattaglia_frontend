@@ -55,7 +55,7 @@ export interface AddonItem {
 }
 
 export interface ApiPackageMedia {
-  id: string;
+  id: number | string;
   objectKey?: string;
   filename?: string;
   mimeType?: string;
@@ -64,7 +64,7 @@ export interface ApiPackageMedia {
   url: string;
   altText?: string;
   status?: string;
-  createdBy?: string;
+  createdBy?: number | string;
   expiresAt?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -88,12 +88,12 @@ export interface ApiPackage {
   whyItMatters?: string;
   features?: string[];
   media?: ApiPackageMedia[];
-  mediaIds?: string[];
+  mediaIds?: (number | string)[];
   mediaUrl?: string;
-  mediaId?: string;
+  mediaId?: number | string | null;
   status?: "DRAFT" | "PUBLISHED" | string;
   recommended?: boolean;
-  localCatalogId?: string;
+  localCatalogId?: number | string;
   createdAt?: string;
   updatedAt?: string;
 }

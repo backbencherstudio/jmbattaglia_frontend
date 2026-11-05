@@ -13,7 +13,7 @@ export interface PackageOption {
 }
 
 export interface AddonOption {
-  id: string;
+  id: number | string;
   title: string;
   priceText: string;
   priceNumeric: number;

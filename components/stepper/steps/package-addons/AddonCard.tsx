@@ -8,8 +8,8 @@ interface AddonCardProps {
   addon: AddonOption;
   isSelected: boolean;
   isExpanded: boolean;
-  onToggleSelect: (addonId: string) => void;
-  onToggleExpand: (addonId: string, e: React.MouseEvent) => void;
+  onToggleSelect: (addonId: string | number) => void;
+  onToggleExpand: (addonId: string | number, e: React.MouseEvent) => void;
 }
 
 export const AddonCard: React.FC<AddonCardProps> = ({
@@ -42,7 +42,7 @@ export const AddonCard: React.FC<AddonCardProps> = ({
           </span>
         </div>
 
-        <div className="flex items-center gap-2 xs:gap-2.5 flex-shrink-0">
+        <div className="flex items-center gap-2 xs:gap-2.5 shrink-0">
           {/* Add / Remove Toggle Button */}
           <button
             type="button"
@@ -104,7 +104,7 @@ export const AddonCard: React.FC<AddonCardProps> = ({
         <div className="px-3.5 pb-4 xs:px-4 xs:pb-5 sm:px-5 sm:pb-5 pt-2 border-t border-hairline/60">
           <div className="bg-white p-3 xs:p-3.5 sm:p-4 rounded-xl border border-hairline flex flex-col sm:flex-row gap-3.5 sm:gap-4 items-start sm:items-center">
             {addon.image && (
-              <div className="relative w-full sm:w-48 md:w-56 h-36 sm:h-32 md:h-36 rounded-lg overflow-hidden flex-shrink-0">
+              <div className="relative w-full sm:w-48 md:w-56 h-36 sm:h-32 md:h-36 rounded-lg overflow-hidden shrink-0">
                 <Image
                   src={addon.image}
                   alt={addon.title}

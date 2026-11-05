@@ -72,17 +72,17 @@ export default function ProtectedAdminLayout({
   }, [token, meResponse, router, dispatch]);
 
   return (
-    <div className="flex min-h-screen bg-canvas">
-      {/* Sidebar (Responsive Drawer on Mobile, Fixed on Desktop) */}
+    <div className="flex h-screen h-[100dvh] w-full overflow-hidden bg-canvas">
+      {/* Sidebar (Responsive Drawer on Mobile, Fixed 100vh on Desktop) */}
       <AdminSidebar
         isOpen={isMobileOpen}
         onClose={() => setIsMobileOpen(false)}
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
         <AdminHeader onMenuToggle={() => setIsMobileOpen(true)} />
-        <main className="flex-1 p-4 bg-layout-bg sm:p-6 lg:p-8 space-y-6 overflow-y-auto">
+        <main className="flex-1 p-4 bg-layout-bg sm:p-6 lg:p-8 space-y-6 overflow-y-auto min-h-0">
           {children}
         </main>
       </div>

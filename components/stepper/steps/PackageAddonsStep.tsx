@@ -116,8 +116,8 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
     }
   }, [packagesList, formData.selectedPackage, updateFormData]);
 
-  // Expandable accordions & modal state
-  const [expandedPackageId, setExpandedPackageId] = useState<string | null>(null);
+  // Packages are expanded by default per feedback (or can be collapsed)
+  const [collapsedPackageIds, setCollapsedPackageIds] = useState<string[]>([]);
   const [expandedAddonId, setExpandedAddonId] = useState<string | number | null>(null);
   const [uncheckedIncludedItems, setUncheckedIncludedItems] = useState<string[]>([]);
   const [videoModalPackage, setVideoModalPackage] = useState<PackageOption | null>(null);
@@ -247,12 +247,13 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
   const handleSelectPackage = (pkgId: string) => {
     updateFormData({ selectedPackage: pkgId });
     clearError("selectedPackage");
-    setExpandedPackageId((prev) => (prev === pkgId ? null : pkgId));
   };
 
   const togglePackageExpand = (pkgId: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    handleSelectPackage(pkgId);
+    setCollapsedPackageIds((prev) =>
+      prev.includes(pkgId) ? prev.filter((id) => id !== pkgId) : [...prev, pkgId]
+    );
   };
 
   const toggleAddonSelect = (addonId: string | number) => {
@@ -413,12 +414,13 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
             {packagesList.map((pkg) => {
               const isSelected = selectedPackageId === pkg.id;
               const displayPkg = isSelected && singlePackage ? activeSelectedPkgObj : pkg;
+              const isExpanded = !collapsedPackageIds.includes(pkg.id);
               return (
                 <PackageCard
                   key={pkg.id}
                   pkg={displayPkg}
                   isSelected={isSelected}
-                  isExpanded={expandedPackageId === pkg.id}
+                  isExpanded={isExpanded}
                   onSelect={handleSelectPackage}
                   onToggleExpand={togglePackageExpand}
                   onOpenVideo={(pkgToOpen) => setVideoModalPackage(pkgToOpen)}

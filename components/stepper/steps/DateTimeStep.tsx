@@ -151,53 +151,41 @@ export const DateTimeStep: React.FC<StepProps> = ({
     return allAppointments.length > 0 ? allAppointments[0].date : null;
   }, [availableSlotsOnDate, allAppointments, activeDate]);
 
-  // 7. Group slots into Morning, Afternoon, Evening (or realistic fallbacks if none)
-  const { morningSlots, afternoonSlots, eveningSlots, hasRealSlots } = useMemo(() => {
+  // 7. Group slots into 8:30 AM (Morning) and 1:00 PM (Afternoon)
+  const { morningSlots, afternoonSlots, hasRealSlots } = useMemo(() => {
     if (availableSlotsOnDate.length > 0) {
       const morning: AvailableSlotItem[] = [];
       const afternoon: AvailableSlotItem[] = [];
-      const evening: AvailableSlotItem[] = [];
 
       availableSlotsOnDate.forEach((slot) => {
-        const hour = parseInt(slot.time.split(":")[0], 10);
-        if (hour < 12) {
+        // Only accept 8:30 AM or 1:00 PM appointments per business rules
+        if (slot.time === "08:30") {
           morning.push(slot);
-        } else if (hour < 17) {
+        } else if (slot.time === "13:00") {
           afternoon.push(slot);
-        } else {
-          evening.push(slot);
         }
       });
 
-      return {
-        morningSlots: morning,
-        afternoonSlots: afternoon,
-        eveningSlots: evening,
-        hasRealSlots: true,
-      };
+      if (morning.length > 0 || afternoon.length > 0) {
+        return {
+          morningSlots: morning,
+          afternoonSlots: afternoon,
+          hasRealSlots: true,
+        };
+      }
     }
 
-    // Default inspection time options if API calendar has no inspector scheduled for this day
+    // Default inspection time options (strictly 8:30 AM and 1:00 PM)
     const defaultMorning: AvailableSlotItem[] = [
-      { date: activeDate, time: "08:00", inspectorId: "89758475-7ef9-4ebc-a264-d11c6b821d0b", inspectorName: "At Ease Primary Inspector", durationMinutes: 120 },
-      { date: activeDate, time: "09:00", inspectorId: "89758475-7ef9-4ebc-a264-d11c6b821d0b", inspectorName: "At Ease Primary Inspector", durationMinutes: 120 },
-      { date: activeDate, time: "10:00", inspectorId: "89758475-7ef9-4ebc-a264-d11c6b821d0b", inspectorName: "At Ease Primary Inspector", durationMinutes: 120 },
+      { date: activeDate, time: "08:30", inspectorId: "89758475-7ef9-4ebc-a264-d11c6b821d0b", inspectorName: "At Ease Primary Inspector", durationMinutes: 180 },
     ];
     const defaultAfternoon: AvailableSlotItem[] = [
-      { date: activeDate, time: "12:00", inspectorId: "89758475-7ef9-4ebc-a264-d11c6b821d0b", inspectorName: "At Ease Primary Inspector", durationMinutes: 120 },
-      { date: activeDate, time: "13:00", inspectorId: "89758475-7ef9-4ebc-a264-d11c6b821d0b", inspectorName: "At Ease Primary Inspector", durationMinutes: 120 },
-      { date: activeDate, time: "14:00", inspectorId: "89758475-7ef9-4ebc-a264-d11c6b821d0b", inspectorName: "At Ease Primary Inspector", durationMinutes: 120 },
-    ];
-    const defaultEvening: AvailableSlotItem[] = [
-      { date: activeDate, time: "18:00", inspectorId: "89758475-7ef9-4ebc-a264-d11c6b821d0b", inspectorName: "At Ease Primary Inspector", durationMinutes: 120 },
-      { date: activeDate, time: "19:00", inspectorId: "89758475-7ef9-4ebc-a264-d11c6b821d0b", inspectorName: "At Ease Primary Inspector", durationMinutes: 120 },
-      { date: activeDate, time: "20:00", inspectorId: "89758475-7ef9-4ebc-a264-d11c6b821d0b", inspectorName: "At Ease Primary Inspector", durationMinutes: 120 },
+      { date: activeDate, time: "13:00", inspectorId: "89758475-7ef9-4ebc-a264-d11c6b821d0b", inspectorName: "At Ease Primary Inspector", durationMinutes: 180 },
     ];
 
     return {
       morningSlots: defaultMorning,
       afternoonSlots: defaultAfternoon,
-      eveningSlots: defaultEvening,
       hasRealSlots: false,
     };
   }, [availableSlotsOnDate, activeDate]);
@@ -206,7 +194,7 @@ export const DateTimeStep: React.FC<StepProps> = ({
   useEffect(() => {
     if (formData.selectedTimeSlot) {
       const currentSelected24 = formatTimeSlotTo24h(formData.selectedTimeSlot);
-      const allSlotsOnCurrentDate = [...morningSlots, ...afternoonSlots, ...eveningSlots];
+      const allSlotsOnCurrentDate = [...morningSlots, ...afternoonSlots];
       const slotMatches = allSlotsOnCurrentDate.some((s) => s.time === currentSelected24);
       if (!slotMatches) {
         updateFormData({
@@ -216,7 +204,7 @@ export const DateTimeStep: React.FC<StepProps> = ({
         });
       }
     }
-  }, [activeDate, morningSlots, afternoonSlots, eveningSlots, formData.selectedTimeSlot, updateFormData]);
+  }, [activeDate, morningSlots, afternoonSlots, formData.selectedTimeSlot, updateFormData]);
 
   // 9. Calendar Navigation Controls
   const isPrevMonthDisabled = useMemo(() => {
@@ -518,34 +506,6 @@ export const DateTimeStep: React.FC<StepProps> = ({
                     return (
                       <button
                         key={`a-${slot.time}-${slot.inspectorId || "id"}`}
-                        type="button"
-                        onClick={() => handleSelectSlot(slot)}
-                        className={`py-3 px-2 rounded-2xl text-xs sm:text-sm font-bold text-center transition-all border cursor-pointer select-none ${
-                          isSelected
-                            ? "bg-primary-subtle border-primary text-primary shadow-2xs ring-1 ring-primary/40"
-                            : "bg-white border-hairline text-main hover:bg-canvas hover:border-primary/40"
-                        }`}
-                      >
-                        {format24hToDisplayTime(slot.time)}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Evening */}
-            {eveningSlots.length > 0 && (
-              <div className="flex flex-col gap-2">
-                <span className="text-xs font-bold text-muted uppercase tracking-wider">
-                  Evening
-                </span>
-                <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
-                  {eveningSlots.map((slot) => {
-                    const isSelected = Boolean(selected24h && selected24h === slot.time);
-                    return (
-                      <button
-                        key={`e-${slot.time}-${slot.inspectorId || "id"}`}
                         type="button"
                         onClick={() => handleSelectSlot(slot)}
                         className={`py-3 px-2 rounded-2xl text-xs sm:text-sm font-bold text-center transition-all border cursor-pointer select-none ${

@@ -29,8 +29,8 @@ const FALLBACK_FOUNDATIONS = [
   { value: "ec5c16e0-7864-11e1-bfb4-b15dbfa5fbfd", label: "Crawl Space/Pier and Beam" },
   { value: "11a8cea0-00eb-4637-b20a-2e5ddcff3db0", label: "Unfinished Basement" },
   { value: "3ca28aea-6d27-42e7-9790-488db4aa56ad", label: "Finished Basement" },
-  { value: "44be0319-56d4-4ede-bb6c-4a400dc15c94", label: "Condo" },
-  { value: "9dac9947-f96e-46e1-acbd-6b3f613b7abd", label: "Finished/ Unfinished Basement with Crawl" },
+  { value: "condo-foundation-id", label: "Condo" },
+  { value: "9dac9947-f96e-46e1-acbd-6b3f613b7abd", label: "Basement + Crawl" },
 ];
 
 export const PropertyDetailsStep: React.FC<StepProps> = ({
@@ -54,17 +54,7 @@ export const PropertyDetailsStep: React.FC<StepProps> = ({
     return FALLBACK_FOUNDATIONS;
   }, [foundationsRes]);
 
-  // Set default foundationType if empty
-  useEffect(() => {
-    if (!formData.foundationType && foundationOptions.length > 0) {
-      const defaultItem = foundationOptions[0];
-      updateFormData({
-        foundationType: defaultItem.value,
-        foundationName: defaultItem.label,
-      });
-    }
-  }, [formData.foundationType, foundationOptions, updateFormData]);
-
+  // Dropdowns start blank unless selected by user
   const handleFoundationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedId = e.target.value;
     const item = foundationOptions.find((opt) => opt.value === selectedId);
@@ -136,7 +126,7 @@ export const PropertyDetailsStep: React.FC<StepProps> = ({
           label="Client Attending"
           requiredStar
           placeholder="Select attendance option"
-          value={formData.clientAttending || "Yes – Client Will Attend Entire Inspection"}
+          value={formData.clientAttending || ""}
           onChange={(e) => {
             updateFormData({ clientAttending: e.target.value });
             clearError("clientAttending");
@@ -144,7 +134,6 @@ export const PropertyDetailsStep: React.FC<StepProps> = ({
           options={[
             "Yes – Client Will Attend Entire Inspection",
             "Yes – Client Will Attend Final Walkthrough (Last 30-45 Mins)",
-            "No – Client Unable to Attend (Detailed Report Requested)",
             "Buyer's Real Estate Agent Representing Client",
           ]}
           error={errors.clientAttending}
@@ -156,7 +145,7 @@ export const PropertyDetailsStep: React.FC<StepProps> = ({
           label="Home Occupied"
           requiredStar
           placeholder="Select occupancy status"
-          value={formData.homeOccupied || "Occupied (Furnished & Inhabited)"}
+          value={formData.homeOccupied || ""}
           onChange={(e) => {
             updateFormData({ homeOccupied: e.target.value });
             clearError("homeOccupied");
@@ -165,7 +154,6 @@ export const PropertyDetailsStep: React.FC<StepProps> = ({
             "Occupied (Furnished & Inhabited)",
             "Vacant (Unfurnished / Move-in Ready)",
             "Vacant (Staged for Sale)",
-            "New Construction (Pre-Occupancy)",
           ]}
           error={errors.homeOccupied}
           leftIcon={<Users className="w-5 h-5 text-muted" />}
@@ -176,7 +164,7 @@ export const PropertyDetailsStep: React.FC<StepProps> = ({
           label="Is it a Gated Community"
           requiredStar
           placeholder="Select access type"
-          value={formData.isGatedCommunity || "No – Open Access Community"}
+          value={formData.isGatedCommunity || ""}
           onChange={(e) => {
             updateFormData({ isGatedCommunity: e.target.value });
             clearError("isGatedCommunity");
@@ -196,7 +184,7 @@ export const PropertyDetailsStep: React.FC<StepProps> = ({
           label="Is there any Alarm System"
           requiredStar
           placeholder="Select alarm system status"
-          value={formData.hasAlarmSystem || "No Alarm System"}
+          value={formData.hasAlarmSystem || ""}
           onChange={(e) => {
             updateFormData({ hasAlarmSystem: e.target.value });
             clearError("hasAlarmSystem");
@@ -216,7 +204,7 @@ export const PropertyDetailsStep: React.FC<StepProps> = ({
           label="Pool/Spa"
           requiredStar
           placeholder="Select pool or spa type"
-          value={formData.hasPoolSpa || "None (No Pool or Spa)"}
+          value={formData.hasPoolSpa || ""}
           onChange={(e) => {
             updateFormData({ hasPoolSpa: e.target.value });
             clearError("hasPoolSpa");
@@ -226,7 +214,6 @@ export const PropertyDetailsStep: React.FC<StepProps> = ({
             "In-ground Swimming Pool",
             "Above-ground Swimming Pool",
             "Hot Tub / Spa Only",
-            "In-ground Pool & Spa Combination",
           ]}
           error={errors.hasPoolSpa}
           leftIcon={<Waves className="w-5 h-5 text-muted" />}
@@ -237,16 +224,14 @@ export const PropertyDetailsStep: React.FC<StepProps> = ({
           label="Type of Sewage System"
           requiredStar
           placeholder="Select sewage disposal type"
-          value={formData.sewageSystem || "Public Sewer Line"}
+          value={formData.sewageSystem || ""}
           onChange={(e) => {
             updateFormData({ sewageSystem: e.target.value });
             clearError("sewageSystem");
           }}
           options={[
-            "Public Sewer Line",
-            "Private Septic Tank & Drain Field",
-            "Aerobic Treatment Unit (ATU)",
-            "Shared / Community Septic System",
+            "Public Sewer",
+            "Private Septic Tank / Drain Field",
           ]}
           error={errors.sewageSystem}
           leftIcon={<Settings className="w-5 h-5 text-muted" />}
@@ -257,7 +242,7 @@ export const PropertyDetailsStep: React.FC<StepProps> = ({
           label="Type of Water System"
           requiredStar
           placeholder="Select water supply source"
-          value={formData.waterSystem || "Public / Municipal Water"}
+          value={formData.waterSystem || ""}
           onChange={(e) => {
             updateFormData({ waterSystem: e.target.value });
             clearError("waterSystem");
@@ -265,8 +250,6 @@ export const PropertyDetailsStep: React.FC<StepProps> = ({
           options={[
             "Public / Municipal Water",
             "Private Water Well System",
-            "Shared / Community Well System",
-            "Cistern / Stored Water Supply",
           ]}
           error={errors.waterSystem}
           leftIcon={<Droplet className="w-5 h-5 text-muted" />}
@@ -277,7 +260,7 @@ export const PropertyDetailsStep: React.FC<StepProps> = ({
           label="Utilities On"
           requiredStar
           placeholder="Select utility status"
-          value={formData.utilitiesOn || "All Utilities Fully Operational (Electric, Water, Gas)"}
+          value={formData.utilitiesOn || ""}
           onChange={(e) => {
             updateFormData({ utilitiesOn: e.target.value });
             clearError("utilitiesOn");
@@ -298,18 +281,17 @@ export const PropertyDetailsStep: React.FC<StepProps> = ({
           label="How Did You Hear About Us?"
           requiredStar
           placeholder="Select referral source"
-          value={formData.hearAboutUs || "Google Search / Web"}
+          value={formData.hearAboutUs || ""}
           onChange={(e) => {
             updateFormData({ hearAboutUs: e.target.value });
             clearError("hearAboutUs");
           }}
           options={[
             "Real Estate Agent Recommendation",
-            "Client / Friend Referral",
+            "Referred by a friend",
             "Google Search / Web",
             "Social Media (Facebook / Instagram / LinkedIn)",
-            "Returning Customer",
-            "Online Rating & Reviews (Google Reviews / Yelp)",
+            "Repeat customer",
             "Community Event / Local Advertisement",
           ]}
           error={errors.hearAboutUs}

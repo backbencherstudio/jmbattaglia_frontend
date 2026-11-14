@@ -63,15 +63,15 @@ const DEFAULT_FORM_DATA: StepperFormData = {
   customerRole: "home-buyer",
   inspectionKind: "resale-home",
   state: "Georgia (GA)",
-  hearAboutUs: "Google Search / Web",
-  clientAttending: "Yes – Client Will Attend Entire Inspection",
-  homeOccupied: "Occupied (Furnished & Inhabited)",
-  isGatedCommunity: "No – Open Access Community",
-  hasAlarmSystem: "No Alarm System",
-  hasPoolSpa: "None (No Pool or Spa)",
-  sewageSystem: "Public Sewer Line",
-  waterSystem: "Public / Municipal Water",
-  utilitiesOn: "All Utilities Fully Operational (Electric, Water, Gas)",
+  hearAboutUs: "",
+  clientAttending: "",
+  homeOccupied: "",
+  isGatedCommunity: "",
+  hasAlarmSystem: "",
+  hasPoolSpa: "",
+  sewageSystem: "",
+  waterSystem: "",
+  utilitiesOn: "",
 };
 
 export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {
@@ -327,6 +327,33 @@ export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {
       }
       if (!formData.foundationType) {
         newErrors.foundationType = "Foundation Type is required.";
+      }
+      if (!formData.clientAttending) {
+        newErrors.clientAttending = "Please select attendance option.";
+      }
+      if (!formData.homeOccupied) {
+        newErrors.homeOccupied = "Please select occupancy status.";
+      }
+      if (!formData.isGatedCommunity) {
+        newErrors.isGatedCommunity = "Please select gated community status.";
+      }
+      if (!formData.hasAlarmSystem) {
+        newErrors.hasAlarmSystem = "Please select alarm status.";
+      }
+      if (!formData.hasPoolSpa) {
+        newErrors.hasPoolSpa = "Please select pool/spa option.";
+      }
+      if (!formData.sewageSystem) {
+        newErrors.sewageSystem = "Please select sewage system type.";
+      }
+      if (!formData.waterSystem) {
+        newErrors.waterSystem = "Please select water system source.";
+      }
+      if (!formData.utilitiesOn) {
+        newErrors.utilitiesOn = "Please select utilities status.";
+      }
+      if (!formData.hearAboutUs) {
+        newErrors.hearAboutUs = "Please tell us how you heard about us.";
       }
     } else if (currentSubStep?.id === "package-addons") {
       if (!formData.selectedPackage) {

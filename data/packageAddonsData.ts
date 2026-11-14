@@ -100,27 +100,6 @@ export const NEW_CONSTRUCTION_PACKAGES: PackageOption[] = [
 
 export const ADDONS_CONFIG: AddonOption[] = [
   {
-    id: "a52111c7-212d-475a-948a-84f5b00c18d3",
-    title: "Chemical Balancing",
-    priceText: "$79",
-    priceNumeric: 79,
-    whyItMatters: "Water chemistry analysis and balancing ensure a healthy, safe swimming environment.",
-  },
-  {
-    id: "56a45531-1ba6-432f-8cc5-2626337ac231",
-    title: "Spa Maintenance",
-    priceText: "$149",
-    priceNumeric: 149,
-    whyItMatters: "Thorough hot tub and spa inspection including heating elements, jets, and safety controls.",
-  },
-  {
-    id: "0f347f94-0f6a-4560-9ec0-8f4563f5f722",
-    title: "Filter Replacement",
-    priceText: "$89",
-    priceNumeric: 89,
-    whyItMatters: "Clogged or degraded filters cause poor circulation and short pump life.",
-  },
-  {
     id: "71da77a4-f11f-4462-a160-1ab33a5139bf",
     title: "Pool Inspection",
     priceText: "$199",
@@ -129,6 +108,27 @@ export const ADDONS_CONFIG: AddonOption[] = [
     whyItMatters:
       "Inspection of pool equipment including built-in spas. Added to home inspection.",
     repairRisk: "$2,000–$10,000",
+  },
+  {
+    id: "termite-letter-addon-id",
+    title: "Termite Letter / Official WDO Report",
+    priceText: "$75",
+    priceNumeric: 75,
+    whyItMatters: "Official Wood-Destroying Organism clearance letter required by most mortgage lenders.",
+  },
+  {
+    id: "stucco-inspection-addon-id",
+    title: "Stucco / EIFS Inspection",
+    priceText: "$250",
+    priceNumeric: 250,
+    whyItMatters: "Moisture intrusion and synthetic stucco boundary assessment to prevent hidden rot.",
+  },
+  {
+    id: "mobile-home-foundation-addon-id",
+    title: "Manufactured / Mobile Home Foundation Cert",
+    priceText: "$350",
+    priceNumeric: 350,
+    whyItMatters: "HUD compliance engineering certificate for tie-downs and foundation stability.",
   },
 ];
 

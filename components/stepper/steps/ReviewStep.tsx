@@ -353,7 +353,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
           </span>
         </div>
         <p className="text-xs sm:text-sm text-sub font-medium">
-          Real ISN direct booking quotation. Click Complete Order to submit your inspection request.
+          Click Complete Order to submit your inspection request. Our team will verify and confirm details promptly.
         </p>
       </div>
     </div>

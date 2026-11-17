@@ -10,13 +10,16 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml* ./
 RUN pnpm install --frozen-lockfile
 
-# 2. Build Next.js application
+# 2. Build Next.js application (with baked-in production API URL)
 FROM base AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://atease.pixelstack.cloud/api/v1}
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
 RUN pnpm build:webpack
 
 # 3. Production runner
@@ -40,4 +43,3 @@ EXPOSE 5001
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s CMD node -e "fetch('http://127.0.0.1:5001').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
 CMD ["pnpm", "start"]
-

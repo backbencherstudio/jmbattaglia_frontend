@@ -49,7 +49,7 @@ export function CreatePackageWizard({
   const formData = draft.formData;
   const isDirty = draft.isDirty;
 
-  // Unsaved changes browser prompt
+  // Unsaved changes browser prompt & In-app sidebar link navigation guard
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty) {
@@ -58,7 +58,31 @@ export function CreatePackageWizard({
       }
     };
     window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+
+    const handleInAppNavigation = (e: MouseEvent) => {
+      if (!isDirty) return;
+      const anchor = (e.target as HTMLElement).closest("a");
+      if (
+        anchor &&
+        anchor.href &&
+        !anchor.href.includes("#") &&
+        !anchor.href.startsWith("javascript:")
+      ) {
+        const confirmLeave = window.confirm(
+          "You have unsaved changes in this package editor. Are you sure you want to leave? Unsaved edits will be lost."
+        );
+        if (!confirmLeave) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }
+    };
+    document.addEventListener("click", handleInAppNavigation, true);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("click", handleInAppNavigation, true);
+    };
   }, [isDirty]);
 
   // API mutations & query

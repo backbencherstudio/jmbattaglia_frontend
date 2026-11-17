@@ -108,6 +108,7 @@ export const bookingApi = baseApi.injectEndpoints({
           days,
         },
       }),
+      keepUnusedDataFor: 300,
     }),
 
     // 8. Submit the full order

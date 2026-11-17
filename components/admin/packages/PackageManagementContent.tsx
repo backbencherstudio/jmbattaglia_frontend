@@ -372,13 +372,13 @@ export function PackageManagementContent() {
     try {
       for (const id of selectedPackageIds) {
         const fd = new FormData();
-        fd.append("status", "DRAFT");
+        fd.append("status", "ARCHIVED");
         fd.append("show", "false");
         await updateAdminPackage({ id, formData: fd }).unwrap();
       }
       setNotification({
         type: "success",
-        message: `Successfully moved ${selectedPackageIds.length} package(s) to Draft.`,
+        message: `Successfully archived ${selectedPackageIds.length} package(s).`,
       });
       setSelectedPackageIds([]);
       refetchPackages();

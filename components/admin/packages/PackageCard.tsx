@@ -203,6 +203,8 @@ export function PackageCard({
             className={`px-3 py-1 rounded-md text-xs font-semibold ${
               item.status === "Published"
                 ? "bg-[#24B33C1F] text-[#24B33C]"
+                : item.status === "Archived"
+                ? "bg-neutral-100 text-neutral-600 border border-neutral-300"
                 : "bg-[#FFFAE7] text-[#BB960B]"
             }`}
           >

@@ -357,7 +357,11 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
       uncheckedDeductions
   );
 
-  const totalAmount = directTotal;
+  // Synchronize with ISN quote total when available to prevent price mismatch with Review step
+  const totalAmount =
+    formData.calculatedQuote && formData.calculatedQuote.totalCents > 0
+      ? formData.calculatedQuote.totalCents / 100
+      : directTotal;
 
 
   return (

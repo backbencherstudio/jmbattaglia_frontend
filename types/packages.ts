@@ -1,4 +1,4 @@
-export type PackageStatus = "Published" | "Draft";
+export type PackageStatus = "Published" | "Draft" | "Archived";
 export type PackageCategory =
   | "Resale Home"
   | "New Construction"
@@ -127,14 +127,22 @@ export function mapApiPackageToPackageItem(apiPkg: ApiPackage): PackageItem {
   const type: PackageType = typeUpper === "SINGLE" ? "Single" : "Bundle";
 
   const statusUpper = (apiPkg.status || "").toUpperCase();
-  const status: PackageStatus = statusUpper === "DRAFT" ? "Draft" : "Published";
+  const status: PackageStatus =
+    statusUpper === "DRAFT"
+      ? "Draft"
+      : statusUpper === "ARCHIVED"
+      ? "Archived"
+      : "Published";
 
   const priceCents = typeof apiPkg.priceCents === "number" ? apiPkg.priceCents : 0;
   const dollars = priceCents / 100;
-  const formattedPrice = `$${dollars.toLocaleString(undefined, {
-    minimumFractionDigits: dollars % 1 === 0 ? 0 : 2,
-    maximumFractionDigits: 2,
-  })}`;
+  const formattedPrice =
+    dollars <= 0
+      ? "Quote Required"
+      : `$${dollars.toLocaleString(undefined, {
+          minimumFractionDigits: dollars % 1 === 0 ? 0 : 2,
+          maximumFractionDigits: 2,
+        })}`;
 
   const primaryMedia = apiPkg.media?.[0];
   const rawMediaUrl = apiPkg.mediaUrl || primaryMedia?.url;
@@ -173,7 +181,7 @@ export function mapApiPackageToPackageItem(apiPkg: ApiPackage): PackageItem {
     status,
     updated: formattedDate,
     updatedAt: apiPkg.updatedAt || apiPkg.createdAt,
-    editor: (apiPkg as any).updatedBy || (apiPkg as any).editor || "Porcha (Admin)",
+    editor: (apiPkg as any).updatedBy || (apiPkg as any).editor || "Admin",
     shortDescription: apiPkg.description || "",
     image: imageUrl,
     videoUrl,

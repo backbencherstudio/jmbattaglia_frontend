@@ -200,21 +200,23 @@ export const DateTimeStep: React.FC<StepProps> = ({
       const afternoonMap = new Map<string, AvailableSlotItem>();
 
       availableSlotsOnDate.forEach((slot) => {
-        const [hourStr] = (slot.time || "").split(":");
+        const [hourStr, minStr] = (slot.time || "").split(":");
         const hour = parseInt(hourStr, 10);
+        const min = parseInt(minStr || "0", 10);
+        const totalMinutes = hour * 60 + min;
 
-        // Morning Window: appointment starts between 7:00 AM and 11:59 AM
-        if (hour >= 7 && hour < 12) {
+        // Morning Window strictly 8:30 AM (starts between 8:00 AM and 9:15 AM)
+        if (totalMinutes >= 480 && totalMinutes <= 555) {
           const key = slot.inspectorId || "morning-default";
-          if (!morningMap.has(key) || slot.time === "08:30") {
-            morningMap.set(key, slot);
+          if (!morningMap.has(key)) {
+            morningMap.set(key, { ...slot, time: "08:30" });
           }
         }
-        // Afternoon Window: appointment starts between 12:00 PM and 5:00 PM
-        else if (hour >= 12 && hour <= 17) {
+        // Afternoon Window strictly 1:00 PM (starts between 12:30 PM and 1:45 PM)
+        else if (totalMinutes >= 750 && totalMinutes <= 825) {
           const key = slot.inspectorId || "afternoon-default";
-          if (!afternoonMap.has(key) || slot.time === "13:00") {
-            afternoonMap.set(key, slot);
+          if (!afternoonMap.has(key)) {
+            afternoonMap.set(key, { ...slot, time: "13:00" });
           }
         }
       });
@@ -231,20 +233,12 @@ export const DateTimeStep: React.FC<StepProps> = ({
       }
     }
 
-    // Default inspection time options (strictly 8:30 AM and 1:00 PM)
-    const defaultMorning: AvailableSlotItem[] = [
-      { date: activeDate, time: "08:30", inspectorId: "89758475-7ef9-4ebc-a264-d11c6b821d0b", inspectorName: "At Ease Primary Inspector", durationMinutes: 180 },
-    ];
-    const defaultAfternoon: AvailableSlotItem[] = [
-      { date: activeDate, time: "13:00", inspectorId: "89758475-7ef9-4ebc-a264-d11c6b821d0b", inspectorName: "At Ease Primary Inspector", durationMinutes: 180 },
-    ];
-
     return {
-      morningSlots: defaultMorning,
-      afternoonSlots: defaultAfternoon,
+      morningSlots: [],
+      afternoonSlots: [],
       hasRealSlots: false,
     };
-  }, [availableSlotsOnDate, activeDate]);
+  }, [availableSlotsOnDate]);
 
   // 8. If a time slot was previously selected, clear it if it's no longer valid on the active date
   useEffect(() => {
@@ -477,26 +471,24 @@ export const DateTimeStep: React.FC<StepProps> = ({
         <div className="lg:col-span-6 flex flex-col w-full">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-bold text-main">Select an available time</h3>
-            {isFetchingSlots && (
-              <span className="text-xs text-primary font-semibold flex items-center gap-1.5">
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" /> Connecting to ISN...
-              </span>
-            )}
           </div>
 
-          {/* Friendly Loading State as requested by client */}
+          {/* Big, Friendly Loading Modal */}
           {isFetchingSlots && (
-            <div className="mb-4 p-5 rounded-2xl border border-primary/25 bg-gradient-to-br from-[#FAFDF0] to-white shadow-2xs flex flex-col items-center justify-center gap-2.5 text-center">
-              <div className="w-11 h-11 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-xs">
-                <Loader2 className="w-6 h-6 animate-spin text-primary" />
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <h4 className="font-bold text-sm sm:text-base text-main">
-                  Checking Real-Time Inspector Availability
-                </h4>
-                <p className="text-xs text-sub max-w-sm">
-                  Syncing live appointment schedules with ISN for <strong>{activeDate}</strong>.
-                </p>
+            <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
+              <div className="bg-white border border-hairline rounded-3xl p-6 sm:p-8 max-w-sm sm:max-w-md w-full shadow-2xl flex flex-col items-center text-center gap-4">
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-xs">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-main">Checking Inspector Availability</h3>
+                  <p className="text-sm text-sub mt-1 leading-relaxed">
+                    Syncing live appointment schedules directly with ISN for <strong>{activeDate}</strong>...
+                  </p>
+                </div>
+                <div className="w-full bg-canvas rounded-full h-1.5 overflow-hidden mt-1">
+                  <div className="bg-primary h-full w-2/3 animate-pulse rounded-full" />
+                </div>
               </div>
             </div>
           )}

@@ -101,7 +101,7 @@ export const NEW_CONSTRUCTION_PACKAGES: PackageOption[] = [
 
 export const ADDONS_CONFIG: AddonOption[] = [
   {
-    id: "termite-letter-addon-id",
+    id: "9f8b2d10-5e34-4b8c-a1d2-7c3e4f5a6b7c",
     title: "Termite Letter / Official WDO Report",
     priceText: "$75",
     priceNumeric: 75,
@@ -110,7 +110,7 @@ export const ADDONS_CONFIG: AddonOption[] = [
     repairRisk: "$1,500–$8,000",
   },
   {
-    id: "radon-testing-addon-id",
+    id: "4e7a1b2c-3d4e-5f6a-7b8c-9d0e1f2a3b4c",
     title: "Continuous Digital Radon Testing",
     priceText: "$199",
     priceNumeric: 199,

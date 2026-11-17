@@ -491,7 +491,7 @@ export function PackageManagementContent() {
           }
           onDelete={(item) => {
             updateQueryParams({ view: "list", id: null });
-            handleDeletePackage(item);
+            handleDeletePackage(item, true);
           }}
           onOpenVideo={(item) => setVideoModalPackage(item)}
         />

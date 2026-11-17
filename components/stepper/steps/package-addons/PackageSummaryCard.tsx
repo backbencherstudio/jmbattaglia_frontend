@@ -127,7 +127,7 @@ export const PackageSummaryCard: React.FC<PackageSummaryCardProps> = ({
             Total Amounts
           </span>
           <span className="font-extrabold text-lg xs:text-xl sm:text-xl md:text-2xl lg:text-xl xl:text-2xl text-primary text-right shrink-0">
-            + ${totalAmount.toLocaleString()}
+            {totalAmount > 0 ? `+ $${totalAmount.toLocaleString()}` : "Quote Required"}
           </span>
         </div>
       </div>

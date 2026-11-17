@@ -116,16 +116,23 @@ export function RecentPackagesTable({
       header: "Price",
       render: (item) => {
         let displayPrice = item.price;
-        if (!displayPrice && typeof item.priceCents === "number") {
+        if (typeof item.priceCents === "number") {
           const dollars = item.priceCents / 100;
-          displayPrice = `$${dollars.toLocaleString(undefined, {
-            minimumFractionDigits: dollars % 1 === 0 ? 0 : 2,
-            maximumFractionDigits: 2,
-          })}`;
+          if (dollars > 0) {
+            displayPrice = `$${dollars.toLocaleString(undefined, {
+              minimumFractionDigits: dollars % 1 === 0 ? 0 : 2,
+              maximumFractionDigits: 2,
+            })}`;
+          } else {
+            displayPrice = "Quote Required";
+          }
+        }
+        if (displayPrice === "$0" || !displayPrice) {
+          displayPrice = "Quote Required";
         }
         return (
           <span className="font-normal text-main">
-            {displayPrice || "$0"}
+            {displayPrice}
           </span>
         );
       },

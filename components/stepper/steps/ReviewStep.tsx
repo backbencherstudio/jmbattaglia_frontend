@@ -48,7 +48,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
       return {
         id: fromApi.id,
         title: fromApi.name,
-        priceText: fromApi.formattedPrice || (fromApi.price ? `$${fromApi.price}` : "$0"),
+        priceText: fromApi.formattedPrice || (fromApi.price ? `$${fromApi.price}` : "Quote Required"),
         priceNumeric: fromApi.price || (fromApi.priceCents ? fromApi.priceCents / 100 : 0),
       };
     }
@@ -56,7 +56,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
     return {
       id,
       title: fromStatic?.title || "Add-on",
-      priceText: fromStatic?.priceText || "$0",
+      priceText: fromStatic?.priceText || "Quote Required",
       priceNumeric: fromStatic?.priceNumeric || 0,
     };
   });
@@ -64,10 +64,9 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
   const fallbackTotal =
     pkgPriceNumeric + selectedAddonsList.reduce((acc, a) => acc + (a?.priceNumeric || 0), 0);
 
-
   const quoteLines = formData.calculatedQuote?.lines;
   const quoteTotal =
-    formData.calculatedQuote && formData.calculatedQuote.totalCents > 0
+    formData.calculatedQuote && typeof formData.calculatedQuote.totalCents === "number" && formData.calculatedQuote.totalCents > 0
       ? formData.calculatedQuote.totalCents / 100
       : fallbackTotal;
 
@@ -349,7 +348,9 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
         <div className="flex items-center justify-between">
           <h3 className="text-lg sm:text-xl font-extrabold text-main tracking-tight">Total Quoted Amount</h3>
           <span className="text-xl sm:text-2xl font-extrabold text-[#FF6900]">
-            ${quoteTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {quoteTotal > 0
+              ? `$${quoteTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+              : "Quote Required"}
           </span>
         </div>
         <p className="text-xs sm:text-sm text-sub font-medium">

@@ -62,7 +62,7 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
           id: p.id,
           title: p.name,
           isRecommended: Boolean(p.recommended || p.best),
-          priceText: p.formattedPrice || (p.price ? `$${p.price.toLocaleString()}` : "$0"),
+          priceText: p.formattedPrice || (p.price ? `$${p.price.toLocaleString()}` : "Quote Required"),
           priceNumeric: p.price || (p.priceCents ? p.priceCents / 100 : 0),
           priceSubLabel: p.type === "BUNDLE" ? "Bundle Price" : "Starting",
           description: p.description,
@@ -95,7 +95,7 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
         return filtered.map((a) => ({
           id: a.id,
           title: a.name,
-          priceText: a.formattedPrice || (a.price ? `$${a.price.toLocaleString()}` : "$0"),
+          priceText: a.formattedPrice || (a.price ? `$${a.price.toLocaleString()}` : "Quote Required"),
           priceNumeric: a.price || (a.priceCents ? a.priceCents / 100 : 0),
           image: a.imageUrl || a.mediaUrl || "/assets/images/pool_inspection.jpg",
           whyItMatters: a.whyItMatters || "",
@@ -520,7 +520,9 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
           <div className="flex items-center gap-1.5">
             <span className="text-xs font-bold text-main">Live Quoted:</span>
             <span className="text-lg font-black text-primary">
-              ${totalAmount.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+              {totalAmount > 0
+                ? `$${totalAmount.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`
+                : "Quote Required"}
             </span>
           </div>
         </div>

@@ -24,26 +24,21 @@ export const PackageSummaryCard: React.FC<PackageSummaryCardProps> = ({
   isPackageLoading = false,
 }) => {
   return (
-    <div className="w-full lg:w-72 xl:w-80 2xl:w-84 shrink-0 lg:sticky lg:top-6 self-start">
+    <div id="package-summary-card-anchor" className="w-full lg:w-72 xl:w-80 2xl:w-84 shrink-0 lg:sticky lg:top-6 self-start">
       <div className="bg-white rounded-2xl border border-hairline p-3.5 xs:p-4 sm:p-5 shadow-xs flex flex-col gap-3.5 sm:gap-4">
-        {/* Header Row: Title + Edit Button */}
+        {/* Header Row: Title */}
         <div className="flex items-center justify-between pb-3 border-b border-hairline/60">
           <h3 className="font-extrabold text-base sm:text-lg text-main tracking-tight">
-            Package Amounts
+            Order Summary
           </h3>
-          {/* <button
-            type="button"
-            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="text-primary font-bold text-xs sm:text-sm underline hover:text-primary-hover cursor-pointer transition-colors"
-          >
-            Edit
-          </button> */}
         </div>
 
         {/* Selected Package & Addons list */}
         <div className="flex flex-col gap-2.5 text-xs sm:text-sm">
           <div className="flex justify-between items-center gap-2">
-            <span className="text-sub font-medium truncate">{selectedPkgObj?.title} :</span>
+            <span className="text-sub font-semibold truncate">
+              {selectedPkgObj?.title || "Home Inspection"}:
+            </span>
             <div className="flex items-center gap-1.5 shrink-0">
               {isPackageLoading && <Loader2 className="w-3 h-3 animate-spin text-primary" />}
               <span className="text-main font-extrabold text-right shrink-0">

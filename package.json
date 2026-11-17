@@ -3,10 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "dev:https": "next dev --experimental-https",
+    "dev": "next dev -p 5001",
+    "dev:webpack": "next dev --webpack -p 5001",
+    "dev:https": "next dev --experimental-https -p 5001",
     "build": "next build",
-    "start": "next start",
+    "build:webpack": "next build --webpack",
+    "start": "next start -p 5001",
     "lint": "eslint"
   },
   "dependencies": {

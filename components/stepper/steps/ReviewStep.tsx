@@ -108,28 +108,28 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
             <div className="flex justify-between items-center py-0.5">
               <span className="text-sub font-medium">Foundation Type:</span>
               <span className="text-main font-bold text-right">
-                {formData.foundationName || formData.foundationType || "Slab on grade"}
+                {formData.foundationName || formData.foundationType || "Not specified"}
               </span>
             </div>
 
             <div className="flex justify-between items-center py-0.5">
               <span className="text-sub font-medium">Client Attending:</span>
-              <span className="text-main font-bold text-right">{formData.clientAttending || "Yes"}</span>
+              <span className="text-main font-bold text-right">{formData.clientAttending || "Not specified"}</span>
             </div>
 
             <div className="flex justify-between items-center py-0.5">
               <span className="text-sub font-medium">Home Occupied:</span>
-              <span className="text-main font-bold text-right">{formData.homeOccupied || "Occupied"}</span>
+              <span className="text-main font-bold text-right">{formData.homeOccupied || "Not specified"}</span>
             </div>
 
             <div className="flex justify-between items-center py-0.5">
               <span className="text-sub font-medium">Gated Community:</span>
-              <span className="text-main font-bold text-right">{formData.isGatedCommunity || "No"}</span>
+              <span className="text-main font-bold text-right">{formData.isGatedCommunity || "Not specified"}</span>
             </div>
 
             <div className="flex justify-between items-center py-0.5">
               <span className="text-sub font-medium">Alarm System:</span>
-              <span className="text-main font-bold text-right">{formData.hasAlarmSystem || "No"}</span>
+              <span className="text-main font-bold text-right">{formData.hasAlarmSystem || "Not specified"}</span>
             </div>
 
             <div className="flex justify-between items-center py-0.5">
@@ -139,7 +139,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
 
             <div className="flex justify-between items-center py-0.5">
               <span className="text-sub font-medium">Utilities On:</span>
-              <span className="text-main font-bold text-right">{formData.utilitiesOn || "All Utilities On"}</span>
+              <span className="text-main font-bold text-right">{formData.utilitiesOn || "Not specified"}</span>
             </div>
 
             {formData.gateCode && (
@@ -151,17 +151,17 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
 
             <div className="flex justify-between items-center py-0.5">
               <span className="text-sub font-medium">Sewage System:</span>
-              <span className="text-main font-bold text-right">{formData.sewageSystem || "Public Sewer Line"}</span>
+              <span className="text-main font-bold text-right">{formData.sewageSystem || "Not specified"}</span>
             </div>
 
             <div className="flex justify-between items-center py-0.5">
               <span className="text-sub font-medium">Water System:</span>
-              <span className="text-main font-bold text-right">{formData.waterSystem || "Public / Municipal Water"}</span>
+              <span className="text-main font-bold text-right">{formData.waterSystem || "Not specified"}</span>
             </div>
 
             <div className="flex justify-between items-center py-0.5">
               <span className="text-sub font-medium">Referral:</span>
-              <span className="text-main font-bold text-right">{formData.hearAboutUs || "Google Search / Web"}</span>
+              <span className="text-main font-bold text-right">{formData.hearAboutUs || "Not specified"}</span>
             </div>
 
             {formData.dueDiligence && (
@@ -250,14 +250,14 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
               <div className="flex justify-between items-center">
                 <span className="text-sub font-medium">Address:</span>
                 <span className="text-main font-bold text-right">
-                  {formData.addressLine1 || "123 Main Street"}
+                  {formData.addressLine1 || "Not specified"}
                   {formData.addressLine2 ? `, ${formData.addressLine2}` : ""}
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sub font-medium">City, State, Zip:</span>
                 <span className="text-main font-bold text-right">
-                  {formData.city || "Atlanta"}, {formData.state || "GA"} {formData.zipCode || "30301"}
+                  {[formData.city, formData.state, formData.zipCode].filter(Boolean).join(", ") || "Not specified"}
                 </span>
               </div>
             </div>

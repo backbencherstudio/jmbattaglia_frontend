@@ -74,31 +74,18 @@ export const CustomerTypeStep: React.FC<StepProps> = ({
 
       if (lookupData?.found) {
         const contact = lookupData.contact;
-        const prevProp = lookupData.previousProperty;
 
         updateFormData({
           emailVerified: true,
           isExistingClient: true,
-          firstName: contact?.firstName || formData.firstName,
-          lastName: contact?.lastName || formData.lastName,
-          phone: contact?.phone || formData.phone,
-          ...(prevProp
-            ? {
-                addressLine1: prevProp.address1 || formData.addressLine1,
-                addressLine2: prevProp.address2 || formData.addressLine2,
-                city: prevProp.city || formData.city,
-                state: prevProp.state || formData.state,
-                zipCode: prevProp.zip || formData.zipCode,
-                yearBuilt: prevProp.yearBuilt ? String(prevProp.yearBuilt) : formData.yearBuilt,
-                squareFeet: prevProp.squareFeet ? String(prevProp.squareFeet) : formData.squareFeet,
-                foundationType: prevProp.foundationType || formData.foundationType,
-              }
-            : {}),
+          ...(contact?.firstName ? { firstName: contact.firstName } : {}),
+          ...(contact?.lastName ? { lastName: contact.lastName } : {}),
+          ...(contact?.phone ? { phone: contact.phone } : {}),
         });
 
         setLookupMessage({
           type: "success",
-          text: `Found existing customer record for ${contact?.firstName || "you"}! Your details have been pre-filled.`,
+          text: "Welcome back! We found an account with this email. Please confirm your contact information to proceed.",
         });
       } else {
         updateFormData({

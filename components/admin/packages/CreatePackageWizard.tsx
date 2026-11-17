@@ -47,6 +47,19 @@ export function CreatePackageWizard({
   // Redux draft state
   const draft = useAppSelector((state) => state.packageDraft);
   const formData = draft.formData;
+  const isDirty = draft.isDirty;
+
+  // Unsaved changes browser prompt
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty]);
 
   // API mutations & query
   const [createAdminPackage, { isLoading: isCreating }] =
@@ -110,6 +123,7 @@ export function CreatePackageWizard({
     const dollars = parseFloat(numericPrice) || 0;
     const priceCents = Math.round(dollars * 100);
     fd.append("priceCents", String(priceCents));
+    fd.append("quoteRequired", formData.quoteRequired ? "true" : "false");
 
     fd.append("description", (formData.shortDescription || "").trim());
 
@@ -133,6 +147,10 @@ export function CreatePackageWizard({
         .forEach((feature) => {
           fd.append("features[]", feature);
         });
+    }
+
+    if (formData.videoUrl?.trim()) {
+      fd.append("videoUrl", formData.videoUrl.trim());
     }
 
     fd.append("recommended", formData.isRecommended ? "true" : "false");
@@ -258,6 +276,15 @@ export function CreatePackageWizard({
     setFormError(null);
     setSuccessToast(null);
 
+    const numericPrice = (formData.price || "").replace(/[^0-9.]/g, "");
+    const dollars = parseFloat(numericPrice) || 0;
+    if (dollars <= 0 && !formData.quoteRequired) {
+      setFormError(
+        "Cannot publish a package with $0 price without enabling 'Quote Required / Custom Pricing'."
+      );
+      return;
+    }
+
     try {
       if (packageId) {
         const fd = await buildFormData("PUBLISHED", false);
@@ -342,7 +369,15 @@ export function CreatePackageWizard({
       {/* Breadcrumb */}
       <nav className="flex items-center space-x-1.5 text-xs text-sub">
         <button
-          onClick={onBack}
+          onClick={() => {
+            if (isDirty) {
+              const confirmLeave = window.confirm(
+                "You have unsaved changes in this wizard. Are you sure you want to leave?"
+              );
+              if (!confirmLeave) return;
+            }
+            onBack();
+          }}
           className="hover:text-primary transition-colors cursor-pointer"
         >
           Packages

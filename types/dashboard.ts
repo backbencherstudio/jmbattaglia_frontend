@@ -13,6 +13,7 @@ export interface DashboardCard {
   color?: string;
   iconBgClass?: string;
   iconColorClass?: string;
+  href?: string;
 }
 
 export interface DashboardActions {

@@ -53,6 +53,7 @@ export function KeyMetricsCards({
             color: "orange",
             iconBgClass: "bg-orange-100/70 border border-orange-200/50",
             iconColorClass: "text-primary",
+            href: "/admin/packages?tab=packages",
           },
           {
             id: "live-on-portal",
@@ -62,6 +63,7 @@ export function KeyMetricsCards({
             color: "blue",
             iconBgClass: "bg-blue-100/70 border border-blue-200/50",
             iconColorClass: "text-blue-600",
+            href: "/admin/packages?tab=packages&status=PUBLISHED",
           },
           {
             id: "in-draft",
@@ -71,6 +73,7 @@ export function KeyMetricsCards({
             color: "purple",
             iconBgClass: "bg-purple-100/70 border border-purple-200/50",
             iconColorClass: "text-purple-600",
+            href: "/admin/packages?tab=packages&status=DRAFT",
           },
           {
             id: "add-on-services",
@@ -80,6 +83,7 @@ export function KeyMetricsCards({
             color: "lime",
             iconBgClass: "bg-lime-100/70 border border-lime-200/50",
             iconColorClass: "text-lime-700",
+            href: "/admin/packages?tab=addons",
           },
         ]
       : (metricsData as unknown as DashboardCard[]);

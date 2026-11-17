@@ -11,8 +11,11 @@ const tradeGothic = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "At Ease Inspections - Schedule an Inspection",
-  description: "Schedule an inspection with At Ease Inspections",
+  title: {
+    default: "Book Home Inspection | At Ease Inspections",
+    template: "%s | At Ease Inspections",
+  },
+  description: "Schedule a certified home inspection with At Ease Inspections",
   icons: {
     icon: [
       { url: "/favicon.ico" },

@@ -32,6 +32,7 @@ import {
 } from "@/lib/bookingUtils";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { DirectOrderPayload } from "@/types/booking";
+import { RESALE_PACKAGES, NEW_CONSTRUCTION_PACKAGES, ADDONS_CONFIG } from "@/data/packageAddonsData";
 
 export const StepperLayout: React.FC = () => {
   const stepper = useStepperForm();
@@ -51,6 +52,21 @@ export const StepperLayout: React.FC = () => {
 
   const isReviewStep = stepper.currentSubStep?.id === "review";
   const isConfirmationStep = stepper.currentSubStep?.id === "confirmation";
+
+  // Live running cost calculation for Kim's feedback: updates across steps as options change
+  const currentTotalAmount = React.useMemo(() => {
+    if (stepper.formData.calculatedQuote && stepper.formData.calculatedQuote.totalCents > 0) {
+      return stepper.formData.calculatedQuote.totalCents / 100;
+    }
+    const allPkgs = [...RESALE_PACKAGES, ...NEW_CONSTRUCTION_PACKAGES];
+    const pkg = allPkgs.find((p) => p.id === stepper.formData.selectedPackage);
+    const pkgPrice = Number(pkg?.priceNumeric) || 0;
+    const addonsTotal = (stepper.formData.selectedAddons || []).reduce<number>((sum, addonId) => {
+      const addon = ADDONS_CONFIG.find((a) => String(a.id) === String(addonId));
+      return sum + (Number(addon?.priceNumeric) || 0);
+    }, 0);
+    return pkgPrice + addonsTotal;
+  }, [stepper.formData.calculatedQuote, stepper.formData.selectedPackage, stepper.formData.selectedAddons]);
 
   const handleCompleteOrder = async () => {
     setSubmitError(null);
@@ -277,6 +293,18 @@ export const StepperLayout: React.FC = () => {
                   >
                     Back
                   </Button>
+
+                  {/* Live Quoted Price Indicator across steps */}
+                  {currentTotalAmount > 0 && !isConfirmationStep && (
+                    <div className="flex flex-col items-center justify-center px-1 sm:px-3 text-center">
+                      <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-sub">
+                        Quoted Total
+                      </span>
+                      <span className="text-sm sm:text-xl font-extrabold text-primary">
+                        ${currentTotalAmount.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  )}
 
                   <Button
                     type="button"

@@ -12,8 +12,13 @@ import {
   AlertCircle,
   Sparkles,
 } from "lucide-react";
-import { useLazyGetAvailableSlotsQuery } from "@/redux/features/booking/bookingApi";
-import { format24hToDisplayTime, formatTimeSlotTo24h } from "@/lib/bookingUtils";
+import { useLazyGetAvailableSlotsQuery, useCalculateServiceQuoteMutation } from "@/redux/features/booking/bookingApi";
+import {
+  format24hToDisplayTime,
+  formatTimeSlotTo24h,
+  buildPropertyDto,
+  sanitizePackageAndServices,
+} from "@/lib/bookingUtils";
 import { AvailableSlotItem } from "@/types/booking";
 
 const MONTH_NAMES = [
@@ -94,11 +99,48 @@ export const DateTimeStep: React.FC<StepProps> = ({
     setCurrentMonthIndex(month);
   }, [activeDate]);
 
-  // 4. RTK Query for Available Slots
+  // 4. RTK Query for Available Slots & Fallback Quote Trigger
   const [triggerSlots, { data: slotsRes, isFetching: isFetchingSlots }] =
     useLazyGetAvailableSlotsQuery();
+  const [calculateQuote] = useCalculateServiceQuoteMutation();
 
   const lastFetchedKeyRef = useRef<string>("");
+
+  // Auto-calculate quote if missing so slots can load
+  useEffect(() => {
+    if (!formData.quoteId && formData.addressLine1 && (formData.selectedPackage || formData.serviceIds?.length)) {
+      try {
+        const category =
+          formData.inspectionKind === "new-construction" ? "NEW_CONSTRUCTION" : "RESALE_HOME";
+        const propertyDto = buildPropertyDto(formData);
+        const { packageId: safePackageId, serviceIds: safeServiceIds } =
+          sanitizePackageAndServices(
+            category,
+            formData.selectedPackage,
+            formData.selectedAddons
+          );
+
+        calculateQuote({
+          category,
+          ...(safePackageId ? { packageId: safePackageId } : {}),
+          serviceIds: safeServiceIds,
+          property: propertyDto,
+        })
+          .unwrap()
+          .then((res: any) => {
+            const returnedQuoteId = res?.data?.quoteId || res?.quoteId;
+            if (returnedQuoteId) {
+              updateFormData({ quoteId: returnedQuoteId, calculatedQuote: res.data || res });
+            }
+          })
+          .catch((err: any) => {
+            console.warn("Auto-quote calculation in DateTimeStep:", err);
+          });
+      } catch (e) {
+        console.warn("Unable to build quote in DateTimeStep:", e);
+      }
+    }
+  }, [formData.quoteId, formData.addressLine1, formData.selectedPackage, formData.selectedAddons, formData.serviceIds, calculateQuote, formData, updateFormData]);
 
   useEffect(() => {
     if (activeDate && formData.quoteId) {
@@ -151,20 +193,34 @@ export const DateTimeStep: React.FC<StepProps> = ({
     return allAppointments.length > 0 ? allAppointments[0].date : null;
   }, [availableSlotsOnDate, allAppointments, activeDate]);
 
-  // 7. Group slots into 8:30 AM (Morning) and 1:00 PM (Afternoon)
+  // 7. Group slots strictly into 8:30 AM (Morning) and 1:00 PM (Afternoon)
   const { morningSlots, afternoonSlots, hasRealSlots } = useMemo(() => {
     if (availableSlotsOnDate.length > 0) {
-      const morning: AvailableSlotItem[] = [];
-      const afternoon: AvailableSlotItem[] = [];
+      const morningMap = new Map<string, AvailableSlotItem>();
+      const afternoonMap = new Map<string, AvailableSlotItem>();
 
       availableSlotsOnDate.forEach((slot) => {
-        // Only accept 8:30 AM or 1:00 PM appointments per business rules
-        if (slot.time === "08:30") {
-          morning.push(slot);
-        } else if (slot.time === "13:00") {
-          afternoon.push(slot);
+        const [hourStr] = (slot.time || "").split(":");
+        const hour = parseInt(hourStr, 10);
+
+        // Morning Window: appointment starts between 7:00 AM and 11:59 AM
+        if (hour >= 7 && hour < 12) {
+          const key = slot.inspectorId || "morning-default";
+          if (!morningMap.has(key) || slot.time === "08:30") {
+            morningMap.set(key, slot);
+          }
+        }
+        // Afternoon Window: appointment starts between 12:00 PM and 5:00 PM
+        else if (hour >= 12 && hour <= 17) {
+          const key = slot.inspectorId || "afternoon-default";
+          if (!afternoonMap.has(key) || slot.time === "13:00") {
+            afternoonMap.set(key, slot);
+          }
         }
       });
+
+      const morning = Array.from(morningMap.values());
+      const afternoon = Array.from(afternoonMap.values());
 
       if (morning.length > 0 || afternoon.length > 0) {
         return {
@@ -422,11 +478,28 @@ export const DateTimeStep: React.FC<StepProps> = ({
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-bold text-main">Select an available time</h3>
             {isFetchingSlots && (
-              <span className="text-xs text-sub flex items-center gap-1">
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" /> Loading slots...
+              <span className="text-xs text-primary font-semibold flex items-center gap-1.5">
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" /> Connecting to ISN...
               </span>
             )}
           </div>
+
+          {/* Friendly Loading State as requested by client */}
+          {isFetchingSlots && (
+            <div className="mb-4 p-5 rounded-2xl border border-primary/25 bg-gradient-to-br from-[#FAFDF0] to-white shadow-2xs flex flex-col items-center justify-center gap-2.5 text-center">
+              <div className="w-11 h-11 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-xs">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <h4 className="font-bold text-sm sm:text-base text-main">
+                  Checking Real-Time Inspector Availability
+                </h4>
+                <p className="text-xs text-sub max-w-sm">
+                  Syncing live appointment schedules with ISN for <strong>{activeDate}</strong>.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Real-time Slots Header Banner */}
           {hasRealSlots && (

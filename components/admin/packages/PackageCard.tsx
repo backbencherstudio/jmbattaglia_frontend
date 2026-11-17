@@ -2,10 +2,10 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { Edit, Trash2, Play } from "lucide-react";
+import { Edit, Trash2, Play, Copy, Globe, EyeOff, Calendar, User } from "lucide-react";
 import { PackageItem } from "@/types/packages";
 import { getErrorMessage } from "@/lib/getErrorMessage";
-import { useDeleteAdminPackageMutation } from "@/redux/features/packages/packageApi";
+import { useDeleteAdminPackageMutation, useUpdateAdminPackageMutation } from "@/redux/features/packages/packageApi";
 import { DeletePackageModal } from "./DeletePackageModal";
 
 interface PackageCardProps {
@@ -13,6 +13,8 @@ interface PackageCardProps {
   onSelect: (item: PackageItem) => void;
   onEdit?: (item: PackageItem) => void;
   onDelete?: (item: PackageItem) => void;
+  onDuplicate?: (item: PackageItem) => void;
+  onTogglePublish?: (item: PackageItem) => void;
   onOpenVideo?: (item: PackageItem) => void;
 }
 
@@ -21,12 +23,16 @@ export function PackageCard({
   onSelect,
   onEdit,
   onDelete,
+  onDuplicate,
+  onTogglePublish,
   onOpenVideo,
 }: PackageCardProps) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteAdminPackage, { isLoading: isDeleting }] =
     useDeleteAdminPackageMutation();
+  const [updateAdminPackage, { isLoading: isUpdatingStatus }] =
+    useUpdateAdminPackageMutation();
 
   const handleOpenDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -40,10 +46,40 @@ export function PackageCard({
       await deleteAdminPackage(item.id).unwrap();
       setShowDeleteModal(false);
       if (onDelete) {
-        onDelete(item);
+        (onDelete as any)(item, true);
       }
     } catch (err) {
       setDeleteError(getErrorMessage(err, "Failed to delete package."));
+    }
+  };
+
+  const handleQuickTogglePublish = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const nextStatus = item.status === "Published" ? "DRAFT" : "PUBLISHED";
+    
+    // Check published $0 price protection
+    if (nextStatus === "PUBLISHED") {
+      const numericPrice = (item.price || "").replace(/[^0-9.]/g, "");
+      const dollars = parseFloat(numericPrice) || (item.priceCents ? item.priceCents / 100 : 0);
+      if (dollars <= 0 && !item.quoteRequired) {
+        alert("Cannot publish a package with $0 price without enabling 'Quote Required / Custom Pricing'.");
+        return;
+      }
+    }
+
+    try {
+      const fd = new FormData();
+      fd.append("status", nextStatus);
+      fd.append("show", nextStatus === "PUBLISHED" ? "true" : "false");
+      await updateAdminPackage({ id: item.id, formData: fd }).unwrap();
+      if (onTogglePublish) {
+        onTogglePublish({
+          ...item,
+          status: nextStatus === "PUBLISHED" ? "Published" : "Draft",
+        });
+      }
+    } catch (err) {
+      alert(getErrorMessage(err, "Failed to toggle package publication status."));
     }
   };
 
@@ -85,6 +121,34 @@ export function PackageCard({
                 title="Edit Package"
               >
                 <Edit className="w-4 h-4" />
+              </button>
+
+              {onDuplicate && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDuplicate(item);
+                  }}
+                  className="p-2 bg-white/90 hover:bg-white backdrop-blur-md rounded-lg text-main hover:text-primary transition-colors shadow-xs cursor-pointer"
+                  title="Duplicate Package"
+                >
+                  <Copy className="w-4 h-4" />
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={handleQuickTogglePublish}
+                disabled={isUpdatingStatus}
+                className="p-2 bg-white/90 hover:bg-white backdrop-blur-md rounded-lg text-main hover:text-primary transition-colors shadow-xs cursor-pointer"
+                title={item.status === "Published" ? "Quick Unpublish to Draft" : "Quick Publish"}
+              >
+                {item.status === "Published" ? (
+                  <EyeOff className="w-4 h-4 text-amber-600" />
+                ) : (
+                  <Globe className="w-4 h-4 text-accent-green" />
+                )}
               </button>
 
               <button
@@ -160,6 +224,20 @@ export function PackageCard({
         <p className="text-sm text-sub mt-1.5 line-clamp-2 leading-relaxed">
           {item.shortDescription}
         </p>
+
+        {/* Footer Meta: Real Date & Editor */}
+        <div className="flex items-center justify-between text-[11px] text-muted border-t border-hairline/80 pt-2.5 mt-3">
+          <span className="flex items-center gap-1">
+            <Calendar className="w-3 h-3 text-muted" />
+            <span>Updated: {item.updated}</span>
+          </span>
+          {item.editor && (
+            <span className="flex items-center gap-1">
+              <User className="w-3 h-3 text-muted" />
+              <span>{item.editor}</span>
+            </span>
+          )}
+        </div>
       </div>
     </div>
 

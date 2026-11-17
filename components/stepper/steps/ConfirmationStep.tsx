@@ -1,26 +1,33 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { StepProps } from "@/types/stepper";
 import { ShieldCheck, Mail, CalendarCheck, CheckCircle2, User, RefreshCw } from "lucide-react";
 import { format24hToDisplayTime } from "@/lib/bookingUtils";
 import { Button } from "@/components/ui/Button";
 
 export const ConfirmationStep: React.FC<StepProps> = ({ formData, resetFormData }) => {
+  useEffect(() => {
+    document.title = "Inspection Confirmed | At Ease Inspections";
+  }, []);
   const customerName = formData.firstName
     ? `${formData.firstName} ${formData.lastName || ""}`
     : "Customer";
   const propertyAddress = formData.addressLine1
-    ? `${formData.addressLine1}${formData.city ? `, ${formData.city}` : ""}`
-    : "123 Main Street, Atlanta";
+    ? `${formData.addressLine1}${formData.city ? `, ${formData.city}` : ""}${formData.state ? `, ${formData.state}` : ""}`
+    : "Address on File";
 
-  const appointmentDate = formData.selectedDate || "Upcoming Inspection";
-  const appointmentTime = format24hToDisplayTime(formData.selectedTimeSlot) || "9:00 AM";
+  const appointmentDate = formData.selectedDate || "Inspection Scheduled";
+  const appointmentTime = formData.selectedTimeSlot
+    ? format24hToDisplayTime(formData.selectedTimeSlot)
+    : "Arrival Window Confirmed";
 
   const totalAmount =
     formData.calculatedQuote && formData.calculatedQuote.totalCents > 0
       ? `$${(formData.calculatedQuote.totalCents / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}`
-      : "$1,315.00";
+      : formData.totalAmount
+      ? `$${Number(formData.totalAmount).toLocaleString("en-US", { minimumFractionDigits: 2 })}`
+      : "Quoted Price on File";
 
   const orderId =
     formData.orderId ||
@@ -51,18 +58,24 @@ export const ConfirmationStep: React.FC<StepProps> = ({ formData, resetFormData 
               <ShieldCheck className="w-7 h-7" />
             </div>
             <span className="text-gray-300 font-semibold text-xs sm:text-sm tracking-wide">
-              Request Submitted to ISN
+              At Ease Inspections — Request Confirmed
             </span>
           </div>
 
           {/* Bottom Content */}
           <div className="relative z-10 flex flex-col gap-2">
+            <span className="text-xs uppercase tracking-widest text-primary font-bold">
+              Veteran-Led &amp; Certified
+            </span>
             <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-snug">
-              A Home Decision, Made Clearer.
+              At Ease Inspections
             </h3>
             <p className="text-gray-300 font-medium text-xs sm:text-sm leading-relaxed">
-              We&apos;ve secured your request and our team is ready to inspect your property.
+              We&apos;ve secured your request and our certified inspection team is ready to inspect your property.
             </p>
+            <div className="mt-2 pt-2 border-t border-white/10 text-xs text-gray-400">
+              Direct Support: <a href="tel:7707656869" className="text-white font-bold hover:underline">(770) 765-6869</a>
+            </div>
           </div>
         </div>
 
@@ -71,7 +84,7 @@ export const ConfirmationStep: React.FC<StepProps> = ({ formData, resetFormData 
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <span className="text-xs sm:text-sm font-extrabold text-primary uppercase tracking-wider">
-                STEP 10 OF 10 — CONFIRMED
+                BOOKING CONFIRMED
               </span>
               <span className="text-xs font-mono bg-canvas border border-hairline px-2.5 py-1 rounded-lg text-sub font-semibold">
                 {formData.orderReceipt?.reference ? `REF: ${formData.orderReceipt.reference}` : `ID: ${orderId}`}
@@ -141,6 +154,14 @@ export const ConfirmationStep: React.FC<StepProps> = ({ formData, resetFormData 
                   A receipt and appointment confirmation have been dispatched to{" "}
                   <strong className="text-main">{formData.email || "your email address"}</strong>.
                 </span>
+              </div>
+            </div>
+
+            {/* Direct Office Contact */}
+            <div className="bg-canvas border border-hairline rounded-2xl p-3 sm:p-3.5 flex items-center justify-between gap-3 text-xs sm:text-sm mt-1">
+              <div className="flex flex-col">
+                <span className="font-bold text-main">Questions or need to reschedule?</span>
+                <span className="text-sub">Call our Atlanta office directly at <a href="tel:7707656869" className="text-primary font-bold hover:underline">(770) 765-6869</a> or email <a href="mailto:support@ateaseinspections.com" className="text-primary font-bold hover:underline">support@ateaseinspections.com</a></span>
               </div>
             </div>
           </div>

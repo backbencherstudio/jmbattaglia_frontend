@@ -506,6 +506,32 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
         isPackageLoading={isFetchingSinglePackage}
       />
 
+      {/* Mobile Sticky Live Cost Bar (for Kim's feedback on live price updates) */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-hairline p-3 sm:p-3.5 shadow-lg flex items-center justify-between gap-3">
+        <div className="flex flex-col min-w-0">
+          <span className="text-[11px] font-semibold text-sub truncate">
+            {activeSelectedPkgObj?.title || "Home Inspection"}
+            {activeSelectedAddonObjects.length > 0 && ` + ${activeSelectedAddonObjects.length} add-on${activeSelectedAddonObjects.length > 1 ? "s" : ""}`}
+          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-bold text-main">Live Quoted:</span>
+            <span className="text-lg font-black text-primary">
+              ${totalAmount.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+            </span>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            const el = document.getElementById("package-summary-card-anchor");
+            if (el) el.scrollIntoView({ behavior: "smooth" });
+          }}
+          className="px-3.5 py-1.5 rounded-lg bg-primary text-white font-bold text-xs shadow-2xs active:scale-95 transition-all shrink-0"
+        >
+          View Breakdown
+        </button>
+      </div>
+
 
       {/* Package Video Modal */}
       {videoModalPackage && (

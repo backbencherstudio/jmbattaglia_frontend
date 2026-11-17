@@ -1,5 +1,11 @@
 
+import type { Metadata } from "next";
 import { Layers, Plus } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Add-on Services | At Ease Admin",
+  description: "Manage optional inspection add-on services",
+};
 
 export default function AddOnServicesPage() {
   return (

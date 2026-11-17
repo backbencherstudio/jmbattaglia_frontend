@@ -62,7 +62,15 @@ export const STEP_CONFIG: MainStep[] = [
 const DEFAULT_FORM_DATA: StepperFormData = {
   customerRole: "home-buyer",
   inspectionKind: "resale-home",
+  addressLine1: "",
+  addressLine2: "",
+  city: "",
   state: "Georgia (GA)",
+  zipCode: "",
+  yearBuilt: "",
+  squareFeet: "",
+  foundationType: "",
+  foundationName: "",
   hearAboutUs: "",
   clientAttending: "",
   homeOccupied: "",
@@ -72,6 +80,13 @@ const DEFAULT_FORM_DATA: StepperFormData = {
   sewageSystem: "",
   waterSystem: "",
   utilitiesOn: "",
+  gateCode: "",
+  dueDiligence: "",
+  specialInstructions: "",
+  selectedPackage: "",
+  selectedAddons: [],
+  selectedDate: "",
+  selectedTimeSlot: "",
 };
 
 export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {

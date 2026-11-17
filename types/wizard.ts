@@ -8,6 +8,7 @@ export interface PackageFormData {
   name: string;
   shortDescription: string;
   price: string;
+  quoteRequired?: boolean;
   serviceIds: string[];
   whyItMatters: string;
   featuresIncluded: string[];

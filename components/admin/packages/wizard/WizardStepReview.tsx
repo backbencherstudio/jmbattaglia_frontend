@@ -32,7 +32,7 @@ export function WizardStepReview({
   const servicesMap = useMemo(() => {
     const map = new Map<string, string>();
     servicesList.forEach((s) => {
-      map.set(s.id, s.name || `Service (${s.id.slice(0, 8)})`);
+      map.set(s.id, s.name || "Inspection Service");
     });
     return map;
   }, [servicesList]);
@@ -214,7 +214,7 @@ export function WizardStepReview({
                           className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-hairline rounded-lg text-xs font-semibold text-main shadow-2xs"
                         >
                           <Check className="w-3.5 h-3.5 text-accent-green shrink-0" />
-                          <span>{servicesMap.get(id) || `Service (${id.slice(0, 8)})`}</span>
+                          <span>{servicesMap.get(id) || "Inspection Service"}</span>
                         </span>
                       ))}
                     </div>

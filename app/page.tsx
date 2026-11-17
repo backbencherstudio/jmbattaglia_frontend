@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { StepperLayout } from "@/components/stepper/StepperLayout";
+
+export const metadata: Metadata = {
+  title: "Book Home Inspection | At Ease Inspections",
+  description: "Schedule a certified home inspection with At Ease Inspections.",
+};
 
 export default function Home() {
   return (

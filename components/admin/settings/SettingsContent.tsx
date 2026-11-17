@@ -2,7 +2,15 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronRight, Loader2, AlertCircle } from "lucide-react";
+import {
+  ChevronRight,
+  Loader2,
+  AlertCircle,
+  User,
+  Users,
+  Shield,
+  FileText,
+} from "lucide-react";
 import {
   useGetAdminProfileQuery,
   useUpdateAdminProfileMutation,
@@ -13,11 +21,14 @@ import { baseApi } from "@/redux/api/baseApi";
 import { ProfilePictureUploader } from "@/components/admin/settings/ProfilePictureUploader";
 import { ProfileForm } from "@/components/admin/settings/ProfileForm";
 import { SettingsSkeleton } from "@/components/admin/settings/SettingsSkeleton";
+import { TeamRolesTab } from "@/components/admin/settings/TeamRolesTab";
+import { AuditLogTab } from "@/components/admin/settings/AuditLogTab";
 import { getErrorMessage } from "@/lib/getErrorMessage";
 
 export function SettingsContent() {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const [activeTab, setActiveTab] = useState<"profile" | "team" | "audit">("profile");
   const {
     data: profileResponse,
     isLoading: isFetching,
@@ -146,39 +157,103 @@ export function SettingsContent() {
       <nav className="flex items-center space-x-1.5 text-xs text-sub">
         <span className="text-sub">Settings</span>
         <ChevronRight className="w-3.5 h-3.5 text-muted" />
-        <span className="font-semibold text-main">Profile Settings</span>
+        <span className="font-semibold text-main">
+          {activeTab === "profile"
+            ? "Profile Settings"
+            : activeTab === "team"
+              ? "Team & Roles (RBAC)"
+              : "Activity Audit Log"}
+        </span>
       </nav>
 
-      {/* Main Form Container */}
-      <div className="bg-canvas border border-hairline rounded-2xl p-6 md:p-8 space-y-8 shadow-2xs">
-        <div>
-          <h2 className="text-xl font-bold text-main">Administrator Profile</h2>
-          <p className="text-xs sm:text-sm text-sub mt-0.5">
-            Manage your personal administrative information and account credentials.
-          </p>
-        </div>
+      {/* Settings Navigation Tabs */}
+      <div className="flex border-b border-hairline space-x-1 overflow-x-auto">
+        <button
+          type="button"
+          onClick={() => setActiveTab("profile")}
+          className={`flex items-center space-x-2 py-3 px-4 text-xs font-semibold border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
+            activeTab === "profile"
+              ? "border-primary text-primary"
+              : "border-transparent text-sub hover:text-main"
+          }`}
+        >
+          <User className="w-4 h-4" />
+          <span>Profile Settings</span>
+        </button>
 
-        {/* Profile Picture Uploader */}
-        <ProfilePictureUploader
-          avatarUrl={removeProfilePicture ? null : profile?.avatarUrl}
-          previewUrl={previewUrl}
-          onFileSelect={handleFileSelect}
-          onAvatarDelete={handleAvatarDelete}
-          disabled={isSaving}
-        />
+        <button
+          type="button"
+          onClick={() => setActiveTab("team")}
+          className={`flex items-center space-x-2 py-3 px-4 text-xs font-semibold border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
+            activeTab === "team"
+              ? "border-primary text-primary"
+              : "border-transparent text-sub hover:text-main"
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          <span>Team & Roles (RBAC)</span>
+        </button>
 
-        {/* Profile Details & Password Form */}
-        <ProfileForm
-          initialData={{
-            name: profile?.name || "",
-            email: profile?.email || "",
-          }}
-          isSaving={isSaving}
-          error={errorMessage}
-          successMessage={successMessage}
-          onSave={handleSave}
-        />
+        <button
+          type="button"
+          onClick={() => setActiveTab("audit")}
+          className={`flex items-center space-x-2 py-3 px-4 text-xs font-semibold border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
+            activeTab === "audit"
+              ? "border-primary text-primary"
+              : "border-transparent text-sub hover:text-main"
+          }`}
+        >
+          <FileText className="w-4 h-4" />
+          <span>Activity Audit Log</span>
+        </button>
       </div>
+
+      {/* Tab 1: Profile Settings */}
+      {activeTab === "profile" && (
+        <div className="bg-canvas border border-hairline rounded-2xl p-6 md:p-8 space-y-8 shadow-2xs">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-bold text-main">Administrator Profile</h2>
+              <p className="text-xs sm:text-sm text-sub mt-0.5">
+                Manage your personal administrative information and account credentials.
+              </p>
+            </div>
+            {profile?.role && (
+              <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 border border-purple-200">
+                <Shield className="w-3.5 h-3.5 mr-1" />
+                <span>Assigned Role: {profile.role}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Profile Picture Uploader */}
+          <ProfilePictureUploader
+            avatarUrl={removeProfilePicture ? null : profile?.avatarUrl}
+            previewUrl={previewUrl}
+            onFileSelect={handleFileSelect}
+            onAvatarDelete={handleAvatarDelete}
+            disabled={isSaving}
+          />
+
+          {/* Profile Details & Password Form */}
+          <ProfileForm
+            initialData={{
+              name: profile?.name || "",
+              email: profile?.email || "",
+            }}
+            isSaving={isSaving}
+            error={errorMessage}
+            successMessage={successMessage}
+            onSave={handleSave}
+          />
+        </div>
+      )}
+
+      {/* Tab 2: Team & Roles (Multi-User RBAC) */}
+      {activeTab === "team" && <TeamRolesTab />}
+
+      {/* Tab 3: Activity Audit Log */}
+      {activeTab === "audit" && <AuditLogTab />}
     </div>
   );
 }

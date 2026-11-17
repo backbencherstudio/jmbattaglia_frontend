@@ -8,6 +8,7 @@ export const initialPackageFormData: PackageFormData = {
   name: "",
   shortDescription: "",
   price: "",
+  quoteRequired: false,
   serviceIds: [],
   whyItMatters:
     "A persuasive sentence shown in the expandable block on the portal — e.g. 'Buyers make a six-figure decision on a single walkthrough. A Signature inspection surfaces the repairs that change the negotiation.'",
@@ -86,7 +87,8 @@ export const packageDraftSlice = createSlice({
       const status = statusUpper === "DRAFT" ? "Draft" : "Published";
 
       const priceDollars = (pkg.priceCents || 0) / 100;
-      const priceString = priceDollars > 0 ? `$${priceDollars.toLocaleString()}` : "";
+      const priceString = priceDollars > 0 ? `$${priceDollars.toLocaleString()}` : (pkg.priceCents === 0 ? "$0" : "");
+      const quoteRequired = Boolean((pkg as any).quoteRequired || (pkg.priceCents === 0 && Boolean((pkg as any).quoteRequired)));
 
       const primaryMedia = pkg.media?.[0];
       const mediaUrl =
@@ -109,6 +111,7 @@ export const packageDraftSlice = createSlice({
         name: pkg.name || "",
         shortDescription: pkg.description || "",
         price: priceString,
+        quoteRequired,
         serviceIds,
         whyItMatters:
           pkg.whyItMatters || initialPackageFormData.whyItMatters,

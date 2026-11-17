@@ -1,0 +1,15 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Admin Login | At Ease Inspections",
+  description: "Sign in to At Ease Inspections management dashboard",
+};
+
+export default function LoginLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <>{children}</>;
+}
+

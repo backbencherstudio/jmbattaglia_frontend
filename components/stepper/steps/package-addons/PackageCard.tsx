@@ -3,6 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import { PackageOption } from "@/types/packageAddons";
+import { Info } from "lucide-react";
 
 interface PackageCardProps {
   pkg: PackageOption;
@@ -59,6 +60,12 @@ export const PackageCard: React.FC<PackageCardProps> = ({
             <p className="text-xs sm:text-sm text-sub mt-0.5 leading-relaxed">
               {pkg.description}
             </p>
+            {pkg.title.includes("SHP") && (
+              <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#FAFDF0] border border-primary/20 text-xs font-semibold text-primary self-start">
+                <Info className="w-3.5 h-3.5 shrink-0" />
+                <span>What does SHP include? Home Inspection + Termite + Radon + Mold + Sewer Scope</span>
+              </div>
+            )}
           </div>
         </div>
 

@@ -29,7 +29,7 @@ const FALLBACK_FOUNDATIONS = [
   { value: "ec5c16e0-7864-11e1-bfb4-b15dbfa5fbfd", label: "Crawl Space/Pier and Beam" },
   { value: "11a8cea0-00eb-4637-b20a-2e5ddcff3db0", label: "Unfinished Basement" },
   { value: "3ca28aea-6d27-42e7-9790-488db4aa56ad", label: "Finished Basement" },
-  { value: "condo-foundation-id", label: "Condo" },
+  { value: "4f910406-38f9-46be-912a-4db5721752b5", label: "Condo" },
   { value: "9dac9947-f96e-46e1-acbd-6b3f613b7abd", label: "Basement + Crawl" },
 ];
 

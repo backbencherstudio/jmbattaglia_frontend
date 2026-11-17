@@ -14,6 +14,8 @@ export interface PackageItem {
   price: string;
   status: PackageStatus;
   updated: string;
+  updatedAt?: string;
+  editor?: string;
   shortDescription: string;
   image: string;
   videoUrl?: string;
@@ -22,6 +24,7 @@ export interface PackageItem {
   featuresIncluded?: string[];
   priceCents?: number;
   serviceIds?: string[];
+  quoteRequired?: boolean;
 }
 
 export interface AdminIsnService {
@@ -32,6 +35,8 @@ export interface AdminIsnService {
   orderTypeId?: string;
   kind?: "SERVICE" | "ADDON" | string;
   source?: string;
+  fee?: string | number;
+  priceCents?: number;
 }
 
 export interface GetAdminServicesParams {
@@ -150,6 +155,15 @@ export function mapApiPackageToPackageItem(apiPkg: ApiPackage): PackageItem {
         .filter(Boolean)
     : [];
 
+  const rawDate = apiPkg.updatedAt || apiPkg.createdAt;
+  const formattedDate = rawDate
+    ? new Date(rawDate).toLocaleDateString("en-US", {
+        month: "2-digit",
+        day: "2-digit",
+        year: "numeric",
+      })
+    : "Recently";
+
   return {
     id: apiPkg.id,
     name: apiPkg.name || "Untitled Package",
@@ -157,9 +171,9 @@ export function mapApiPackageToPackageItem(apiPkg: ApiPackage): PackageItem {
     type,
     price: formattedPrice,
     status,
-    updated: apiPkg.updatedAt
-      ? new Date(apiPkg.updatedAt).toLocaleDateString()
-      : "Recently",
+    updated: formattedDate,
+    updatedAt: apiPkg.updatedAt || apiPkg.createdAt,
+    editor: (apiPkg as any).updatedBy || (apiPkg as any).editor || "Porcha (Admin)",
     shortDescription: apiPkg.description || "",
     image: imageUrl,
     videoUrl,
@@ -168,5 +182,6 @@ export function mapApiPackageToPackageItem(apiPkg: ApiPackage): PackageItem {
     featuresIncluded: Array.isArray(apiPkg.features) ? apiPkg.features : [],
     priceCents,
     serviceIds,
+    quoteRequired: priceCents === 0 && Boolean((apiPkg as any).quoteRequired),
   };
 }

@@ -2,6 +2,8 @@ import { baseApi } from "@/redux/api/baseApi";
 import type {
   AdminProfileResponse,
   UpdateProfileResponse,
+  TeamMember,
+  AuditLogEntry,
 } from "@/types/settings";
 
 export const profileApi = baseApi.injectEndpoints({
@@ -28,6 +30,46 @@ export const profileApi = baseApi.injectEndpoints({
       },
       invalidatesTags: ["User", "Setting"],
     }),
+
+    getTeamMembers: builder.query<{ success: boolean; data: TeamMember[] }, void>({
+      query: () => ({
+        url: "/admin/profile/team",
+        method: "GET",
+      }),
+      providesTags: ["User"],
+    }),
+
+    createTeamMember: builder.mutation<
+      { success: boolean; data: TeamMember },
+      { email: string; password: string; firstName: string; lastName?: string; roleName: string }
+    >({
+      query: (body) => ({
+        url: "/admin/profile/team",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["User"],
+    }),
+
+    updateUserRole: builder.mutation<
+      { success: boolean; data: TeamMember },
+      { id: string; role: string }
+    >({
+      query: ({ id, role }) => ({
+        url: `/admin/profile/team/${id}/role`,
+        method: "PATCH",
+        body: { role },
+      }),
+      invalidatesTags: ["User"],
+    }),
+
+    getAuditLogs: builder.query<{ success: boolean; data: AuditLogEntry[] }, { limit?: number } | void>({
+      query: (params) => ({
+        url: `/admin/audit-logs?limit=${params?.limit || 25}`,
+        method: "GET",
+      }),
+      providesTags: ["Setting"],
+    }),
   }),
   overrideExisting: true,
 });
@@ -35,6 +77,10 @@ export const profileApi = baseApi.injectEndpoints({
 export const {
   useGetAdminProfileQuery,
   useUpdateAdminProfileMutation,
+  useGetTeamMembersQuery,
+  useCreateTeamMemberMutation,
+  useUpdateUserRoleMutation,
+  useGetAuditLogsQuery,
 } = profileApi;
 
 export default profileApi;

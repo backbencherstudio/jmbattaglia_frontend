@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { KeyMetricsCards } from "@/components/admin/dashboard/KeyMetricsCards";
+import { NeedsAttentionWidget } from "@/components/admin/dashboard/NeedsAttentionWidget";
 import { RecentPackagesTable } from "@/components/admin/dashboard/RecentPackagesTable";
+import { RecentActivityWidget } from "@/components/admin/dashboard/RecentActivityWidget";
 import { DashboardSkeleton } from "@/components/admin/dashboard/DashboardSkeleton";
 import { useGetAdminDashboardQuery } from "@/redux/features/dashboard/dashboardApi";
 import { AlertCircle, RefreshCw } from "lucide-react";
@@ -11,6 +13,10 @@ import { getErrorMessage } from "@/lib/getErrorMessage";
 export default function AdminDashboardPage() {
   const [page, setPage] = useState(1);
   const limit = 5;
+
+  useEffect(() => {
+    document.title = "Dashboard | At Ease Admin";
+  }, []);
 
   const {
     data: dashboardResponse,
@@ -52,6 +58,8 @@ export default function AdminDashboardPage() {
         cards={dashboardData?.cards}
         actions={dashboardData?.actions}
       />
+      <NeedsAttentionWidget summary={dashboardData?.summary} />
+      <RecentActivityWidget />
       <RecentPackagesTable
         packages={dashboardData?.recentPackages}
         pagination={dashboardData?.pagination}

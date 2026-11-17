@@ -64,6 +64,13 @@ export const LEGACY_ADDON_UUID_MAP: Record<string, string> = {
   "spa-maintenance": "56a45531-1ba6-432f-8cc5-2626337ac231",
   "filter-replacement": "0f347f94-0f6a-4560-9ec0-8f4563f5f722",
   "pool-inspection": "71da77a4-f11f-4462-a160-1ab33a5139bf",
+  "sewer-scope-addon-id": "18f92ce3-3224-4f4b-8d18-5a02251a24d1",
+  "stucco-inspection-addon-id": "4b68db60-705a-4b77-a859-bc015cb86802",
+  "mobile-home-foundation-addon-id": "283f51ec-0677-4c46-8e10-c4feae25ba11",
+  "mold-testing-addon-id": "cf646e29-d587-4279-bf75-01e16f318da2",
+  "thermal-imaging-addon-id": "76ec11d5-bcda-4e55-b461-ea3b715a3df8",
+  "well-water-testing-addon-id": "80ff8ec1-79b8-4c8d-8a15-0bfa7c3bcfa7",
+  "condo-foundation-id": "4f910406-38f9-46be-912a-4db5721752b5",
 };
 
 export const LEGACY_PACKAGE_UUID_MAP: Record<string, string> = {

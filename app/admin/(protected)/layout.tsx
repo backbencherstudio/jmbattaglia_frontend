@@ -49,9 +49,12 @@ export default function ProtectedAdminLayout({
 
     if (meResponse?.data) {
       const userData = meResponse.data;
+      const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN", "OFFICE_MANAGER", "INSPECTOR"];
+      const userRole = (userData.role || "") as string;
       const isAdmin =
-        userData.role === "ADMIN" ||
-        (Array.isArray(userData.roles) && userData.roles.includes("ADMIN"));
+        ADMIN_ROLES.includes(userRole) ||
+        (Array.isArray(userData.roles) &&
+          userData.roles.some((r: string) => ADMIN_ROLES.includes(r)));
 
       if (!isAdmin) {
         if (isMounted) {

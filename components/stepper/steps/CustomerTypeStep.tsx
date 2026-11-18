@@ -94,7 +94,7 @@ export const CustomerTypeStep: React.FC<StepProps> = ({
         });
         setLookupMessage({
           type: "info",
-          text: "No previous booking record found with this email. You can proceed as a new client.",
+          text: "Email address confirmed. Please proceed with your contact details.",
         });
       }
     } catch {

@@ -71,6 +71,12 @@ export const LEGACY_ADDON_UUID_MAP: Record<string, string> = {
   "thermal-imaging-addon-id": "76ec11d5-bcda-4e55-b461-ea3b715a3df8",
   "well-water-testing-addon-id": "80ff8ec1-79b8-4c8d-8a15-0bfa7c3bcfa7",
   "condo-foundation-id": "4f910406-38f9-46be-912a-4db5721752b5",
+  "termite-letter": "ce804441-8f91-4498-90af-da79a9b70ec7",
+  "termite-letter-addon-id": "ce804441-8f91-4498-90af-da79a9b70ec7",
+  "9f8b2d10-5e34-4b8c-a1d2-7c3e4f5a6b7c": "ce804441-8f91-4498-90af-da79a9b70ec7",
+  "radon-testing": "b8f550de-922f-4bbb-9457-5138cf091df3",
+  "radon-testing-addon-id": "b8f550de-922f-4bbb-9457-5138cf091df3",
+  "4e7a1b2c-3d4e-5f6a-7b8c-9d0e1f2a3b4c": "b8f550de-922f-4bbb-9457-5138cf091df3",
 };
 
 export const LEGACY_PACKAGE_UUID_MAP: Record<string, string> = {
@@ -78,7 +84,7 @@ export const LEGACY_PACKAGE_UUID_MAP: Record<string, string> = {
   "safe-home-package-1": "da540feb-c721-4da3-992a-8c7aeee37147",
   "residential-home": "bbbc1155-310f-11e3-80f0-22000afd1674",
   "d0d3f4f4-d184-4168-9e87-725f37bda9e9": "bbbc1155-310f-11e3-80f0-22000afd1674",
-  "radon-testing": "e3526673-db55-489b-9bc3-018ecfd32c1b",
+  "radon-testing": "b8f550de-922f-4bbb-9457-5138cf091df3",
   "pre-drywall": "c32cb328-765a-4239-a936-b35d2c04a1c5",
   "final-inspection": "10e8a223-122f-42fc-91d6-9d43994558a4",
 };
@@ -99,7 +105,7 @@ export const sanitizeServiceIds = (serviceIds?: (string | number)[] | null): str
   const mapped = serviceIds
     .map((id) => {
       const strId = String(id);
-      return isUuid(strId) ? strId : LEGACY_ADDON_UUID_MAP[strId] || null;
+      return LEGACY_ADDON_UUID_MAP[strId] || (isUuid(strId) ? strId : null);
     })
     .filter((id): id is string => Boolean(id) && isUuid(id));
 

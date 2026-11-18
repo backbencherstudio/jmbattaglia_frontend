@@ -329,13 +329,17 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
             <>
               <div className="flex justify-between items-center">
                 <span className="text-sub font-medium">{pkgTitle}:</span>
-                <span className="text-main font-bold text-right">+${pkgPriceNumeric.toLocaleString()}</span>
+                <span className="text-main font-bold text-right">
+                  {pkgPriceNumeric > 0 ? `+$${pkgPriceNumeric.toLocaleString()}` : "Quote Required"}
+                </span>
               </div>
 
               {selectedAddonsList.map((addon, idx) => (
                 <div key={idx} className="flex justify-between items-center">
                   <span className="text-sub font-medium">{addon?.title}:</span>
-                  <span className="text-main font-bold text-right">+${(addon?.priceNumeric || 0).toLocaleString()}</span>
+                  <span className="text-main font-bold text-right">
+                    {(addon?.priceNumeric || 0) > 0 ? `+$${(addon?.priceNumeric || 0).toLocaleString()}` : "Quote Required"}
+                  </span>
                 </div>
               ))}
             </>

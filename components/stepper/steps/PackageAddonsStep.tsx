@@ -286,7 +286,7 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
         id: singlePackage.id,
         title: singlePackage.name,
         isRecommended: Boolean(singlePackage.recommended || singlePackage.best),
-        priceText: singlePackage.formattedPrice || (singlePackage.price ? `$${singlePackage.price.toLocaleString()}` : "$0"),
+        priceText: singlePackage.formattedPrice || (singlePackage.price ? `$${singlePackage.price.toLocaleString()}` : "Quote Required"),
         priceNumeric: singlePackage.price ?? (singlePackage.priceCents ? singlePackage.priceCents / 100 : 0),
         priceSubLabel: singlePackage.type === "BUNDLE" ? "Bundle Price" : "Starting",
         description: singlePackage.description,
@@ -307,7 +307,7 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
       return {
         id,
         title: single?.name || fallback?.title || "Add-on",
-        priceText: single?.formattedPrice || (single?.price ? `$${single.price.toLocaleString()}` : fallback?.priceText || "$0"),
+        priceText: single?.formattedPrice || (single?.price ? `$${single.price.toLocaleString()}` : fallback?.priceText || "Quote Required"),
         priceNumeric: single?.price ?? (single?.priceCents ? single.priceCents / 100 : fallback?.priceNumeric || 0),
         image: single?.imageUrl || single?.mediaUrl || fallback?.image,
         whyItMatters: single?.whyItMatters || fallback?.whyItMatters,
@@ -338,7 +338,7 @@ export const PackageAddonsStep: React.FC<StepProps> = ({
       PACKAGE_INCLUDED_ITEMS[selectedPackageId] || [
         {
           name: activeSelectedPkgObj?.title || "Home Inspection",
-          priceText: activeSelectedPkgObj?.priceText || "$0",
+          priceText: activeSelectedPkgObj?.priceText || "Quote Required",
           priceNumeric: activeSelectedPkgObj?.priceNumeric || 0,
         },
       ]

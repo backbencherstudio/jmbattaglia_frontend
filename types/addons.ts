@@ -68,15 +68,15 @@ export interface GetAddonsQueryParams {
 
 export function formatAddonPrice(addon: ApiAddonItem): string {
   if (addon.formattedPrice) return addon.formattedPrice;
-  if (typeof addon.price === "number") return `$${addon.price}`;
-  if (typeof addon.priceCents === "number") {
+  if (typeof addon.price === "number" && addon.price > 0) return `$${addon.price}`;
+  if (typeof addon.priceCents === "number" && addon.priceCents > 0) {
     const dollars = addon.priceCents / 100;
     return `$${dollars.toLocaleString(undefined, {
       minimumFractionDigits: dollars % 1 === 0 ? 0 : 2,
       maximumFractionDigits: 2,
     })}`;
   }
-  return "$0";
+  return "Quote Required";
 }
 
 export function getAddonImage(addon: ApiAddonItem): string {

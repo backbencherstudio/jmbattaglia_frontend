@@ -73,12 +73,15 @@ export function WizardStepBasicInfo({
   const previewPrice = React.useMemo(() => {
     if (formData.quoteRequired) {
       const num = parseFloat((formData.price || "").replace(/[^0-9.]/g, ""));
-      return num > 0 ? `$${num.toLocaleString()}` : "Custom Quote";
+      return num > 0 ? `$${num.toLocaleString()}` : "Quote Required";
     }
-    if (!formData.price?.trim()) return "$0";
-    if (formData.price.startsWith("$")) return formData.price;
+    if (!formData.price?.trim()) return "Quote Required";
+    if (formData.price.startsWith("$")) {
+      const num = parseFloat(formData.price.replace(/[^0-9.]/g, ""));
+      return !num || num <= 0 ? "Quote Required" : formData.price;
+    }
     const num = parseFloat(formData.price.replace(/[^0-9.]/g, ""));
-    return isNaN(num) ? "$0" : `$${num.toLocaleString()}`;
+    return isNaN(num) || num <= 0 ? "Quote Required" : `$${num.toLocaleString()}`;
   }, [formData.price, formData.quoteRequired]);
 
   return (

@@ -193,36 +193,22 @@ export const DateTimeStep: React.FC<StepProps> = ({
     return allAppointments.length > 0 ? allAppointments[0].date : null;
   }, [availableSlotsOnDate, allAppointments, activeDate]);
 
-  // 7. Group slots strictly into 8:30 AM (Morning) and 1:00 PM (Afternoon)
+  // 7. Group slots into Morning and Afternoon preserving exact API slot time
   const { morningSlots, afternoonSlots, hasRealSlots } = useMemo(() => {
     if (availableSlotsOnDate.length > 0) {
-      const morningMap = new Map<string, AvailableSlotItem>();
-      const afternoonMap = new Map<string, AvailableSlotItem>();
+      const morning: AvailableSlotItem[] = [];
+      const afternoon: AvailableSlotItem[] = [];
 
       availableSlotsOnDate.forEach((slot) => {
-        const [hourStr, minStr] = (slot.time || "").split(":");
+        const [hourStr] = (slot.time || "").split(":");
         const hour = parseInt(hourStr, 10);
-        const min = parseInt(minStr || "0", 10);
-        const totalMinutes = hour * 60 + min;
 
-        // Morning Window strictly 8:30 AM (starts between 8:00 AM and 9:15 AM)
-        if (totalMinutes >= 480 && totalMinutes <= 555) {
-          const key = slot.inspectorId || "morning-default";
-          if (!morningMap.has(key)) {
-            morningMap.set(key, { ...slot, time: "08:30" });
-          }
-        }
-        // Afternoon Window strictly 1:00 PM (starts between 12:30 PM and 1:45 PM)
-        else if (totalMinutes >= 750 && totalMinutes <= 825) {
-          const key = slot.inspectorId || "afternoon-default";
-          if (!afternoonMap.has(key)) {
-            afternoonMap.set(key, { ...slot, time: "13:00" });
-          }
+        if (hour < 12) {
+          morning.push(slot);
+        } else {
+          afternoon.push(slot);
         }
       });
-
-      const morning = Array.from(morningMap.values());
-      const afternoon = Array.from(afternoonMap.values());
 
       if (morning.length > 0 || afternoon.length > 0) {
         return {

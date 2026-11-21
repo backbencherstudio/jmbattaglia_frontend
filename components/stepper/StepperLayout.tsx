@@ -40,7 +40,26 @@ export const StepperLayout: React.FC = () => {
   const [calculateQuote, { isLoading: isCalculatingQuote }] = useCalculateServiceQuoteMutation();
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  const isLocalEnv = React.useMemo(() => {
+    if (typeof window === "undefined") return true;
+    const host = window.location.hostname;
+    return (
+      host === "localhost" ||
+      host === "127.0.0.1" ||
+      host.startsWith("192.168.") ||
+      host.startsWith("10.") ||
+      Boolean(process.env.NEXT_PUBLIC_API_URL?.includes("localhost")) ||
+      Boolean(process.env.NEXT_PUBLIC_API_URL?.includes("127.0.0.1"))
+    );
+  }, []);
+
+  // Clear submission errors automatically whenever steps change
+  React.useEffect(() => {
+    setSubmitError(null);
+  }, [stepper.currentMainStepIndex, stepper.currentSubStepIndex]);
+
   const handleNavigateToStep = (mainStepId: string, subStepId: string) => {
+    setSubmitError(null);
     const mainIdx = stepper.steps.findIndex((s) => s.id === mainStepId);
     if (mainIdx !== -1) {
       const subIdx = stepper.steps[mainIdx].subSteps.findIndex((sub) => sub.id === subStepId);
@@ -48,6 +67,11 @@ export const StepperLayout: React.FC = () => {
         stepper.navigateToStep(mainIdx, subIdx);
       }
     }
+  };
+
+  const handlePreviousClick = () => {
+    setSubmitError(null);
+    stepper.goToBack();
   };
 
   const isReviewStep = stepper.currentSubStep?.id === "review";
@@ -129,7 +153,7 @@ export const StepperLayout: React.FC = () => {
         } catch (quoteErr: any) {
           console.warn("ISN quote calculation failed:", quoteErr);
           // In local dev/demo mode where live ISN keys are not configured, provide local fallback
-          if (process.env.NODE_ENV !== "production") {
+          if (isLocalEnv) {
             activeQuoteId = `LOCAL-QUOTE-${Date.now().toString(36).toUpperCase()}`;
             stepper.updateFormData({
               quoteId: activeQuoteId,
@@ -196,7 +220,7 @@ export const StepperLayout: React.FC = () => {
         stepper.completeOrder(orderData, finalOrderId);
       } catch (orderErr: any) {
         console.error("Order submission error:", orderErr);
-        if (process.env.NODE_ENV !== "production") {
+        if (isLocalEnv) {
           const mockOrderId = `DEMO-${Date.now().toString(36).toUpperCase()}`;
           stepper.completeOrder(
             {
@@ -305,7 +329,7 @@ export const StepperLayout: React.FC = () => {
               {renderActiveStepContent()}
 
               {/* Submission Error Alert */}
-              {submitError && (
+              {isReviewStep && submitError && (
                 <div className="mt-5 p-3.5 sm:p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs sm:text-sm flex items-start gap-2.5">
                   <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                   <div className="flex-1 font-medium">{submitError}</div>
@@ -335,7 +359,7 @@ export const StepperLayout: React.FC = () => {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={stepper.goToBack}
+                    onClick={handlePreviousClick}
                     disabled={stepper.isFirstStep || isSubmittingOrder}
                     className="px-6 py-2.5 sm:px-8 sm:py-3 rounded-lg text-xs sm:text-sm font-semibold"
                   >

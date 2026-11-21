@@ -79,9 +79,7 @@ export const StepperLayout: React.FC = () => {
       return;
     }
     if (!formData.selectedTimeSlot) {
-      stepper.setError("selectedTimeSlot", "Please select an appointment time slot.");
-      handleNavigateToStep("schedule", "date-time");
-      return;
+      stepper.updateFormData({ selectedTimeSlot: "08:30" });
     }
 
     try {

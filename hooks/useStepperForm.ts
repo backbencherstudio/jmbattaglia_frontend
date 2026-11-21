@@ -379,7 +379,11 @@ export const useStepperForm = (initialData: Partial<StepperFormData> = {}) => {
         newErrors.selectedDate = "Please select an inspection date.";
       }
       if (!formData.selectedTimeSlot) {
-        newErrors.selectedTimeSlot = "Please select an appointment time slot.";
+        if (formData.selectedDate) {
+          updateFormData({ selectedTimeSlot: "08:30" });
+        } else {
+          newErrors.selectedTimeSlot = "Please select an appointment time slot.";
+        }
       }
     }
 

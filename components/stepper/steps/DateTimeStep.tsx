@@ -219,28 +219,49 @@ export const DateTimeStep: React.FC<StepProps> = ({
       }
     }
 
+    // Standard preferred arrival windows (8:30 AM & 1:00 PM) when no live slots are returned
     return {
-      morningSlots: [],
-      afternoonSlots: [],
+      morningSlots: [
+        {
+          date: activeDate,
+          time: "08:30",
+          inspectorId: "standard-morning",
+          inspectorName: "Primary Assigned Inspector",
+          durationMinutes: formData.durationMinutes || 180,
+        },
+      ],
+      afternoonSlots: [
+        {
+          date: activeDate,
+          time: "13:00",
+          inspectorId: "standard-afternoon",
+          inspectorName: "Primary Assigned Inspector",
+          durationMinutes: formData.durationMinutes || 180,
+        },
+      ],
       hasRealSlots: false,
     };
-  }, [availableSlotsOnDate]);
+  }, [availableSlotsOnDate, activeDate, formData.durationMinutes]);
 
-  // 8. If a time slot was previously selected, clear it if it's no longer valid on the active date
+  // 8. Ensure active slot is always selected on the date
   useEffect(() => {
-    if (formData.selectedTimeSlot) {
-      const currentSelected24 = formatTimeSlotTo24h(formData.selectedTimeSlot);
-      const allSlotsOnCurrentDate = [...morningSlots, ...afternoonSlots];
-      const slotMatches = allSlotsOnCurrentDate.some((s) => s.time === currentSelected24);
-      if (!slotMatches) {
+    const allSlots = [...morningSlots, ...afternoonSlots];
+    if (allSlots.length > 0) {
+      const current24 = formData.selectedTimeSlot ? formatTimeSlotTo24h(formData.selectedTimeSlot) : "";
+      const exists = allSlots.some((s) => s.time === current24);
+      if (!exists || !formData.selectedTimeSlot) {
+        const first = allSlots[0];
         updateFormData({
-          selectedTimeSlot: "",
-          inspectorId: undefined,
-          inspectorName: undefined,
+          selectedDate: activeDate,
+          selectedTimeSlot: first.time,
+          inspectorId: first.inspectorId,
+          inspectorName: first.inspectorName,
+          durationMinutes: first.durationMinutes,
         });
+        clearError("selectedTimeSlot");
       }
     }
-  }, [activeDate, morningSlots, afternoonSlots, formData.selectedTimeSlot, updateFormData]);
+  }, [activeDate, morningSlots, afternoonSlots, formData.selectedTimeSlot, updateFormData, clearError]);
 
   // 9. Calendar Navigation Controls
   const isPrevMonthDisabled = useMemo(() => {
@@ -291,13 +312,16 @@ export const DateTimeStep: React.FC<StepProps> = ({
     const formattedDate = `${currentYear}-${String(currentMonthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     if (formattedDate < todayStr || formattedDate > maxDateStr) return;
 
+    const timeSlot = formData.selectedTimeSlot || "08:30";
     updateFormData({
       selectedDate: formattedDate,
-      selectedTimeSlot: "",
-      inspectorId: undefined,
-      inspectorName: undefined,
+      selectedTimeSlot: timeSlot,
+      inspectorId: "standard-morning",
+      inspectorName: "Primary Assigned Inspector",
+      durationMinutes: formData.durationMinutes || 180,
     });
     clearError("selectedDate");
+    clearError("selectedTimeSlot");
   };
 
   const handleSelectSlot = (slot: AvailableSlotItem) => {
